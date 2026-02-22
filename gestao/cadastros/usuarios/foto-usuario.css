@@ -1,0 +1,353 @@
+/* ============================================================
+   FOTO DO USUÁRIO - CADASTRO
+   Estilos para upload e pré-visualização de foto
+   ============================================================ */
+
+/* Estilos do formulário e cabeçalho */
+h1 {
+  margin-bottom: 30px;
+  margin-top: 0;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #e8e8e8;
+  font-size: 28px;
+}
+
+#gravaUsuario {
+  display: block;
+  width: 100%;
+}
+
+#gravaUsuario .row {
+  margin-left: -15px;
+  margin-right: -15px;
+}
+
+#gravaUsuario .row:first-of-type {
+  margin-top: 0;
+}
+
+/* Seção principal de foto */
+.foto-usuario-section {
+  margin-top: 30px;
+  padding-top: 25px;
+  border-top: 2px solid #e8e8e8;
+}
+
+.foto-titulo {
+  font-size: 18px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 20px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Container principal de foto */
+.foto-container {
+  background-color: #f9f9f9;
+  padding: 20px;
+  border-radius: 6px;
+  border: 1px solid #e0e0e0;
+}
+
+/* Caixa de pré-visualização */
+.preview-box {
+  text-align: center;
+}
+
+.preview-label {
+  display: block;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+.preview-image {
+  width: 150px !important;
+  height: 150px !important;
+  margin: 0 auto;
+  border: 2px dashed #999;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  background-color: #ffffff;
+  position: relative;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  min-width: 150px;
+  max-width: 150px;
+  min-height: 150px;
+  max-height: 150px;
+}
+
+.preview-image:hover {
+  border-color: #128c7e;
+  box-shadow: 0 2px 8px rgba(18, 140, 126, 0.15);
+}
+
+.preview-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: none;
+}
+
+.preview-image img:not(.hidden) {
+  display: block;
+}
+
+.preview-image img.hidden {
+  display: none;
+}
+
+.preview-image span {
+  color: #999;
+  font-size: 12px;
+  text-align: center;
+  padding: 10px;
+}
+
+/* Área de controles */
+.foto-controls {
+  padding: 0 15px;
+}
+
+.controls-label {
+  display: block;
+  font-weight: 600;
+  color: #555;
+  margin-bottom: 15px;
+  font-size: 14px;
+}
+
+/* Grupo de botões */
+.buttons-group {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.buttons-group .btn {
+  flex: 1;
+  min-width: 140px;
+  padding: 12px 16px;
+  font-weight: 500;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.buttons-group .btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.buttons-group .btn-info {
+  background-color: #17a2b8;
+  color: white;
+}
+
+.buttons-group .btn-info:hover {
+  background-color: #138496;
+}
+
+.buttons-group .btn-secondary {
+  background-color: #6c757d;
+  color: white;
+}
+
+.buttons-group .btn-secondary:hover {
+  background-color: #5a6268;
+}
+
+.buttons-group .btn-warning {
+  background-color: #ffc107;
+  color: #333;
+}
+
+.buttons-group .btn-warning:hover {
+  background-color: #e0a800;
+}
+
+.buttons-group .btn i {
+  margin-right: 6px;
+}
+
+/* Modal da câmera */
+.camera-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.75);
+  z-index: 10000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.camera-modal.hidden {
+  display: none;
+}
+
+.camera-modal-content {
+  background: white;
+  padding: 0;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.camera-modal-header {
+  background: linear-gradient(135deg, #128c7e 0%, #0f6b5f 100%);
+  color: white;
+  padding: 20px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.camera-title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.camera-modal-body {
+  flex: 1;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #f5f5f5;
+  min-height: 300px;
+}
+
+.camera-video {
+  max-width: 100%;
+  max-height: 100%;
+  width: auto;
+  height: auto;
+  border-radius: 4px;
+  background: black;
+  object-fit: contain;
+  display: block;
+}
+
+.camera-canvas {
+  width: 150px !important;
+  height: 150px !important;
+  border-radius: 50%;
+  background: black;
+  display: none;
+  min-width: 150px;
+  max-width: 150px;
+  min-height: 150px;
+  max-height: 150px;
+}
+
+.camera-video.hidden {
+  display: none;
+}
+
+.camera-modal-footer {
+  display: flex;
+  gap: 12px;
+  padding: 20px;
+  background-color: #fafafa;
+  border-top: 1px solid #e0e0e0;
+}
+
+.camera-modal-footer .btn {
+  flex: 1;
+  padding: 12px 16px;
+  font-weight: 500;
+  border-radius: 4px;
+  border: none;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+.camera-modal-footer .btn-primary {
+  background-color: #128c7e;
+  color: white;
+}
+
+.camera-modal-footer .btn-primary:hover {
+  background-color: #0f6b5f;
+}
+
+.camera-modal-footer .btn-danger {
+  background-color: #dc3545;
+  color: white;
+}
+
+.camera-modal-footer .btn-danger:hover {
+  background-color: #c82333;
+}
+
+/* Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* Responsivo */
+@media (max-width: 768px) {
+  .foto-container {
+    padding: 15px;
+  }
+
+  .buttons-group {
+    flex-direction: column;
+  }
+
+  .buttons-group .btn {
+    min-width: auto;
+    width: 100%;
+  }
+
+  .camera-modal-content {
+    max-width: 95%;
+    min-height: 400px;
+  }
+}
+
+@media (max-width: 576px) {
+  .foto-usuario-section {
+    padding-top: 20px;
+    margin-top: 20px;
+  }
+
+  .buttons-group {
+    gap: 8px;
+  }
+
+  .buttons-group .btn {
+    padding: 10px 12px;
+    font-size: 12px;
+  }
+
+  .buttons-group .btn i {
+    margin-right: 4px;
+  }
+}

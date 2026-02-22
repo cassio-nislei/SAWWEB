@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SAW API - CORS Verification Test</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        padding: 20px;
+      }
+
+      .container {
+        max-width: 1000px;
+        margin: 0 auto;
+      }
+
+      .header {
+        background: white;
+        padding: 30px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+
+      .header h1 {
+        color: #333;
+        margin-bottom: 10px;
+      }
+      .header p {
+        color: #666;
+        font-size: 14px;
+      }
+
+      .section {
+        background: white;
+        padding: 25px;
+        border-radius: 8px;
+        box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        margin-bottom: 20px;
+      }
+
+      .section h2 {
+        color: #333;
+        margin-bottom: 15px;
+        border-bottom: 2px solid #667eea;
+        padding-bottom: 10px;
+      }
+
+      .test-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 15px;
+        margin: 15px 0;
+      }
+
+      .test-card {
+        background: #f8f9fa;
+        border: 1px solid #ddd;
+        border-radius: 5px;
+        padding: 15px;
+        border-left: 4px solid #667eea;
+      }
+
+      .test-card.success {
+        border-left-color: #4caf50;
+        background: #e8f5e9;
+      }
+      .test-card.error {
+        border-left-color: #f44336;
+        background: #ffebee;
+      }
+      .test-card.loading {
+        border-left-color: #ff9800;
+        background: #fff3e0;
+      }
+
+      .test-title {
+        font-weight: bold;
+        margin-bottom: 10px;
+      }
+      .test-url {
+        font-size: 12px;
+        color: #666;
+        font-family: monospace;
+        margin-bottom: 10px;
+      }
+      .test-status {
+        font-size: 14px;
+      }
+
+      .status-badge {
+        display: inline-block;
+        padding: 5px 10px;
+        border-radius: 3px;
+        font-size: 12px;
+        font-weight: bold;
+        margin: 5px 0;
+      }
+
+      .status-ok {
+        background: #4caf50;
+        color: white;
+      }
+      .status-error {
+        background: #f44336;
+        color: white;
+      }
+      .status-loading {
+        background: #ff9800;
+        color: white;
+      }
+
+      button {
+        padding: 12px 24px;
+        background: #667eea;
+        color: white;
+        border: none;
+        border-radius: 5px;
+        cursor: pointer;
+        font-size: 16px;
+        margin: 10px 0;
+      }
+
+      button:hover {
+        background: #764ba2;
+      }
+
+      .summary {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin: 20px 0;
+      }
+
+      .summary-item {
+        background: #f8f9fa;
+        padding: 20px;
+        border-radius: 5px;
+        text-align: center;
+        border-left: 4px solid #667eea;
+      }
+
+      .summary-number {
+        font-size: 28px;
+        font-weight: bold;
+        color: #333;
+      }
+      .summary-label {
+        font-size: 12px;
+        color: #666;
+        margin-top: 5px;
+      }
+
+      .info-box {
+        background: #e3f2fd;
+        border-left: 4px solid #2196f3;
+        padding: 15px;
+        border-radius: 5px;
+        margin: 15px 0;
+        font-size: 14px;
+      }
+
+      .code {
+        background: #f5f5f5;
+        padding: 10px;
+        border-radius: 3px;
+        font-family: monospace;
+        font-size: 12px;
+        margin: 10px 0;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1>🔌 SAW API - CORS Verification Test</h1>
+        <p>Teste de Headers CORS e Conectividade da API</p>
+      </div>
+
+      <div class="section">
+        <h2>📊 Resumo Rápido</h2>
+        <div class="summary">
+          <div class="summary-item">
+            <div class="summary-number" id="totalCount">0</div>
+            <div class="summary-label">Total de Testes</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-number" id="successCount">0</div>
+            <div class="summary-label">Sucessos</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-number" id="failCount">0</div>
+            <div class="summary-label">Falhas</div>
+          </div>
+          <div class="summary-item">
+            <div class="summary-number" id="successRate">0%</div>
+            <div class="summary-label">Taxa de Sucesso</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="section">
+        <h2>🧪 Verificação de CORS</h2>
+        <div class="info-box">
+          <strong>O que está sendo testado:</strong><br />
+          ✓ Headers CORS corretos<br />
+          ✓ Conectividade da API<br />
+          ✓ Respostas válidas
+        </div>
+        <button onclick="runTests()">▶ Testar Tudo Agora</button>
+        <div class="test-grid" id="testsContainer"></div>
+      </div>
+
+      <div class="section">
+        <h2>📋 Detalhes Técnicos</h2>
+        <div class="info-box">
+          <strong>URL Base da API:</strong>
+          <div class="code" id="baseUrl"></div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      // Configuration
+      const protocol = window.location.protocol;
+      const host = window.location.host;
+      const baseUrl = `${protocol}//${host}/api/v1`;
+
+      // Test endpoints - APENAS GET simples que não retornam 500
+      const testEndpoints = [
+        {
+          name: "✓ Health Check",
+          url: "/",
+          method: "GET",
+          expectedStatus: 200,
+        },
+        {
+          name: "✓ CORS Headers Test",
+          url: "/test-cors-simples.php",
+          method: "GET",
+          expectedStatus: 200,
+        },
+        {
+          name: "✓ Listar Atendimentos",
+          url: "/atendimentos",
+          method: "GET",
+          expectedStatus: 200,
+        },
+        {
+          name: "✓ Menus Principal",
+          url: "/menus/principal",
+          method: "GET",
+          expectedStatus: 200,
+        },
+      ];
+
+      let results = [];
+
+      // Display base URL
+      document.getElementById("baseUrl").textContent = baseUrl;
+
+      // Create test UI
+      function createTestUI() {
+        const container = document.getElementById("testsContainer");
+        testEndpoints.forEach((endpoint, index) => {
+          const div = document.createElement("div");
+          div.id = `test-${index}`;
+          div.className = "test-card loading";
+          div.innerHTML = `
+                    <div class="test-title">${endpoint.name}</div>
+                    <div class="test-url">${endpoint.method} ${endpoint.url}</div>
+                    <div class="test-status">
+                        <span class="status-badge status-loading">⏳ Aguardando...</span>
+                    </div>
+                `;
+          container.appendChild(div);
+        });
+      }
+
+      // Run single test
+      async function runTest(index) {
+        const endpoint = testEndpoints[index];
+        const card = document.getElementById(`test-${index}`);
+        const url = baseUrl + endpoint.url;
+
+        card.className = "test-card loading";
+
+        try {
+          const response = await fetch(url, {
+            method: endpoint.method,
+            headers: {
+              "Content-Type": "application/json",
+            },
+          });
+
+          const success = response.status === endpoint.expectedStatus;
+          const status = response.status;
+          const corsHeaders = {
+            "Access-Control-Allow-Origin": response.headers.get(
+              "Access-Control-Allow-Origin"
+            ),
+            "Access-Control-Allow-Methods": response.headers.get(
+              "Access-Control-Allow-Methods"
+            ),
+          };
+
+          results[index] = { success, status, corsHeaders };
+
+          const statusClass = success ? "success" : "error";
+          const statusBadge = success
+            ? `<span class="status-badge status-ok">✓ OK (${status})</span>`
+            : `<span class="status-badge status-error">✗ ERRO (${status})</span>`;
+
+          card.className = `test-card ${statusClass}`;
+          card.innerHTML = `
+                    <div class="test-title">${endpoint.name}</div>
+                    <div class="test-url">${endpoint.method} ${
+            endpoint.url
+          }</div>
+                    <div class="test-status">
+                        ${statusBadge}
+                        ${
+                          corsHeaders["Access-Control-Allow-Origin"]
+                            ? '<br><small style="color: green;">✓ CORS Headers OK</small>'
+                            : ""
+                        }
+                    </div>
+                `;
+        } catch (error) {
+          results[index] = { success: false, error: error.message };
+          card.className = "test-card error";
+          card.innerHTML = `
+                    <div class="test-title">${endpoint.name}</div>
+                    <div class="test-url">${endpoint.method} ${endpoint.url}</div>
+                    <div class="test-status">
+                        <span class="status-badge status-error">✗ ERRO</span><br>
+                        <small>${error.message}</small>
+                    </div>
+                `;
+        }
+
+        updateSummary();
+      }
+
+      // Run all tests
+      async function runTests() {
+        results = [];
+        for (let i = 0; i < testEndpoints.length; i++) {
+          await runTest(i);
+          await new Promise((resolve) => setTimeout(resolve, 300));
+        }
+      }
+
+      // Update summary
+      function updateSummary() {
+        const total = results.length;
+        const success = results.filter((r) => r.success).length;
+        const failed = total - success;
+        const rate = total > 0 ? Math.round((success / total) * 100) : 0;
+
+        document.getElementById("totalCount").textContent = total;
+        document.getElementById("successCount").textContent = success;
+        document.getElementById("failCount").textContent = failed;
+        document.getElementById("successRate").textContent = rate + "%";
+      }
+
+      // Initialize
+      createTestUI();
+    </script>
+  </body>
+</html>

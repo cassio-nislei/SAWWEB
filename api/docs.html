@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SAW API - Swagger UI</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@3/swagger-ui.css"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@3/favicon-32x32.png"
+      sizes="32x32"
+    />
+    <style>
+      html {
+        box-sizing: border-box;
+        overflow-y: scroll;
+      }
+      *,
+      *:before,
+      *:after {
+        box-sizing: inherit;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+        background: #fafafa;
+      }
+      .topbar-custom {
+        background-color: #1a1a1a;
+        padding: 15px;
+        color: white;
+        border-bottom: 3px solid #4caf50;
+      }
+      .topbar-custom h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+      }
+      .topbar-custom p {
+        margin: 5px 0 0 0;
+        font-size: 12px;
+        opacity: 0.8;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar-custom">
+      <h1>🔌 SAW API - Swagger Documentation</h1>
+      <p>Sistema de Atendimento Web - API RESTful v1.0.0</p>
+    </div>
+    <div id="swagger-ui"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@3/swagger-ui.js"></script>
+    <script>
+      // URL do swagger.json
+      const protocol = window.location.protocol;
+      const host = window.location.host;
+
+      // Tentar obter o caminho correto
+      let swaggerUrl = protocol + "//" + host + "/api/swagger.json";
+
+      console.log("Swagger UI inicializando...");
+      console.log("URL do Swagger: " + swaggerUrl);
+
+      // Inicializar Swagger UI
+      window.onload = function () {
+        const ui = SwaggerUIBundle({
+          url: swaggerUrl,
+          dom_id: "#swagger-ui",
+          presets: [
+            SwaggerUIBundle.presets.apis,
+            SwaggerUIBundle.SwaggerUIStandalonePreset,
+          ],
+          plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+          layout: "BaseLayout",
+          deepLinking: true,
+          preloadContent: true,
+          docExpansion: "list",
+          defaultModelsExpandDepth: 1,
+          defaultModelExpandDepth: 1,
+          filter: true,
+          showRequestHeaders: true,
+          supportedSubmitMethods: [
+            "get",
+            "post",
+            "put",
+            "delete",
+            "patch",
+            "options",
+            "head",
+            "trace",
+          ],
+          onComplete: function () {
+            console.log("✅ Swagger UI carregado com sucesso!");
+          },
+          onFailure: function (error) {
+            console.error("❌ Erro ao carregar Swagger:", error);
+            // Tentar URL alternativa
+            console.log("Tentando URL alternativa...");
+            SwaggerUIBundle({
+              url: protocol + "//" + host + "/api/swagger-json.php",
+              dom_id: "#swagger-ui",
+              presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIBundle.SwaggerUIStandalonePreset,
+              ],
+              layout: "BaseLayout",
+            });
+          },
+        });
+
+        window.ui = ui;
+      };
+    </script>
+  </body>
+</html>

@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   sodipodi:docname="check.svg"
+   inkscape:version="1.0 (4035a4fb49, 2020-05-01)"
+   id="svg2106"
+   version="1.1"
+   viewBox="0 0 8.5 8.5"
+   height="8.5mm"
+   width="8.5mm">
+  <defs
+     id="defs2100" />
+  <sodipodi:namedview
+     inkscape:window-maximized="0"
+     inkscape:window-y="0"
+     inkscape:window-x="0"
+     inkscape:window-height="728"
+     inkscape:window-width="1344"
+     showgrid="false"
+     inkscape:document-rotation="0"
+     inkscape:current-layer="layer1"
+     inkscape:document-units="mm"
+     inkscape:cy="10.737279"
+     inkscape:cx="40.813459"
+     inkscape:zoom="7.9195959"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base" />
+  <metadata
+     id="metadata2103">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     inkscape:groupmode="layer"
+     inkscape:label="Layer 1">
+    <path
+       sodipodi:nodetypes="ccccccccccc"
+       id="path2675"
+       d="m 0.55622432,3.7986748 2.87220938,4.4550027 4.8366946,-7.72432 c 0.0251,-0.1200634 0.02474,-0.2331808 -0.124495,-0.3056984 l -1.293253,-0.00343 c -0.306706,0.019316 -0.319034,0.092042 -0.478641,0.3030001 L 3.3934498,5.1683725 2.3979432,3.5151862 C 2.2943303,3.2893412 2.1723602,3.2618395 2.0548694,3.2508997 l -1.39514928,0.029656 c -0.2480437,0.044151 -0.2229157,0.3263719 -0.1034958,0.5181191 z"
+       style="fill:#ffffff;stroke:#ffffff;stroke-width:0.191;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1;stroke-miterlimit:4;stroke-dasharray:none" />
+  </g>
+</svg>

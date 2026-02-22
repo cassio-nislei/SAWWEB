@@ -1,0 +1,58 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+
+    container_name: whatsaap-api
+    restart: unless-stopped
+
+    volumes:
+      - ./:/var/www/html/
+      - ./logs/apache:/var/log/apache2/
+      - ./logs/php:/var/log/php/
+      - ./apache-config.conf:/etc/apache2/conf-available/saw-config.conf:ro
+      - ./.htaccess:/var/www/html/.htaccess:ro
+
+    environment:
+      DB_HOST: ${DB_HOST:-db.remote}
+      DB_USER: ${DB_USER:-root}
+      DB_PASS: ${DB_PASS:-root}
+      DB_NAME: ${DB_NAME:-saw_quality}
+      DB_PORT: ${DB_PORT:-3306}
+
+      PHP_DISPLAY_ERRORS: "On"
+      PHP_ERROR_REPORTING: "E_ALL"
+      PHP_MEMORY_LIMIT: "256M"
+      PHP_UPLOAD_MAX_FILESIZE: "50M"
+      PHP_POST_MAX_SIZE: "50M"
+      PHP_MAX_EXECUTION_TIME: "300"
+
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=public
+
+      # Router HTTPS
+      - traefik.http.routers.whatsaap.rule=Host(`whatsaap.easilybr.com.br`)
+      - traefik.http.routers.whatsaap.entrypoints=websecure
+      - traefik.http.routers.whatsaap.tls=true
+      - traefik.http.routers.whatsaap.tls.certresolver=le
+
+      # Router HTTP (redirect)
+      - traefik.http.routers.whatsaap-http.rule=Host(`whatsaap.easilybr.com.br`)
+      - traefik.http.routers.whatsaap-http.entrypoints=web
+      - traefik.http.routers.whatsaap-http.middlewares=redirect-to-https
+
+      # Service interno
+      - traefik.http.services.whatsaap.loadbalancer.server.port=80
+
+      # Middleware redirect
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.scheme=https
+      - traefik.http.middlewares.redirect-to-https.redirectscheme.permanent=true
+
+    networks:
+      - public
+
+networks:
+  public:
+    external: true

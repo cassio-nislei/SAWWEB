@@ -1,0 +1,209 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SAW API - Swagger Documentation</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://unpkg.com/swagger-ui-dist@3/swagger-ui.css"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://unpkg.com/swagger-ui-dist@3/favicon-32x32.png"
+      sizes="32x32"
+    />
+    <style>
+      html {
+        box-sizing: border-box;
+        overflow-y: scroll;
+      }
+      *,
+      *:before,
+      *:after {
+        box-sizing: inherit;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fafafa;
+      }
+      .topbar {
+        background-color: #1a1a1a;
+        padding: 15px;
+        color: white;
+        border-bottom: 3px solid #4caf50;
+      }
+      .topbar h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+      }
+      .topbar p {
+        margin: 5px 0 0 0;
+        font-size: 12px;
+        opacity: 0.8;
+      }
+      .info-banner {
+        background-color: #e8f5e9;
+        border-left: 4px solid #4caf50;
+        padding: 12px 15px;
+        margin: 10px;
+        border-radius: 4px;
+        font-size: 12px;
+      }
+      .info-banner.error {
+        background-color: #ffebee;
+        border-left-color: #f44336;
+      }
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+      }
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #4caf50;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <h1>🔌 SAW API - Swagger Documentation</h1>
+      <p>Sistema de Atendimento Web - API RESTful v2.0.0</p>
+    </div>
+    <div id="info"></div>
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Carregando especificação...</p>
+    </div>
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-standalone-preset.js"></script>
+    <script>
+      // Aguardar que a página esteja completamente carregada
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("🔄 Iniciando carregamento de Swagger");
+
+        // Detectar URL base
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const pathname = window.location.pathname;
+
+        let baseUrl = protocol + "//" + host;
+        if (pathname.includes("/SAW-main/api")) {
+          baseUrl += "/SAW-main/api";
+        } else if (pathname.includes("/api")) {
+          baseUrl += "/api";
+        }
+
+        const swaggerPhpUrl = baseUrl + "/swagger.php";
+        const infoDiv = document.getElementById("info");
+        const loadingDiv = document.getElementById("loading");
+
+        console.log("📍 Base:", baseUrl);
+        console.log("🔗 Carregando de:", swaggerPhpUrl);
+
+        // Fazer fetch do swagger.php
+        fetch(swaggerPhpUrl, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+          // NÃO usar credenciais para evitar CORS
+          credentials: "omit",
+        })
+          .then((response) => {
+            console.log("📡 Response status:", response.status);
+
+            if (!response.ok) {
+              throw new Error(
+                `HTTP ${response.status}: ${response.statusText}`
+              );
+            }
+
+            return response.json();
+          })
+          .then((spec) => {
+            console.log("✅ JSON carregado");
+            console.log("📊 Endpoints:", Object.keys(spec.paths || {}).length);
+
+            // Ocultar loading
+            loadingDiv.style.display = "none";
+
+            // Mostrar sucesso
+            infoDiv.innerHTML = `<div class="info-banner">✅ Especificação carregada com ${
+              Object.keys(spec.paths).length
+            } endpoints</div>`;
+
+            // Adicionar delay pequeno para garantir que DOM está pronto
+            setTimeout(() => {
+              try {
+                // Inicializar Swagger UI com spec carregada
+                const ui = SwaggerUIBundle({
+                  // USAR spec já carregada, NÃO url
+                  spec: spec,
+
+                  // DOM
+                  dom_id: "#swagger-ui",
+                  deepLinking: true,
+                  preloadContent: true,
+
+                  // Presets e plugins
+                  presets: [
+                    SwaggerUIBundle.presets.apis,
+                    SwaggerUIBundle.SwaggerUIStandalonePreset,
+                  ],
+                  plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+
+                  // Layout
+                  layout: "BaseLayout",
+
+                  // Callbacks
+                  onComplete: function () {
+                    console.log("✅ Swagger UI renderizado com sucesso");
+                  },
+
+                  onFailure: function (err) {
+                    console.error("❌ Erro Swagger UI:", err);
+                    infoDiv.innerHTML = `<div class="info-banner error">❌ Erro: ${err}</div>`;
+                  },
+                });
+
+                window.ui = ui;
+              } catch (err) {
+                console.error("❌ Erro ao inicializar:", err);
+                infoDiv.innerHTML = `<div class="info-banner error">❌ Erro: ${err.message}</div>`;
+              }
+            }, 100);
+          })
+          .catch((error) => {
+            console.error("❌ Erro ao carregar JSON:", error);
+            loadingDiv.innerHTML = `<div class="info-banner error">
+            <strong>❌ Erro ao carregar</strong><br>
+            ${error.message}<br><br>
+            <strong>Debug:</strong><br>
+            Verifique F12 Console para mais detalhes
+          </div>`;
+            loadingDiv.style.display = "block";
+          });
+      });
+    </script>
+  </body>
+</html>

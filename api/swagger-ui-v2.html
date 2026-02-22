@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SAW API - Swagger UI (Local Load)</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://unpkg.com/swagger-ui-dist@3/swagger-ui.css"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://unpkg.com/swagger-ui-dist@3/favicon-32x32.png"
+      sizes="32x32"
+    />
+    <style>
+      html {
+        box-sizing: border-box;
+        overflow-y: scroll;
+      }
+      *,
+      *:before,
+      *:after {
+        box-sizing: inherit;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fafafa;
+      }
+      .topbar {
+        background-color: #1a1a1a;
+        padding: 15px;
+        color: white;
+        border-bottom: 3px solid #4caf50;
+      }
+      .topbar h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+      }
+      .topbar p {
+        margin: 5px 0 0 0;
+        font-size: 12px;
+        opacity: 0.8;
+      }
+      .info-banner {
+        background-color: #e8f5e9;
+        border-left: 4px solid #4caf50;
+        padding: 12px 15px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-size: 12px;
+      }
+      .info-banner.warning {
+        background-color: #fff3e0;
+        border-left-color: #ff9800;
+      }
+      .info-banner.error {
+        background-color: #ffebee;
+        border-left-color: #f44336;
+      }
+      .loading {
+        text-align: center;
+        padding: 40px;
+        font-size: 18px;
+        color: #666;
+      }
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #4caf50;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <h1>🔌 SAW API - Swagger Documentation</h1>
+      <p>Sistema de Atendimento Web - API RESTful v2.0.0</p>
+    </div>
+    <div id="info-message"></div>
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Carregando especificação Swagger...</p>
+    </div>
+    <div id="swagger-ui" style="display: none"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-standalone-preset.js"></script>
+    <script>
+      window.onload = function () {
+        const infoDiv = document.getElementById("info-message");
+        const loadingDiv = document.getElementById("loading");
+        const swaggerDiv = document.getElementById("swagger-ui");
+
+        // Estratégia: Carregar JSON via fetch, passar diretamente para Swagger UI
+        // Isso evita requisições cross-origin durante init
+
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const pathname = window.location.pathname;
+
+        let swaggerUrl = "";
+
+        // Usar swagger.php que está no mesmo diretório
+        if (pathname.includes("/SAW-main/api")) {
+          swaggerUrl = protocol + "//" + host + "/SAW-main/api/swagger.php";
+        } else if (pathname.includes("/api")) {
+          swaggerUrl = protocol + "//" + host + "/api/swagger.php";
+        } else {
+          swaggerUrl = protocol + "//" + host + "/SAW-main/api/swagger.php";
+        }
+
+        console.log("📍 Locação:", window.location.href);
+        console.log("🔗 Carregando de:", swaggerUrl);
+
+        infoDiv.innerHTML = `<div class="info-banner">📡 Carregando especificação de: <strong>${swaggerUrl}</strong></div>`;
+
+        // Fazer fetch sem tentar passar cross-origin
+        fetch(swaggerUrl, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        })
+          .then((response) => {
+            if (!response.ok) {
+              throw new Error(
+                `HTTP ${response.status}: ${response.statusText}`
+              );
+            }
+            return response.json();
+          })
+          .then((spec) => {
+            console.log(
+              "✅ JSON carregado:",
+              Object.keys(spec.paths).length,
+              "endpoints"
+            );
+
+            // Ocultar loading, mostrar swagger-ui
+            loadingDiv.style.display = "none";
+            swaggerDiv.style.display = "block";
+
+            // Inicializar Swagger UI com o spec já carregado (não via URL)
+            window.ui = SwaggerUIBundle({
+              spec: spec, // Passar spec diretamente, não URL
+              dom_id: "#swagger-ui",
+              deepLinking: true,
+              preloadContent: true,
+              presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIBundle.SwaggerUIStandalonePreset,
+              ],
+              plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+              layout: "BaseLayout",
+              onComplete: function () {
+                console.log("✅ Swagger UI iniciado com sucesso");
+                infoDiv.innerHTML = `<div class="info-banner">✅ Documentação carregada! (${
+                  Object.keys(spec.paths).length
+                } endpoints)</div>`;
+              },
+              onFailure: function (error) {
+                console.error("❌ Erro no Swagger UI:", error);
+                infoDiv.innerHTML = `<div class="info-banner error">
+                ❌ Erro ao inicializar Swagger UI: ${error}
+              </div>`;
+              },
+            });
+          })
+          .catch((error) => {
+            console.error("❌ Erro ao carregar JSON:", error);
+            loadingDiv.innerHTML = `<div class="info-banner error">
+            <strong>❌ Erro ao carregar especificação</strong><br>
+            URL: <strong>${swaggerUrl}</strong><br>
+            Erro: <strong>${error.message}</strong><br><br>
+            <strong>Passos para debug:</strong>
+            <ol>
+              <li>Abra F12 → Console para ver erros</li>
+              <li>Recarregue a página (Ctrl+R ou Cmd+R)</li>
+              <li>Verifique se a URL retorna JSON: <code>${swaggerUrl}</code></li>
+              <li>Verifique se swagger.php existe em /api/</li>
+            </ol>
+          </div>`;
+            loadingDiv.style.display = "block";
+          });
+      };
+    </script>
+  </body>
+</html>

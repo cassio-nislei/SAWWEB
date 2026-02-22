@@ -1,0 +1,113 @@
+/* ========================================
+   FIX: Painel Edit Profile - Encaixe Correto
+   ======================================== */
+
+/* Container principal deve ser relativo para posicionar absoluto */
+.two #app-content .MZIyP {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+}
+
+/* Div container do painel */
+.two #app-content ._3q4NP.k1feT {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Ajuste do painel edit profile */
+.two #app-content #panel-edit-profile {
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  transform: none !important;
+  display: flex;
+  flex-direction: column;
+  z-index: 999;
+  pointer-events: auto;
+  opacity: 1;
+  visibility: visible;
+  background: #fff;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
+  border-radius: 0;
+}
+
+/* Assegurar que o painel não tem margins */
+.two #app-content #panel-edit-profile,
+.two #app-content #panel-edit-profile > * {
+  margin: 0;
+  padding: 0;
+}
+
+/* Div interna do painel */
+.two #app-content #panel-edit-profile ._2fq0t {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+}
+
+/* Header do painel */
+.two #app-content #panel-edit-profile header._1FroB {
+  flex-shrink: 0;
+}
+
+/* Conteúdo scrollável */
+.two #app-content #panel-edit-profile ._2sNbV {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  width: 100%;
+}
+
+/* Animação de abertura mantida mas sem usar posição fixa */
+.panel-left {
+  position: absolute !important;
+  height: 100% !important;
+  left: 0 !important;
+  top: 0 !important;
+  transform: none !important;
+  transition:
+    opacity 0.3s ease-in-out,
+    visibility 0.3s ease-in-out;
+  width: 100% !important;
+  z-index: 999 !important;
+  pointer-events: auto !important;
+  opacity: 0 !important;
+  visibility: hidden !important;
+  background: #fff !important;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+.panel-left.open {
+  transform: none !important;
+  left: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* Responsivo para telas menores */
+@media screen and (max-width: 1200px) {
+  .two #app-content #panel-edit-profile {
+    width: 100% !important;
+  }
+}
+
+@media screen and (max-width: 768px) {
+  .two #app-content #panel-edit-profile {
+    width: 100% !important;
+    height: 100% !important;
+  }
+
+  .two #app-content #panel-edit-profile ._2sNbV {
+    padding: 15px;
+  }
+}

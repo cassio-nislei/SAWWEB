@@ -1,0 +1,1055 @@
+﻿<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SAW API - Swagger Documentation</title>
+    <link rel="stylesheet" type="text/css" href="https://unpkg.com/swagger-ui-dist@3/swagger-ui.css" />
+    <link rel="icon" type="image/png" href="https://unpkg.com/swagger-ui-dist@3/favicon-32x32.png" sizes="32x32" />
+    <style>
+      html, body { margin: 0; padding: 0; background: #fafafa; }
+      .topbar { background-color: #1a1a1a; padding: 15px; color: white; border-bottom: 3px solid #4caf50; }
+      .topbar h1 { margin: 0; font-size: 24px; }
+      .topbar p { margin: 5px 0 0 0; font-size: 12px; opacity: 0.8; }
+    </style>
+</head>
+<body>
+    <div class="topbar">
+        <h1> SAW API - Swagger Documentation</h1>
+        <p>Sistema de Atendimento Web - API RESTful v2.0.0</p>
+    </div>
+    <div id="swagger-ui"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-standalone-preset.js"></script>
+    <script>
+      // JSON EMBUTIDO DIRETAMENTE - SEM FETCH, SEM CORS
+      const swaggerSpec = {
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SAW API - Sistema de Atendimento Web Rest",
+    "description": "API RESTful completa em PHP puro para gerenciamento de atendimentos, mensagens, anexos, contatos, agendamentos e configuraÃ§Ãµes. Suporta JWT para autenticaÃ§Ã£o.",
+    "version": "2.0.0",
+    "contact": {
+      "name": "Suporte SAW",
+      "email": "suporte@saw.local"
+    },
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost/SAW-main/api/v1",
+      "description": "Servidor de Desenvolvimento"
+    },
+    {
+      "url": "http://104.234.173.105:7080/api/v1",
+      "description": "Servidor de ProduÃ§Ã£o"
+    },
+    {
+      "url": "https://api.saw.local/v1",
+      "description": "Servidor de ProduÃ§Ã£o HTTPS"
+    }
+  ],
+  "tags": [
+    { "name": "Health", "description": "Status e verificaÃ§Ã£o da API" },
+    { "name": "AutenticaÃ§Ã£o", "description": "Endpoints de autenticaÃ§Ã£o" },
+    { "name": "Atendimentos", "description": "Gerenciamento de atendimentos" },
+    { "name": "Mensagens", "description": "Gerenciamento de mensagens" },
+    { "name": "Anexos", "description": "Upload e gerenciamento de anexos" },
+    { "name": "Contatos", "description": "Gerenciamento de contatos" },
+    { "name": "Agendamentos", "description": "Gerenciamento de agendamentos" },
+    { "name": "ParÃ¢metros", "description": "ConfiguraÃ§Ãµes do sistema" },
+    { "name": "Menus", "description": "Gerenciamento de menus" },
+    { "name": "Respostas", "description": "Respostas automÃ¡ticas" },
+    { "name": "HorÃ¡rios", "description": "HorÃ¡rios de funcionamento" },
+    {
+      "name": "Departamentos",
+      "description": "Gerenciamento de departamentos"
+    },
+    { "name": "Avisos", "description": "Gerenciamento de avisos" }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": ["Health"],
+        "summary": "Health Check",
+        "description": "Verifica se a API estÃ¡ funcionando",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "API operacional",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/SuccessResponse" }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": ["AutenticaÃ§Ã£o"],
+        "summary": "Login",
+        "description": "Autentica usuÃ¡rio e retorna token JWT",
+        "operationId": "authLogin",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "login": { "type": "string", "example": "admin" },
+                  "senha": { "type": "string", "example": "123456" }
+                },
+                "required": ["login", "senha"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login bem-sucedido",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/LoginResponse" }
+              }
+            }
+          },
+          "401": { "description": "Credenciais invÃ¡lidas" }
+        }
+      }
+    },
+    "/atendimentos": {
+      "get": {
+        "tags": ["Atendimentos"],
+        "summary": "Listar atendimentos",
+        "operationId": "listAtendimentos",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": { "type": "integer", "default": 1 }
+          },
+          {
+            "name": "perPage",
+            "in": "query",
+            "schema": { "type": "integer", "default": 20 }
+          },
+          { "name": "situacao", "in": "query", "schema": { "type": "string" } }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de atendimentos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AtendimentoListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": ["Atendimentos"],
+        "summary": "Criar novo atendimento (P2: sprGeraNovoAtendimento)",
+        "operationId": "createAtendimento",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "numero": {
+                    "type": "string",
+                    "description": "NÃºmero de telefone/identificador"
+                  },
+                  "nome": {
+                    "type": "string",
+                    "description": "Nome do cliente"
+                  },
+                  "id_atendente": {
+                    "type": "integer",
+                    "description": "ID do atendente (opcional)"
+                  },
+                  "nome_atendente": {
+                    "type": "string",
+                    "description": "Nome do atendente (opcional)"
+                  },
+                  "situacao": {
+                    "type": "string",
+                    "enum": ["P", "A", "T", "F"],
+                    "description": "Pendente, Atendendo, Triagem, Finalizado (padrÃ£o: P)"
+                  },
+                  "canal": {
+                    "type": "string",
+                    "description": "Canal de comunicaÃ§Ã£o: WhatsApp, Telegram, Chat, Email (opcional)"
+                  },
+                  "setor": {
+                    "type": "string",
+                    "description": "Setor responsÃ¡vel (opcional)"
+                  }
+                },
+                "required": ["numero", "nome"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Atendimento criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": { "type": "integer" },
+                        "login": { "type": "string" },
+                        "nome": { "type": "string" },
+                        "situacao": { "type": "string" }
+                      }
+                    },
+                    "mensagem": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "ParÃ¢metros obrigatÃ³rios ausentes" },
+          "500": { "description": "Erro ao criar atendimento" }
+        }
+      }
+    },
+    "/atendimentos/verificar-pendente": {
+      "post": {
+        "tags": ["Atendimentos"],
+        "summary": "Verificar atendimento pendente",
+        "operationId": "verificarAtendimentoPendente",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "numero": { "type": "string" }
+                },
+                "required": ["numero"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "VerificaÃ§Ã£o concluÃ­da" }
+        }
+      }
+    },
+    "/atendimentos/finalizar": {
+      "post": {
+        "tags": ["Atendimentos"],
+        "summary": "Finalizar atendimento",
+        "operationId": "finalizarAtendimento",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "integer" },
+                  "observacao": { "type": "string" }
+                },
+                "required": ["id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Atendimento finalizado" },
+          "404": { "description": "Atendimento nÃ£o encontrado" }
+        }
+      }
+    },
+    "/atendimentos/gravar-mensagem": {
+      "post": {
+        "tags": ["Mensagens"],
+        "summary": "Gravar mensagem em atendimento",
+        "operationId": "gravarMensagemAtendimento",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id_atendimento": { "type": "integer" },
+                  "mensagem": { "type": "string" },
+                  "arquivo": { "type": "string", "format": "binary" }
+                },
+                "required": ["id_atendimento", "mensagem"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Mensagem gravada" },
+          "400": { "description": "Dados invÃ¡lidos" }
+        }
+      }
+    },
+    "/atendimentos/atualizar-setor": {
+      "put": {
+        "tags": ["Atendimentos"],
+        "summary": "Atualizar setor do atendimento",
+        "operationId": "atualizarSetorAtendimento",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "integer" },
+                  "setor": { "type": "string" }
+                },
+                "required": ["id", "setor"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Setor atualizado" }
+        }
+      }
+    },
+    "/atendimentos/inativos": {
+      "get": {
+        "tags": ["Atendimentos"],
+        "summary": "Listar atendimentos inativos",
+        "operationId": "listarAtendimentosInativos",
+        "responses": {
+          "200": { "description": "Lista de atendimentos inativos" }
+        }
+      }
+    },
+    "/mensagens/verificar-duplicada": {
+      "post": {
+        "tags": ["Mensagens"],
+        "summary": "Verificar mensagem duplicada",
+        "operationId": "verificarMensagemDuplicada",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "conteudo": { "type": "string" },
+                  "remetente": { "type": "string" }
+                },
+                "required": ["conteudo"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "VerificaÃ§Ã£o concluÃ­da" }
+        }
+      }
+    },
+    "/mensagens/status-multiplas": {
+      "post": {
+        "tags": ["Mensagens"],
+        "summary": "Obter status de mÃºltiplas mensagens",
+        "operationId": "getStatusMultiplasMensagens",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": { "type": "array", "items": { "type": "integer" } }
+                },
+                "required": ["ids"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Status retornado" }
+        }
+      }
+    },
+    "/mensagens/pendentes-envio": {
+      "get": {
+        "tags": ["Mensagens"],
+        "summary": "Listar mensagens pendentes de envio",
+        "operationId": "listMensagensParaEnviar",
+        "responses": {
+          "200": { "description": "Lista de mensagens pendentes" }
+        }
+      }
+    },
+    "/mensagens/proxima-sequencia": {
+      "get": {
+        "tags": ["Mensagens"],
+        "summary": "Obter prÃ³xima sequÃªncia de mensagem",
+        "operationId": "proximaSequenciaMensagem",
+        "parameters": [
+          {
+            "name": "id_atendimento",
+            "in": "query",
+            "schema": { "type": "integer" },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": { "description": "PrÃ³xima sequÃªncia retornada" }
+        }
+      }
+    },
+    "/mensagens/marcar-excluida": {
+      "put": {
+        "tags": ["Mensagens"],
+        "summary": "Marcar mensagem como excluÃ­da (P5: spAtualizaExcluida)",
+        "operationId": "marcarMensagemExcluida",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chatid": {
+                    "type": "string",
+                    "description": "Identificador Ãºnico do chat"
+                  }
+                },
+                "required": ["chatid"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mensagem marcada como excluÃ­da com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "chatid": { "type": "string" },
+                        "executado": { "type": "boolean" }
+                      }
+                    },
+                    "mensagem": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "chatid obrigatÃ³rio" },
+          "500": { "description": "Erro ao marcar mensagem como excluÃ­da" }
+        }
+      }
+    },
+    "/mensagens/marcar-reacao": {
+      "post": {
+        "tags": ["Mensagens"],
+        "summary": "Marcar reaÃ§Ã£o na mensagem",
+        "operationId": "marcarMensagemReacao",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "integer" },
+                  "reacao": { "type": "integer" }
+                },
+                "required": ["id", "reacao"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "ReaÃ§Ã£o marcada" }
+        }
+      }
+    },
+    "/mensagens/marcar-enviada": {
+      "put": {
+        "tags": ["Mensagens"],
+        "summary": "Marcar mensagem como enviada",
+        "operationId": "marcarMensagemEnviada",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "integer" }
+                },
+                "required": ["id"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "Mensagem marcada como enviada" }
+        }
+      }
+    },
+    "/mensagens/comparar-duplicacao": {
+      "post": {
+        "tags": ["Mensagens"],
+        "summary": "Comparar duplicaÃ§Ã£o de mensagem",
+        "operationId": "compararDuplicacaoMensagem",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "mensagem1": { "type": "string" },
+                  "mensagem2": { "type": "string" }
+                },
+                "required": ["mensagem1", "mensagem2"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": { "description": "ComparaÃ§Ã£o concluÃ­da" }
+        }
+      }
+    },
+    "/contatos/exportar": {
+      "get": {
+        "tags": ["Contatos"],
+        "summary": "Exportar contatos",
+        "operationId": "exportarContatos",
+        "parameters": [
+          {
+            "name": "formato",
+            "in": "query",
+            "schema": { "type": "string", "enum": ["json", "csv", "xlsx"] },
+            "description": "Formato de exportaÃ§Ã£o"
+          }
+        ],
+        "responses": {
+          "200": { "description": "Contatos exportados" }
+        }
+      }
+    },
+    "/contatos/buscar-nome": {
+      "get": {
+        "tags": ["Contatos"],
+        "summary": "Buscar contato por nome",
+        "operationId": "buscarNomeContato",
+        "parameters": [
+          {
+            "name": "nome",
+            "in": "query",
+            "schema": { "type": "string" },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": { "description": "Contatos encontrados" }
+        }
+      }
+    },
+    "/agendamentos/pendentes": {
+      "get": {
+        "tags": ["Agendamentos"],
+        "summary": "Listar agendamentos pendentes",
+        "operationId": "listarAgendamentosPendentes",
+        "responses": {
+          "200": { "description": "Agendamentos pendentes" }
+        }
+      }
+    },
+    "/parametros/sistema": {
+      "get": {
+        "tags": ["ParÃ¢metros"],
+        "summary": "Obter parÃ¢metros do sistema",
+        "operationId": "getParametrosSistema",
+        "responses": {
+          "200": { "description": "ParÃ¢metros do sistema" }
+        }
+      }
+    },
+    "/parametros/verificar-expediente": {
+      "get": {
+        "tags": ["ParÃ¢metros"],
+        "summary": "Verificar expediente",
+        "operationId": "verificarExpediente",
+        "responses": {
+          "200": { "description": "Status do expediente" }
+        }
+      }
+    },
+    "/menus/principal": {
+      "get": {
+        "tags": ["Menus"],
+        "summary": "Obter menu principal",
+        "operationId": "getMenuPrincipal",
+        "responses": {
+          "200": { "description": "Menu principal" }
+        }
+      }
+    },
+    "/menus/submenus": {
+      "get": {
+        "tags": ["Menus"],
+        "summary": "Obter submenus",
+        "operationId": "getSubmenus",
+        "parameters": [
+          {
+            "name": "id_menu",
+            "in": "query",
+            "schema": { "type": "integer" },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": { "description": "Submenus" }
+        }
+      }
+    },
+    "/respostas/respostas-automaticas": {
+      "get": {
+        "tags": ["Respostas"],
+        "summary": "Obter respostas automÃ¡ticas",
+        "operationId": "getRespostasAutomaticas",
+        "responses": {
+          "200": { "description": "Respostas automÃ¡ticas" }
+        }
+      }
+    },
+    "/departamentos/por-menu": {
+      "get": {
+        "tags": ["Departamentos"],
+        "summary": "Obter departamentos por menu",
+        "operationId": "getDepartamentoPorMenu",
+        "parameters": [
+          {
+            "name": "id_menu",
+            "in": "query",
+            "schema": { "type": "integer" },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": { "description": "Departamentos" }
+        }
+      }
+    },
+    "/avisos/registrar": {
+      "post": {
+        "tags": ["Avisos"],
+        "summary": "Registrar aviso",
+        "operationId": "registrarAvisoSemExpediente",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "numero": { "type": "string" },
+                  "mensagem": { "type": "string" }
+                },
+                "required": ["numero", "mensagem"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": { "description": "Aviso registrado" }
+        }
+      }
+    },
+    "/avisos/limpar-antigos": {
+      "delete": {
+        "tags": ["Avisos"],
+        "summary": "Limpar avisos antigos",
+        "operationId": "limparAvisoAntigos",
+        "parameters": [
+          {
+            "name": "dias",
+            "in": "query",
+            "schema": { "type": "integer", "default": 30 }
+          }
+        ],
+        "responses": {
+          "200": { "description": "Avisos antigos removidos" }
+        }
+      }
+    },
+    "/avisos/limpar-numero": {
+      "delete": {
+        "tags": ["Avisos"],
+        "summary": "Limpar avisos por nÃºmero",
+        "operationId": "limparAvisoNumero",
+        "parameters": [
+          {
+            "name": "numero",
+            "in": "query",
+            "schema": { "type": "string" },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": { "description": "Avisos removidos" }
+        }
+      }
+    },
+    "/avisos/verificar-existente": {
+      "get": {
+        "tags": ["Avisos"],
+        "summary": "Verificar aviso existente",
+        "operationId": "verificarAvisoExistente",
+        "parameters": [
+          {
+            "name": "numero",
+            "in": "query",
+            "schema": { "type": "string" },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": { "description": "Aviso verificado" }
+        }
+      }
+    },
+    "/avisos/buscar-por-numero": {
+      "get": {
+        "tags": ["Avisos"],
+        "summary": "Buscar avisos por nÃºmero (Q18: com limpeza de antigos)",
+        "operationId": "buscarAvisosPorNumero",
+        "description": "Remove avisos antigos da data atual e retorna avisos existentes do nÃºmero",
+        "parameters": [
+          {
+            "name": "numero",
+            "in": "query",
+            "schema": { "type": "string" },
+            "required": true,
+            "description": "NÃºmero de telefone para buscar avisos"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Avisos retornados com sucesso (antigos removidos automaticamente)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "numero": { "type": "string" },
+                        "avisos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": { "type": "integer" },
+                              "numero": { "type": "string" },
+                              "mensagem": { "type": "string" },
+                              "dt_aviso": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        },
+                        "total_avisos": { "type": "integer" },
+                        "linhas_limpas_gerais": {
+                          "type": "integer",
+                          "description": "Avisos antigos removidos"
+                        },
+                        "linhas_limpas_numero": {
+                          "type": "integer",
+                          "description": "Avisos do nÃºmero removidos"
+                        }
+                      }
+                    },
+                    "mensagem": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "NÃºmero obrigatÃ³rio" },
+          "500": { "description": "Erro ao buscar avisos" }
+        }
+      }
+    },
+    "/anexos/pendentes": {
+      "get": {
+        "tags": ["Anexos"],
+        "summary": "Listar anexos pendentes (Q19)",
+        "operationId": "listarAnexosPendentes",
+        "description": "Retorna lista de anexos com enviado=1 para serem processados",
+        "parameters": [
+          {
+            "name": "canal",
+            "in": "query",
+            "schema": { "type": "string", "default": "WhatsApp" },
+            "description": "Canal de comunicaÃ§Ã£o (WhatsApp, Telegram, etc)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Anexos pendentes retornados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "canal": { "type": "string" },
+                        "anexos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "pk": {
+                                "type": "string",
+                                "description": "CONCAT(id, seq, numero)"
+                              },
+                              "id": { "type": "integer" },
+                              "seq": { "type": "integer" },
+                              "numero": { "type": "string" },
+                              "nome_arquivo": { "type": "string" },
+                              "enviado": { "type": "integer" },
+                              "msg": { "type": "string" },
+                              "canal": { "type": "string" }
+                            }
+                          }
+                        },
+                        "total": { "type": "integer" }
+                      }
+                    },
+                    "mensagem": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "500": { "description": "Erro ao listar anexos" }
+        }
+      }
+    },
+    "/anexos/{pk}": {
+      "get": {
+        "tags": ["Anexos"],
+        "summary": "Buscar anexo por PK (Q20)",
+        "operationId": "buscarAnexoPorPK",
+        "description": "Retorna detalhes completos de um anexo especÃ­fico",
+        "parameters": [
+          {
+            "name": "pk",
+            "in": "path",
+            "schema": { "type": "string" },
+            "required": true,
+            "description": "PK no formato CONCAT(id, seq, numero)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Anexo encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "pk": { "type": "string" },
+                        "id": { "type": "integer" },
+                        "seq": { "type": "integer" },
+                        "numero": { "type": "string" },
+                        "nome_arquivo": { "type": "string" },
+                        "enviado": { "type": "integer" },
+                        "tamanho_arquivo": { "type": "integer" },
+                        "msg": { "type": "string" },
+                        "canal": { "type": "string" },
+                        "data_msg": { "type": "string", "format": "date-time" }
+                      }
+                    },
+                    "mensagem": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "404": { "description": "Anexo nÃ£o encontrado" },
+          "500": { "description": "Erro ao buscar anexo" }
+        }
+      }
+    },
+    "/anexos/{pk}/marcar-enviado": {
+      "put": {
+        "tags": ["Anexos"],
+        "summary": "Marcar anexo como enviado (P16)",
+        "operationId": "marcarAnexoEnviado",
+        "description": "Atualiza o status enviado do anexo (0=enviado, 1=pendente)",
+        "parameters": [
+          {
+            "name": "pk",
+            "in": "path",
+            "schema": { "type": "string" },
+            "required": true,
+            "description": "PK no formato CONCAT(id, seq, numero)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enviado": {
+                    "type": "integer",
+                    "enum": [0, 1],
+                    "default": 0,
+                    "description": "0=enviado, 1=pendente"
+                  }
+                },
+                "required": ["enviado"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Anexo marcado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": { "type": "boolean" },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "pk": { "type": "string" },
+                        "id": { "type": "integer" },
+                        "seq": { "type": "integer" },
+                        "numero": { "type": "string" },
+                        "enviado": { "type": "integer" },
+                        "linhas_atualizadas": { "type": "integer" }
+                      }
+                    },
+                    "mensagem": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "400": { "description": "PK obrigatÃ³rio" },
+          "404": { "description": "Anexo nÃ£o encontrado" },
+          "500": { "description": "Erro ao marcar anexo" }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "sucesso": { "type": "boolean", "example": true },
+          "mensagem": { "type": "string" },
+          "dados": { "type": "object" }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "sucesso": { "type": "boolean", "example": true },
+          "dados": {
+            "type": "object",
+            "properties": {
+              "token": { "type": "string" },
+              "refresh_token": { "type": "string" },
+              "usuario": { "type": "object" }
+            }
+          }
+        }
+      },
+      "AtendimentoListResponse": {
+        "type": "object",
+        "properties": {
+          "sucesso": { "type": "boolean" },
+          "dados": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer" },
+                "numero": { "type": "string" },
+                "nome": { "type": "string" },
+                "situacao": { "type": "string" },
+                "canal": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+;
+
+      window.onload = function() {
+        console.log('Iniciando Swagger UI com spec embutido');
+        try {
+          const ui = SwaggerUIBundle({
+            spec: swaggerSpec,
+            dom_id: '#swagger-ui',
+            deepLinking: true,
+            preloadContent: true,
+            presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+            plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+            layout: 'BaseLayout',
+            onComplete: function() { console.log(' Swagger UI carregado com sucesso'); },
+            onFailure: function(err) { console.error(' Erro:', err); }
+          });
+          window.ui = ui;
+        } catch (err) {
+          console.error(' Erro ao inicializar:', err);
+          document.body.innerHTML += '<p>Erro: ' + err.message + '</p>';
+        }
+      };
+    </script>
+</body>
+</html>

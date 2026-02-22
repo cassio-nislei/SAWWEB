@@ -1,0 +1,738 @@
+{
+  "info": {
+    "_postman_id": "saw-api-32-endpoints",
+    "name": "SAW API - 32 Novos Endpoints",
+    "description": "Coleção completa com os 32 novos endpoints da API SAW",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "1. Autenticação",
+      "item": [
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"login\": \"usuario\",\n  \"senha\": \"senha\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/auth/login",
+              "host": ["{{base_url}}"],
+              "path": ["auth", "login"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "2. Contatos (2)",
+      "item": [
+        {
+          "name": "Exportar Contatos",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"pagina\": 1,\n  \"limite\": 20\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/contatos/exportar",
+              "host": ["{{base_url}}"],
+              "path": ["contatos", "exportar"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Buscar Nome Contato",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/contatos/buscar-nome?numero=11999999999",
+              "host": ["{{base_url}}"],
+              "path": ["contatos", "buscar-nome"],
+              "query": [
+                {
+                  "key": "numero",
+                  "value": "11999999999"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "3. Agendamentos (1)",
+      "item": [
+        {
+          "name": "Listar Agendamentos Pendentes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/agendamentos/pendentes",
+              "host": ["{{base_url}}"],
+              "path": ["agendamentos", "pendentes"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "4. Atendimentos (6)",
+      "item": [
+        {
+          "name": "Verificar Atendimento Pendente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/atendimentos/verificar-pendente?numero=11999999999&canal=WhatsApp",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "verificar-pendente"],
+              "query": [
+                {
+                  "key": "numero",
+                  "value": "11999999999"
+                },
+                {
+                  "key": "canal",
+                  "value": "WhatsApp"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Criar Atendimento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"11988888888\",\n  \"nome\": \"Maria Silva\",\n  \"situacao\": \"P\",\n  \"canal\": \"WhatsApp\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/atendimentos/criar",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "criar"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Finalizar Atendimento",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_atendimento\": 123,\n  \"numero\": \"11988888888\",\n  \"canal\": \"WhatsApp\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/atendimentos/finalizar",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "finalizar"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Gravar Mensagem Atendimento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "id_atendimento",
+                  "value": "123",
+                  "type": "text"
+                },
+                {
+                  "key": "mensagem",
+                  "value": "Olá, como posso ajudar?",
+                  "type": "text"
+                },
+                {
+                  "key": "tipo_arquivo",
+                  "value": "audio/mp3",
+                  "type": "text"
+                },
+                {
+                  "key": "arquivo",
+                  "type": "file"
+                }
+              ]
+            },
+            "url": {
+              "raw": "{{base_url}}/atendimentos/gravar-mensagem",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "gravar-mensagem"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Atualizar Setor Atendimento",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_atendimento\": 123,\n  \"setor\": \"Suporte\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/atendimentos/atualizar-setor",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "atualizar-setor"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Atendimentos Inativos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/atendimentos/inativos?tempo_minutos=5",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "inativos"],
+              "query": [
+                {
+                  "key": "tempo_minutos",
+                  "value": "5"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "5. Mensagens (8)",
+      "item": [
+        {
+          "name": "Verificar Mensagem Duplicada",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/mensagens/verificar-duplicada?chatid=msg_123456",
+              "host": ["{{base_url}}"],
+              "path": ["mensagens", "verificar-duplicada"],
+              "query": [
+                {
+                  "key": "chatid",
+                  "value": "msg_123456"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Status Múltiplas Mensagens",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/mensagens/status-multiplas",
+              "host": ["{{base_url}}"],
+              "path": ["mensagens", "status-multiplas"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Mensagens Pendentes de Envio",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/mensagens/pendentes-envio",
+              "host": ["{{base_url}}"],
+              "path": ["mensagens", "pendentes-envio"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Próxima Sequência Mensagem",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/mensagens/proxima-sequencia?id_atendimento=123&numero=11999999999",
+              "host": ["{{base_url}}"],
+              "path": ["mensagens", "proxima-sequencia"],
+              "query": [
+                {
+                  "key": "id_atendimento",
+                  "value": "123"
+                },
+                {
+                  "key": "numero",
+                  "value": "11999999999"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Marcar Mensagem Excluída",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chatid\": \"msg_123456\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/mensagens/marcar-excluida",
+              "host": ["{{base_url}}"],
+              "path": ["mensagens", "marcar-excluida"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Marcar Reação Mensagem",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"chatid\": \"msg_123456\",\n  \"reacao\": \"👍\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/mensagens/marcar-reacao",
+              "host": ["{{base_url}}"],
+              "path": ["mensagens", "marcar-reacao"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Marcar Mensagem Enviada",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id_agendamento\": 5,\n  \"enviado\": true,\n  \"tempo_envio\": 120\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/mensagens/marcar-enviada",
+              "host": ["{{base_url}}"],
+              "path": ["mensagens", "marcar-enviada"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Comparar Duplicação Mensagem",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"id\": 123,\n  \"seq_anterior\": 4,\n  \"numero\": \"11999999999\",\n  \"msg_atual\": \"Olá, como posso ajudar?\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/mensagens/comparar-duplicacao",
+              "host": ["{{base_url}}"],
+              "path": ["mensagens", "comparar-duplicacao"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "6. Parâmetros (2)",
+      "item": [
+        {
+          "name": "Parâmetros do Sistema",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/parametros/sistema",
+              "host": ["{{base_url}}"],
+              "path": ["parametros", "sistema"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verificar Expediente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/parametros/verificar-expediente",
+              "host": ["{{base_url}}"],
+              "path": ["parametros", "verificar-expediente"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "7. Menus (2)",
+      "item": [
+        {
+          "name": "Menu Principal",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/menus/principal",
+              "host": ["{{base_url}}"],
+              "path": ["menus", "principal"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Submenus",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/menus/submenus",
+              "host": ["{{base_url}}"],
+              "path": ["menus", "submenus"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "8. Respostas Automáticas (1)",
+      "item": [
+        {
+          "name": "Buscar Resposta Automática",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/respostas-automaticas?id_menu=1",
+              "host": ["{{base_url}}"],
+              "path": ["respostas-automaticas"],
+              "query": [
+                {
+                  "key": "id_menu",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "9. Departamentos (1)",
+      "item": [
+        {
+          "name": "Departamento por Menu",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/departamentos/por-menu?id_menu=1",
+              "host": ["{{base_url}}"],
+              "path": ["departamentos", "por-menu"],
+              "query": [
+                {
+                  "key": "id_menu",
+                  "value": "1"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "10. Avisos (4)",
+      "item": [
+        {
+          "name": "Registrar Aviso Sem Expediente",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"11988888888\",\n  \"mensagem\": \"Fora do horário de funcionamento\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/avisos/registrar-sem-expediente",
+              "host": ["{{base_url}}"],
+              "path": ["avisos", "registrar-sem-expediente"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Limpar Avisos Antigos",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/avisos/limpar-antigos",
+              "host": ["{{base_url}}"],
+              "path": ["avisos", "limpar-antigos"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Limpar Avisos de Número",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/avisos/limpar-numero?numero=11988888888",
+              "host": ["{{base_url}}"],
+              "path": ["avisos", "limpar-numero"],
+              "query": [
+                {
+                  "key": "numero",
+                  "value": "11988888888"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Verificar Aviso Existente",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/avisos/verificar-existente?numero=11988888888",
+              "host": ["{{base_url}}"],
+              "path": ["avisos", "verificar-existente"],
+              "query": [
+                {
+                  "key": "numero",
+                  "value": "11988888888"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://104.234.173.105:7080/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "token",
+      "value": "SEU_TOKEN_JWT_AQUI",
+      "type": "string"
+    }
+  ]
+}

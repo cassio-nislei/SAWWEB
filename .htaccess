@@ -1,0 +1,82 @@
+# ========================================
+
+# REWRITE
+
+# ========================================
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /
+
+    # Remover .php das URLs
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^([^\.]+)$ $1.php [L]
+
+    # Preflight CORS
+    RewriteCond %{REQUEST_METHOD} OPTIONS
+    RewriteRule ^(.*)$ $1 [L]
+
+</IfModule>
+
+# ========================================
+
+# CORS + SECURITY HEADERS
+
+# ========================================
+
+<IfModule mod_headers.c>
+
+    # Permitir apenas seu domínio (necessário se usar credentials)
+    Header set Access-Control-Allow-Origin "https://whatsaap.easilybr.com.br"
+    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
+    Header set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    Header set Access-Control-Allow-Credentials "true"
+    Header set Access-Control-Max-Age "86400"
+
+    # Security
+    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
+    Header always set X-Content-Type-Options "nosniff"
+    Header always set X-Frame-Options "SAMEORIGIN"
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+
+</IfModule>
+
+# ========================================
+
+# GZIP
+
+# ========================================
+
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html text/plain text/xml text/css
+    AddOutputFilterByType DEFLATE application/javascript application/json
+</IfModule>
+
+# ========================================
+
+# CACHE ASSETS
+
+# ========================================
+
+<FilesMatch "\.(jpg|jpeg|png|gif|ico|css|js|svg|woff|woff2|ttf|otf)$">
+Header set Cache-Control "public, max-age=31536000, immutable"
+</FilesMatch>
+
+# ========================================
+
+# BLOQUEAR ARQUIVOS SENSÍVEIS (Apache 2.4)
+
+# ========================================
+
+<FilesMatch "^\.|\.env|\.git|composer\.|config\.php|debug|test">
+Require all denied
+</FilesMatch>
+
+# ========================================
+
+# DESABILITAR LISTAGEM
+
+# ========================================
+
+Options -Indexes

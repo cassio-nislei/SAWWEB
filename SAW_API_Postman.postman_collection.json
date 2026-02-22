@@ -1,0 +1,325 @@
+{
+  "info": {
+    "_postman_id": "saw-api-collection-2025",
+    "name": "SAW API v1",
+    "description": "Coleção completa de endpoints da SAW API v1 com 10 endpoints implementados",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "🔐 Autenticação",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data.token) {",
+                  "        pm.environment.set('jwt_token', jsonData.data.token);",
+                  "        pm.environment.set('refresh_token', jsonData.data.refresh_token);",
+                  "        console.log('✅ Token salvo com sucesso');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"usuario\": \"admin\",\n  \"senha\": \"123456\"\n}"
+            },
+            "url": {
+              "raw": "http://104.234.173.105:7080/api/v1/auth/login",
+              "protocol": "http",
+              "host": ["104.234.173.105"],
+              "port": "7080",
+              "path": ["api", "v1", "auth", "login"]
+            },
+            "description": "Autentica o usuário e retorna JWT token e refresh token"
+          },
+          "response": []
+        },
+        {
+          "name": "Validar Token",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://104.234.173.105:7080/api/v1/auth/validate",
+              "protocol": "http",
+              "host": ["104.234.173.105"],
+              "port": "7080",
+              "path": ["api", "v1", "auth", "validate"]
+            },
+            "description": "Valida se o JWT token é válido e retorna informações sobre o token"
+          },
+          "response": []
+        },
+        {
+          "name": "Renovar Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.data.token) {",
+                  "        pm.environment.set('jwt_token', jsonData.data.token);",
+                  "        console.log('✅ Token renovado com sucesso');",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{refresh_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://104.234.173.105:7080/api/v1/auth/refresh",
+              "protocol": "http",
+              "host": ["104.234.173.105"],
+              "port": "7080",
+              "path": ["api", "v1", "auth", "refresh"]
+            },
+            "description": "Renova o JWT token usando o refresh token (válido por 7 dias)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "👥 Usuários",
+      "item": [
+        {
+          "name": "Listar Usuários",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://104.234.173.105:7080/api/v1/usuarios?page=1&perPage=20&situacao=A",
+              "protocol": "http",
+              "host": ["104.234.173.105"],
+              "port": "7080",
+              "path": ["api", "v1", "usuarios"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "perPage",
+                  "value": "20"
+                },
+                {
+                  "key": "situacao",
+                  "value": "A",
+                  "disabled": false
+                }
+              ]
+            },
+            "description": "Lista todos os usuários com paginação\n\nParâmetros:\n- page: número da página (padrão: 1)\n- perPage: quantidade por página (padrão: 20, máximo: 100)\n- situacao: filtrar por situação ('A' = Ativo)"
+          },
+          "response": []
+        },
+        {
+          "name": "Dados do Usuário Autenticado",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://104.234.173.105:7080/api/v1/usuarios/me",
+              "protocol": "http",
+              "host": ["104.234.173.105"],
+              "port": "7080",
+              "path": ["api", "v1", "usuarios", "me"]
+            },
+            "description": "Retorna dados do usuário autenticado (aquele que possui o JWT token)"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📞 Atendimentos",
+      "item": [
+        {
+          "name": "Buscar Atendimento por Número",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://104.234.173.105:7080/api/v1/atendimentos/por-numero/11999999999",
+              "protocol": "http",
+              "host": ["104.234.173.105"],
+              "port": "7080",
+              "path": ["api", "v1", "atendimentos", "por-numero", "11999999999"]
+            },
+            "description": "Busca atendimento ativo pelo número de telefone do cliente"
+          },
+          "response": []
+        },
+        {
+          "name": "Listar Anexos do Atendimento",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://104.234.173.105:7080/api/v1/atendimentos/1/anexos",
+              "protocol": "http",
+              "host": ["104.234.173.105"],
+              "port": "7080",
+              "path": ["api", "v1", "atendimentos", "1", "anexos"]
+            },
+            "description": "Lista todos os anexos (arquivos, imagens, etc) de um atendimento específico"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📎 Anexos",
+      "item": [
+        {
+          "name": "Download de Anexo",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://104.234.173.105:7080/api/v1/anexos/1/download",
+              "protocol": "http",
+              "host": ["104.234.173.105"],
+              "port": "7080",
+              "path": ["api", "v1", "anexos", "1", "download"]
+            },
+            "description": "Download de um anexo específico com auditoria de acesso"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "📊 Dashboard",
+      "item": [
+        {
+          "name": "Estatísticas do Ano Atual",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://104.234.173.105:7080/api/v1/dashboard/ano-atual",
+              "protocol": "http",
+              "host": ["104.234.173.105"],
+              "port": "7080",
+              "path": ["api", "v1", "dashboard", "ano-atual"]
+            },
+            "description": "Retorna estatísticas do ano atual: triagem, pendentes, atendendo, finalizados, taxa de finalização, tempo médio, canais populares"
+          },
+          "response": []
+        },
+        {
+          "name": "Atendimentos Mensais",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{jwt_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "http://104.234.173.105:7080/api/v1/dashboard/atendimentos-mensais",
+              "protocol": "http",
+              "host": ["104.234.173.105"],
+              "port": "7080",
+              "path": ["api", "v1", "dashboard", "atendimentos-mensais"]
+            },
+            "description": "Retorna relatório de atendimentos agrupados por mês"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://104.234.173.105:7080/api/v1",
+      "type": "string"
+    },
+    {
+      "key": "jwt_token",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "refresh_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}

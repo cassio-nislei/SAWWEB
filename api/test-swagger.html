@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Test Swagger.json Load</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .status {
+        padding: 20px;
+        margin: 10px 0;
+        border-radius: 5px;
+      }
+      .success {
+        background-color: #d4edda;
+        color: #155724;
+      }
+      .error {
+        background-color: #f8d7da;
+        color: #721c24;
+      }
+      pre {
+        background-color: #f5f5f5;
+        padding: 10px;
+        overflow-x: auto;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>🧪 Teste de Carregamento do Swagger.json</h1>
+
+    <h2>1. Teste de Acesso Direto</h2>
+    <div id="direct-test" class="status"></div>
+
+    <h2>2. Teste FETCH CORS</h2>
+    <div id="fetch-test" class="status"></div>
+
+    <h2>3. JSON Content Preview</h2>
+    <pre id="json-preview">Carregando...</pre>
+
+    <h2>4. URL Detection</h2>
+    <pre id="url-info"></pre>
+
+    <script>
+      // URL Info
+      document.getElementById("url-info").textContent =
+        "Protocol: " +
+        window.location.protocol +
+        "\n" +
+        "Host: " +
+        window.location.host +
+        "\n" +
+        "Pathname: " +
+        window.location.pathname +
+        "\n" +
+        "Swagger URL: " +
+        window.location.protocol +
+        "//" +
+        window.location.host +
+        "/api/swagger.json";
+
+      // Test 1: Direct fetch
+      const swaggerUrl =
+        window.location.protocol +
+        "//" +
+        window.location.host +
+        "/api/swagger.json";
+
+      fetch(swaggerUrl)
+        .then((response) => {
+          const div = document.getElementById("fetch-test");
+          if (response.ok) {
+            div.className = "status success";
+            div.innerHTML =
+              "✅ Swagger.json carregado com sucesso! (Status: " +
+              response.status +
+              ")";
+            return response.json();
+          } else {
+            throw new Error("HTTP " + response.status);
+          }
+        })
+        .then((data) => {
+          const preview = document.getElementById("json-preview");
+          preview.textContent = JSON.stringify(data, null, 2);
+
+          // Check endpoints
+          if (data.paths) {
+            const pathCount = Object.keys(data.paths).length;
+            const div = document.getElementById("direct-test");
+            div.className = "status success";
+            div.innerHTML =
+              "✅ JSON está válido! Endpoints encontrados: " + pathCount;
+          }
+        })
+        .catch((error) => {
+          const div = document.getElementById("fetch-test");
+          div.className = "status error";
+          div.innerHTML = "❌ Erro ao carregar: " + error.message;
+
+          const preview = document.getElementById("json-preview");
+          preview.textContent = "Erro: " + error.message;
+        });
+    </script>
+  </body>
+</html>

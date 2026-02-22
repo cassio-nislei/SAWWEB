@@ -1,0 +1,166 @@
+[19-Nov-2025 22:36:40 America/Sao_Paulo] PHP Fatal error:  Uncaught TypeError: http_response_code(): Argument #1 ($response_code) must be of type int, string given in C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Response.php:32
+Stack trace:
+#0 C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Response.php(32): http_response_code('VALIDATION_ERRO...')
+#1 C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\controllers\AuthController.php(23): Response::error(400, 'VALIDATION_ERRO...', 'Usu\xC3\xA1rio e senh...')
+#2 C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\index.php(72): AuthController::login()
+#3 C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Router.php(81): {closure:C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\index.php:71}()
+#4 C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\index.php(281): Router->dispatch()
+#5 C:\Users\nislei\Downloads\SAW-main\SAW-main\local-test.php(15): include('C:\\Users\\nislei...')
+#6 {main}
+  thrown in C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Response.php on line 32
+[19-Nov-2025 22:36:51 America/Sao_Paulo] PHP Fatal error:  Uncaught TypeError: http_response_code(): Argument #1 ($response_code) must be of type int, string given in C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Response.php:32
+Stack trace:
+#0 C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Response.php(32): http_response_code('VALIDATION_ERRO...')
+#1 C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\controllers\AuthController.php(23): Response::error(400, 'VALIDATION_ERRO...', 'Usu\xC3\xA1rio e senh...')
+#2 C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\index.php(72): AuthController::login()
+#3 C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Router.php(81): {closure:C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\index.php:71}()
+#4 C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\index.php(281): Router->dispatch()
+#5 C:\Users\nislei\Downloads\SAW-main\SAW-main\local-test.php(14): include('C:\\Users\\nislei...')
+#6 {main}
+  thrown in C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Response.php on line 32
+[19-Nov-2025 22:38:23 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Call to undefined method Database::getInstance() in C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\controllers\AuthController.php:27
+Stack trace:
+#0 C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\index.php(72): AuthController::login()
+#1 C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Router.php(81): {closure:C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\index.php:71}()
+#2 C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\index.php(281): Router->dispatch()
+#3 C:\Users\nislei\Downloads\SAW-main\SAW-main\local-test.php(59): include('C:\\Users\\nislei...')
+#4 {main}
+  thrown in C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\controllers\AuthController.php on line 27
+[25-Jan-2026 19:29:13 America/Sao_Paulo] EXCEPTION: Column 'canal' cannot be null em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:164
+[25-Jan-2026 19:29:47 America/Sao_Paulo] EXCEPTION: Incorrect integer value: 'API_6976995b218df' for column 'id' at row 1 em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:164
+[25-Jan-2026 19:30:02 America/Sao_Paulo] EXCEPTION: Incorrect integer value: 'API_6976996a75190' for column 'id' at row 1 em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:164
+[25-Jan-2026 19:30:18 America/Sao_Paulo] EXCEPTION: Incorrect integer value: 'API_6976997aaddc9' for column 'id' at row 1 em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:164
+[25-Jan-2026 19:30:35 America/Sao_Paulo] PHP Parse error:  syntax error, unexpected token ";", expecting "]" in C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\models\Mensagem.php on line 38
+[25-Jan-2026 19:30:51 America/Sao_Paulo] PHP Parse error:  syntax error, unexpected token ";", expecting "]" in C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\models\Mensagem.php on line 38
+[25-Jan-2026 19:31:09 America/Sao_Paulo] EXCEPTION: Incorrect integer value: 'API_697699adca34d' for column 'id' at row 1 em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:164
+[25-Jan-2026 19:34:03 America/Sao_Paulo] EXCEPTION: Incorrect integer value: 'API_69769a5b7272b' for column 'id' at row 1 em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:164
+[25-Jan-2026 19:34:24 America/Sao_Paulo] EXCEPTION: Incorrect integer value: 'API_69769a702bd86' for column 'id' at row 1 em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:164
+[25-Jan-2026 19:34:48 America/Sao_Paulo] EXCEPTION: Incorrect integer value: 'API_69769a88b024f' for column 'id' at row 1 em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:164
+[25-Jan-2026 19:35:07 America/Sao_Paulo] EXCEPTION: Incorrect integer value: 'API_69769a9b471fa' for column 'id' at row 1 em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:164
+[25-Jan-2026 19:35:43 America/Sao_Paulo] SQL: INSERT INTO tbmsgatendimento (id, seq, numero, msg, resp_msg, nome_chat, situacao, dt_msg, hr_msg, id_atend, canal, chatid) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), CURTIME(), ?, ?, ?)
+[25-Jan-2026 19:35:43 America/Sao_Paulo] Params: Array
+(
+    [0] => 3
+    [1] => 1
+    [2] => 5511999999997
+    [3] => Teste
+    [4] => 
+    [5] => 
+    [6] => E
+    [7] => 0
+    [8] => 1
+    [9] => API_69769abf46648
+)
+
+[25-Jan-2026 19:35:43 America/Sao_Paulo] EXCEPTION: Incorrect integer value: 'API_69769abf46648' for column 'id' at row 1 em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:167
+[25-Jan-2026 19:36:15 America/Sao_Paulo] SQL: INSERT INTO tbmsgatendimento (id, seq, numero, msg, resp_msg, nome_chat, situacao, dt_msg, hr_msg, id_atend, canal, chatid) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, NOW(), CURTIME(), ?, ?, ?)
+[25-Jan-2026 19:36:15 America/Sao_Paulo] Params: Array
+(
+    [0] => 3
+    [1] => 1
+    [2] => 5511999999997
+    [3] => Teste
+    [4] => 
+    [5] => 
+    [6] => E
+    [7] => 0
+    [8] => 1
+    [9] => 123456
+)
+
+[25-Jan-2026 19:36:15 America/Sao_Paulo] EXCEPTION: Data too long for column 'situacao' at row 1 em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:167
+[25-Jan-2026 19:36:51 America/Sao_Paulo] SQL: INSERT INTO tbmsgatendimento (id, seq, numero, msg, resp_msg, nome_chat, situacao, dt_msg, hr_msg, id_atend, canal, chatid) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+[25-Jan-2026 19:36:51 America/Sao_Paulo] Params: Array
+(
+    [0] => 3
+    [1] => 1
+    [2] => 5511999999997
+    [3] => Teste
+    [4] => 
+    [5] => 
+    [6] => E
+    [7] => 2026-01-25
+    [8] => 19:36:51
+    [9] => 0
+    [10] => 1
+    [11] => 123456
+)
+
+[25-Jan-2026 19:36:51 America/Sao_Paulo] EXCEPTION: Data too long for column 'situacao' at row 1 em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:167
+[25-Jan-2026 19:37:22 America/Sao_Paulo] SQL: INSERT INTO tbmsgatendimento (id, seq, numero, msg, situacao, canal, chatid) 
+                VALUES (?, ?, ?, ?, ?, ?, ?)
+[25-Jan-2026 19:37:22 America/Sao_Paulo] Params: Array
+(
+    [0] => 3
+    [1] => 1
+    [2] => 5511999999997
+    [3] => Teste
+    [4] => E
+    [5] => 1
+    [6] => API_69769b22f3f0f
+)
+
+[25-Jan-2026 19:37:23 America/Sao_Paulo] EXCEPTION: Incorrect integer value: 'API_69769b22f3f0f' for column 'id' at row 1 em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:167
+[25-Jan-2026 19:37:51 America/Sao_Paulo] SQL: INSERT INTO tbmsgatendimento (seq, numero, msg, situacao, canal, chatid) 
+                VALUES (?, ?, ?, ?, ?, ?)
+[25-Jan-2026 19:37:51 America/Sao_Paulo] Params: Array
+(
+    [0] => 1
+    [1] => 5511999999997
+    [2] => Teste
+    [3] => E
+    [4] => 1
+    [5] => API_69769b3f94610
+)
+
+[25-Jan-2026 19:37:51 America/Sao_Paulo] EXCEPTION: Data too long for column 'numero' at row 1 em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:167
+[25-Jan-2026 19:38:25 America/Sao_Paulo] ERROR: Call to a member function fetch_assoc() on false em C:\Users\nislei\Downloads\SAW-main\SAW-main\api\v1\Database.php:106
+[25-Jan-2026 19:39:26 America/Sao_Paulo] SQL: INSERT INTO tbmsgatendimento (id, seq, numero, msg, resp_msg, nome_chat, situacao, dt_msg, hr_msg, id_atend, canal, chatid, chatid_resposta) 
+                VALUES (3, 1, '5511999999997', 'Olá, esta é uma mensagem de teste enviada pela API.', '', '', 'E', NOW(), CURTIME(), 0, 1, 'API_69769b9ea8b50', NULL)
+[25-Jan-2026 19:39:26 America/Sao_Paulo] Params: Array
+(
+)
+
+[25-Jan-2026 19:39:46 America/Sao_Paulo] SQL: INSERT INTO tbmsgatendimento (id, seq, numero, msg, resp_msg, nome_chat, situacao, dt_msg, hr_msg, id_atend, canal, chatid, chatid_resposta) 
+                VALUES (3, 1, '5511999999997', 'Teste', '', '', 'E', NOW(), CURTIME(), 0, 1, 'API_69769bb2904fe', NULL)
+[25-Jan-2026 19:39:46 America/Sao_Paulo] Params: Array
+(
+)
+
+[25-Jan-2026 19:49:49 America/Sao_Paulo] SQL: INSERT INTO tbmsgatendimento (id, seq, numero, msg, resp_msg, nome_chat, situacao, dt_msg, hr_msg, id_atend, canal, chatid, chatid_resposta) 
+                VALUES (5, 1, '5511999996311', 'Olá! Este é um teste automatizado número 6311.', '', '', 'E', NOW(), CURTIME(), 0, 1, 'API_69769e0d77fd0', NULL)
+[25-Jan-2026 19:49:49 America/Sao_Paulo] Params: Array
+(
+)
+
+[25-Jan-2026 19:55:21 America/Sao_Paulo] SQL: INSERT INTO tbmsgatendimento (id, seq, numero, msg, resp_msg, nome_chat, situacao, dt_msg, hr_msg, id_atend, canal, chatid, chatid_resposta) 
+                VALUES (7, 1, '5511999995732', 'Olá! Este é um teste automatizado número 5732.', '', '', 'E', NOW(), CURTIME(), 0, 1, 'API_69769f59add7f', NULL)
+[25-Jan-2026 19:55:21 America/Sao_Paulo] Params: Array
+(
+)
+
+[25-Jan-2026 19:57:04 America/Sao_Paulo] SQL: INSERT INTO tbmsgatendimento (id, seq, numero, msg, resp_msg, nome_chat, situacao, dt_msg, hr_msg, id_atend, canal, chatid, chatid_resposta) 
+                VALUES (5, 1, '5511999996311', 'Teste de mensagem simples', '', '', 'E', NOW(), CURTIME(), 0, 1, 'API_69769fc003476', NULL)
+[25-Jan-2026 19:57:04 America/Sao_Paulo] Params: Array
+(
+)
+
+[25-Jan-2026 19:57:56 America/Sao_Paulo] SQL: INSERT INTO tbmsgatendimento (id, seq, numero, msg, resp_msg, nome_chat, situacao, dt_msg, hr_msg, id_atend, canal, chatid, chatid_resposta) 
+                VALUES (9, 1, '5511999998897', 'Olá! Este é um teste automatizado número 8897.', '', '', 'E', NOW(), CURTIME(), 0, 1, 'API_69769ff43badc', NULL)
+[25-Jan-2026 19:57:56 America/Sao_Paulo] Params: Array
+(
+)
+
+[22-Feb-2026 14:11:08 America/Sao_Paulo] PHP Warning:  Undefined variable $conexao in C:\Users\nislei\Downloads\SAW-main\SAWWeb\salvarNomeChat.php on line 27
+[22-Feb-2026 14:11:08 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Call to a member function prepare() on null in C:\Users\nislei\Downloads\SAW-main\SAWWeb\salvarNomeChat.php:27
+Stack trace:
+#0 {main}
+  thrown in C:\Users\nislei\Downloads\SAW-main\SAWWeb\salvarNomeChat.php on line 27
+[22-Feb-2026 14:11:31 America/Sao_Paulo] PHP Warning:  Undefined variable $conexao in C:\Users\nislei\Downloads\SAW-main\SAWWeb\salvarNomeChat.php on line 27
+[22-Feb-2026 14:11:31 America/Sao_Paulo] PHP Fatal error:  Uncaught Error: Call to a member function prepare() on null in C:\Users\nislei\Downloads\SAW-main\SAWWeb\salvarNomeChat.php:27
+Stack trace:
+#0 {main}
+  thrown in C:\Users\nislei\Downloads\SAW-main\SAWWeb\salvarNomeChat.php on line 27

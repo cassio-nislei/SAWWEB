@@ -1,0 +1,11 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /api/v1/
+
+    # Bloqueia acesso direto a arquivos e pastas, exceto index.php e debug.php
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_URI} !^/api/v1/debug\.php$
+    RewriteRule ^(.*)$ index.php [QSA,L]
+
+</IfModule>

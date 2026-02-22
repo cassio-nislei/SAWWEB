@@ -1,0 +1,593 @@
+{
+  "info": {
+    "_postman_id": "saw-api-collection-2025",
+    "name": "SAW API v1.0",
+    "description": "Collection completa de endpoints da API SAW - Sistema de Atendimento Web",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "version": "1.0.0"
+  },
+  "item": [
+    {
+      "name": "Health Check",
+      "item": [
+        {
+          "name": "GET - Status API",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/",
+              "host": ["{{base_url}}"],
+              "path": [""]
+            },
+            "description": "Verifica se a API está funcionando e retorna versão"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Atendimentos",
+      "item": [
+        {
+          "name": "GET - Listar Atendimentos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/atendimentos?page=1&perPage=20&situacao=P&canal=1&numero=&setor=",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Número da página"
+                },
+                {
+                  "key": "perPage",
+                  "value": "20",
+                  "description": "Registros por página (máximo 100)"
+                },
+                {
+                  "key": "situacao",
+                  "value": "P",
+                  "disabled": true,
+                  "description": "Filtro por situação (P, A, T, F)"
+                },
+                {
+                  "key": "canal",
+                  "value": "1",
+                  "disabled": true,
+                  "description": "Filtro por canal"
+                },
+                {
+                  "key": "numero",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filtro por número de telefone"
+                },
+                {
+                  "key": "setor",
+                  "value": "",
+                  "disabled": true,
+                  "description": "Filtro por setor"
+                }
+              ]
+            },
+            "description": "Lista atendimentos com filtros e paginação"
+          },
+          "response": []
+        },
+        {
+          "name": "GET - Listar Atendimentos Ativos",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/atendimentos/ativos",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "ativos"]
+            },
+            "description": "Lista apenas atendimentos em aberto (P, A, T)"
+          },
+          "response": []
+        },
+        {
+          "name": "GET - Obter Atendimento por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/atendimentos/1?numero=11987654321",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "1"],
+              "query": [
+                {
+                  "key": "numero",
+                  "value": "11987654321",
+                  "description": "Número do telefone (obrigatório)"
+                }
+              ]
+            },
+            "description": "Obtém detalhes de um atendimento específico"
+          },
+          "response": []
+        },
+        {
+          "name": "POST - Criar Atendimento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"11987654321\",\n  \"nome\": \"João Silva\",\n  \"idAtende\": \"1\",\n  \"nomeAtende\": \"Operador 1\",\n  \"situacao\": \"P\",\n  \"canal\": 1,\n  \"setor\": 1\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/atendimentos",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos"]
+            },
+            "description": "Cria um novo atendimento"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT - Atualizar Situação",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"11987654321\",\n  \"situacao\": \"A\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/atendimentos/1/situacao",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "1", "situacao"]
+            },
+            "description": "Atualiza a situação do atendimento (P, A, T, F)"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT - Atualizar Setor",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"11987654321\",\n  \"setor\": 2\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/atendimentos/1/setor",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "1", "setor"]
+            },
+            "description": "Atualiza o setor do atendimento"
+          },
+          "response": []
+        },
+        {
+          "name": "POST - Finalizar Atendimento",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"11987654321\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/atendimentos/1/finalizar",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "1", "finalizar"]
+            },
+            "description": "Finaliza um atendimento"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Mensagens",
+      "item": [
+        {
+          "name": "GET - Listar Mensagens",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/atendimentos/1/mensagens",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "1", "mensagens"]
+            },
+            "description": "Lista todas as mensagens de um atendimento"
+          },
+          "response": []
+        },
+        {
+          "name": "GET - Listar Mensagens Pendentes",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/atendimentos/1/mensagens/pendentes",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "1", "mensagens", "pendentes"]
+            },
+            "description": "Lista apenas mensagens não visualizadas"
+          },
+          "response": []
+        },
+        {
+          "name": "POST - Criar Mensagem",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"11987654321\",\n  \"mensagem\": \"Olá, como posso ajudar?\",\n  \"tipo\": \"operador\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/atendimentos/1/mensagens",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "1", "mensagens"]
+            },
+            "description": "Cria uma nova mensagem em um atendimento"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT - Atualizar Situação Mensagem",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"situacao\": \"L\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/mensagens/1/situacao",
+              "host": ["{{base_url}}"],
+              "path": ["mensagens", "1", "situacao"]
+            },
+            "description": "Atualiza situação da mensagem (L, V)"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT - Marcar como Visualizada",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{}"
+            },
+            "url": {
+              "raw": "{{base_url}}/mensagens/1/visualizar",
+              "host": ["{{base_url}}"],
+              "path": ["mensagens", "1", "visualizar"]
+            },
+            "description": "Marca uma mensagem como visualizada"
+          },
+          "response": []
+        },
+        {
+          "name": "POST - Adicionar Reação",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"reacao\": \"😊\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/mensagens/1/reacao",
+              "host": ["{{base_url}}"],
+              "path": ["mensagens", "1", "reacao"]
+            },
+            "description": "Adiciona uma reação emoji à mensagem"
+          },
+          "response": []
+        },
+        {
+          "name": "DELETE - Deletar Mensagem",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/mensagens/1",
+              "host": ["{{base_url}}"],
+              "path": ["mensagens", "1"]
+            },
+            "description": "Deleta uma mensagem"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Anexos",
+      "item": [
+        {
+          "name": "POST - Criar Anexo",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"numero\": \"11987654321\",\n  \"arquivo\": \"base64_encoded_file\",\n  \"tipo\": \"image/jpeg\",\n  \"nome\": \"foto.jpg\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/atendimentos/1/anexos",
+              "host": ["{{base_url}}"],
+              "path": ["atendimentos", "1", "anexos"]
+            },
+            "description": "Cria um novo anexo em um atendimento"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Parâmetros",
+      "item": [
+        {
+          "name": "GET - Listar Parâmetros",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/parametros",
+              "host": ["{{base_url}}"],
+              "path": ["parametros"]
+            },
+            "description": "Obtém todos os parâmetros do sistema"
+          },
+          "response": []
+        },
+        {
+          "name": "PUT - Atualizar Parâmetro",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"valor\": \"novo_valor\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/parametros/1",
+              "host": ["{{base_url}}"],
+              "path": ["parametros", "1"]
+            },
+            "description": "Atualiza um parâmetro específico"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Menus",
+      "item": [
+        {
+          "name": "GET - Listar Menus",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/menus",
+              "host": ["{{base_url}}"],
+              "path": ["menus"]
+            },
+            "description": "Lista todos os menus disponíveis"
+          },
+          "response": []
+        },
+        {
+          "name": "GET - Obter Menu por ID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/menus/1",
+              "host": ["{{base_url}}"],
+              "path": ["menus", "1"]
+            },
+            "description": "Obtém detalhes de um menu específico"
+          },
+          "response": []
+        },
+        {
+          "name": "GET - Resposta Automática do Menu",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/menus/1/resposta-automatica",
+              "host": ["{{base_url}}"],
+              "path": ["menus", "1", "resposta-automatica"]
+            },
+            "description": "Obtém a resposta automática configurada para um menu"
+          },
+          "response": []
+        },
+        {
+          "name": "GET - Listar Submenus",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/menus/submenus/1",
+              "host": ["{{base_url}}"],
+              "path": ["menus", "submenus", "1"]
+            },
+            "description": "Lista submenus de um menu pai"
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Horários",
+      "item": [
+        {
+          "name": "GET - Horários de Funcionamento",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/horarios/funcionamento",
+              "host": ["{{base_url}}"],
+              "path": ["horarios", "funcionamento"]
+            },
+            "description": "Obtém os horários de funcionamento da empresa"
+          },
+          "response": []
+        },
+        {
+          "name": "GET - Verificar se Está Aberto",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/horarios/aberto",
+              "host": ["{{base_url}}"],
+              "path": ["horarios", "aberto"]
+            },
+            "description": "Verifica se a empresa está aberta neste momento"
+          },
+          "response": []
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://104.234.173.105:7080/api/v1",
+      "type": "string",
+      "description": "URL base da API SAW"
+    }
+  ]
+}

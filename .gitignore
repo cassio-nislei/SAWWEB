@@ -1,0 +1,21 @@
+# Ignorar arquivos temporários de compilação do Delphi
+*.dcu           # Arquivos compilados do Delphi
+*.dpr           # Arquivo do projeto Delphi
+*.dproj         # Arquivo do projeto Delphi
+*.bak           # Arquivos de backup
+*.~* 
+*.FDB
+*.*~*           # Arquivos temporários
+.idea/          # Ignorar configuração de projetos no IntelliJ IDEA (se for o caso)
+*.local         # Arquivos locais gerados
+*.db            # Arquivos de banco de dados temporários
+*.obj           # Arquivos de objetos do Delphi
+*.exe           # Arquivos executáveis (geralmente não devem ser rastreados)
+*.dll           # Bibliotecas dinâmicas
+*.md
+*.txt
+*.pas
+*.bat
+*.ps1
+*.sh
+

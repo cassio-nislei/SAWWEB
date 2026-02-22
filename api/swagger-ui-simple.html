@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SAW API - Swagger Documentation</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://unpkg.com/swagger-ui-dist@3/swagger-ui.css"
+    />
+    <style>
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fafafa;
+      }
+      .topbar {
+        background-color: #1a1a1a;
+        padding: 15px;
+        color: white;
+        border-bottom: 3px solid #4caf50;
+      }
+      .topbar h1 {
+        margin: 0;
+        font-size: 24px;
+      }
+      .topbar p {
+        margin: 5px 0 0 0;
+        font-size: 12px;
+        opacity: 0.8;
+      }
+      #swagger-ui {
+        padding-top: 20px;
+      }
+      .error-box {
+        background-color: #fff3cd;
+        border: 1px solid #ffc107;
+        color: #856404;
+        padding: 15px;
+        margin: 20px;
+        border-radius: 4px;
+        display: none;
+      }
+      .error-box.show {
+        display: block;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <h1>🔌 SAW API - Swagger Documentation</h1>
+      <p>Sistema de Atendimento Web - API RESTful v2.0.0</p>
+    </div>
+    <div class="error-box" id="errorBox"></div>
+    <div id="swagger-ui"></div>
+
+    <script
+      src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"
+      charset="UTF-8"
+    ></script>
+    <script
+      src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-standalone-preset.js"
+      charset="UTF-8"
+    ></script>
+
+    <script type="application/json" id="swagger-spec">
+      {
+        "openapi": "3.0.0",
+        "info": {
+          "title": "SAW API",
+          "description": "Sistema de Atendimento Web - API RESTful",
+          "version": "2.0.0",
+          "contact": {
+            "name": "Support",
+            "email": "support@saw.com"
+          }
+        },
+        "servers": [
+          {
+            "url": "http://104.234.173.105:7080/api/v1",
+            "description": "Production Server"
+          }
+        ],
+        "paths": {
+          "/atendimentos": {
+            "get": {
+              "summary": "Lista atendimentos",
+              "tags": ["Atendimentos"],
+              "parameters": [
+                {
+                  "name": "page",
+                  "in": "query",
+                  "schema": { "type": "integer", "default": 1 }
+                }
+              ],
+              "responses": {
+                "200": {
+                  "description": "Lista de atendimentos",
+                  "content": {
+                    "application/json": {
+                      "schema": { "type": "array" }
+                    }
+                  }
+                }
+              }
+            },
+            "post": {
+              "summary": "Criar novo atendimento",
+              "tags": ["Atendimentos"],
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": { "type": "object" }
+                  }
+                }
+              },
+              "responses": {
+                "201": { "description": "Atendimento criado" }
+              }
+            }
+          },
+          "/contatos": {
+            "get": {
+              "summary": "Lista contatos",
+              "tags": ["Contatos"],
+              "responses": {
+                "200": {
+                  "description": "Lista de contatos"
+                }
+              }
+            }
+          },
+          "/usuarios": {
+            "get": {
+              "summary": "Lista usuários",
+              "tags": ["Usuários"],
+              "responses": {
+                "200": {
+                  "description": "Lista de usuários"
+                }
+              }
+            }
+          },
+          "/auth/login": {
+            "post": {
+              "summary": "Login com JWT",
+              "tags": ["Autenticação"],
+              "requestBody": {
+                "required": true,
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "type": "object",
+                      "properties": {
+                        "email": { "type": "string" },
+                        "senha": { "type": "string" }
+                      }
+                    }
+                  }
+                }
+              },
+              "responses": {
+                "200": { "description": "Login bem-sucedido" }
+              }
+            }
+          }
+        },
+        "components": {
+          "schemas": {
+            "Atendimento": {
+              "type": "object",
+              "properties": {
+                "id": { "type": "integer" },
+                "numero": { "type": "string" },
+                "status": { "type": "string" }
+              }
+            }
+          }
+        }
+      }
+    </script>
+
+    <script>
+      console.log("🚀 Carregando Swagger UI...");
+
+      // Interceptar fetch para debug
+      const originalFetch = window.fetch;
+      window.fetch = function (...args) {
+        console.log("🔴 FETCH TENTATIVA:", args[0]);
+        return originalFetch.apply(this, args).catch((err) => {
+          console.error("❌ Fetch error:", err);
+          return Promise.reject(err);
+        });
+      };
+
+      document.addEventListener("DOMContentLoaded", function () {
+        console.log("✅ DOM loaded");
+
+        try {
+          const specElement = document.getElementById("swagger-spec");
+          const specText = specElement.textContent;
+          const spec = JSON.parse(specText);
+
+          console.log("✅ Spec carregado:", spec.info.title);
+
+          const ui = SwaggerUIBundle({
+            spec: spec,
+            dom_id: "#swagger-ui",
+            deepLinking: true,
+            preloadContent: true,
+            presets: [
+              SwaggerUIBundle.presets.apis,
+              SwaggerUIBundle.SwaggerUIStandalonePreset,
+            ],
+            plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+            layout: "BaseLayout",
+            tryItOutEnabled: true,
+            requestInterceptor: function (request) {
+              console.log("📤 Request:", request.url);
+              return request;
+            },
+            responseInterceptor: function (response) {
+              console.log("📥 Response:", response.status);
+              return response;
+            },
+          });
+
+          window.ui = ui;
+          console.log("✅ Swagger UI inicializado com sucesso!");
+        } catch (err) {
+          console.error("❌ Erro ao carregar spec:", err);
+          const errorBox = document.getElementById("errorBox");
+          errorBox.textContent = "Erro: " + err.message;
+          errorBox.classList.add("show");
+        }
+      });
+    </script>
+  </body>
+</html>

@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Test Swagger PHP Route</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 20px;
+        background: #f5f5f5;
+      }
+      .container {
+        background: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+      }
+      h1 {
+        color: #333;
+        border-bottom: 3px solid #4caf50;
+        padding-bottom: 10px;
+      }
+      .test-result {
+        margin: 20px 0;
+        padding: 15px;
+        border-radius: 4px;
+        border-left: 4px solid #ddd;
+      }
+      .success {
+        background-color: #c8e6c9;
+        border-left-color: #4caf50;
+        color: #2e7d32;
+      }
+      .error {
+        background-color: #ffcdd2;
+        border-left-color: #f44336;
+        color: #c62828;
+      }
+      .info {
+        background-color: #e3f2fd;
+        border-left-color: #2196f3;
+        color: #1565c0;
+      }
+      pre {
+        background: #f9f9f9;
+        padding: 10px;
+        border-radius: 4px;
+        overflow-x: auto;
+        border: 1px solid #ddd;
+        font-size: 12px;
+      }
+      button {
+        background: #4caf50;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        margin: 5px;
+      }
+      button:hover {
+        background: #45a049;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔍 Test Swagger PHP Route</h1>
+
+      <p>
+        Testando se swagger.php consegue servir o Swagger JSON com headers CORS
+        corretos.
+      </p>
+
+      <button onclick="testSwaggerPhp()">Test GET /api/swagger.php</button>
+      <button onclick="testCORSPreflight()">
+        Test CORS Preflight (OPTIONS)
+      </button>
+      <button onclick="clearResults()">Clear Results</button>
+
+      <div id="results"></div>
+    </div>
+
+    <script>
+      function testSwaggerPhp() {
+        const resultsDiv = document.getElementById("results");
+        const url =
+          window.location.protocol +
+          "//" +
+          window.location.host +
+          "/SAW-main/api/swagger.php";
+
+        resultsDiv.innerHTML += `<div class="test-result info">
+                <strong>🔗 Testing:</strong> GET ${url}<br>
+                <strong>⏱️ Time:</strong> ${new Date().toLocaleTimeString()}
+            </div>`;
+
+        fetch(url, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+          },
+        })
+          .then((response) => {
+            console.log("Response Status:", response.status);
+            console.log("Response Headers:", {
+              "content-type": response.headers.get("content-type"),
+              "access-control-allow-origin": response.headers.get(
+                "access-control-allow-origin"
+              ),
+              "access-control-allow-methods": response.headers.get(
+                "access-control-allow-methods"
+              ),
+            });
+
+            return response.json().then((data) => ({
+              status: response.status,
+              headers: response.headers,
+              data: data,
+            }));
+          })
+          .then((result) => {
+            resultsDiv.innerHTML += `<div class="test-result success">
+                    <strong>✅ Success!</strong><br>
+                    <strong>Status:</strong> ${result.status}<br>
+                    <strong>Content-Type:</strong> ${result.headers.get(
+                      "content-type"
+                    )}<br>
+                    <strong>CORS Headers:</strong><br>
+                    <pre>
+Access-Control-Allow-Origin: ${
+              result.headers.get("access-control-allow-origin") || "Not found"
+            }
+Access-Control-Allow-Methods: ${
+              result.headers.get("access-control-allow-methods") || "Not found"
+            }
+Access-Control-Max-Age: ${
+              result.headers.get("access-control-max-age") || "Not found"
+            }
+                    </pre>
+                    <strong>Response Size:</strong> ${
+                      JSON.stringify(result.data).length
+                    } bytes<br>
+                    <strong>API Version:</strong> ${
+                      result.data.info?.version || "Not found"
+                    }<br>
+                    <strong>Endpoints Count:</strong> ${
+                      Object.keys(result.data.paths || {}).length
+                    }
+                </div>`;
+          })
+          .catch((error) => {
+            resultsDiv.innerHTML += `<div class="test-result error">
+                    <strong>❌ Error:</strong><br>
+                    ${error.message}<br>
+                    <strong>Possible causes:</strong>
+                    <ul>
+                        <li>File swagger.php not found (404)</li>
+                        <li>PHP error in swagger.php</li>
+                        <li>CORS headers not sent</li>
+                        <li>Network connectivity issue</li>
+                    </ul>
+                </div>`;
+          });
+      }
+
+      function testCORSPreflight() {
+        const resultsDiv = document.getElementById("results");
+        const url =
+          window.location.protocol +
+          "//" +
+          window.location.host +
+          "/SAW-main/api/swagger.php";
+
+        resultsDiv.innerHTML += `<div class="test-result info">
+                <strong>🔗 Testing:</strong> OPTIONS ${url}<br>
+                <strong>⏱️ Time:</strong> ${new Date().toLocaleTimeString()}
+            </div>`;
+
+        fetch(url, {
+          method: "OPTIONS",
+          headers: {
+            Origin: window.location.origin,
+          },
+        })
+          .then((response) => {
+            return {
+              status: response.status,
+              headers: {
+                "Access-Control-Allow-Origin": response.headers.get(
+                  "Access-Control-Allow-Origin"
+                ),
+                "Access-Control-Allow-Methods": response.headers.get(
+                  "Access-Control-Allow-Methods"
+                ),
+                "Access-Control-Allow-Headers": response.headers.get(
+                  "Access-Control-Allow-Headers"
+                ),
+                "Access-Control-Max-Age": response.headers.get(
+                  "Access-Control-Max-Age"
+                ),
+              },
+            };
+          })
+          .then((result) => {
+            resultsDiv.innerHTML += `<div class="test-result success">
+                    <strong>✅ CORS Preflight Success!</strong><br>
+                    <strong>Status:</strong> ${result.status}<br>
+                    <strong>CORS Headers:</strong><br>
+                    <pre>
+Access-Control-Allow-Origin: ${
+              result.headers["Access-Control-Allow-Origin"] || "Not set"
+            }
+Access-Control-Allow-Methods: ${
+              result.headers["Access-Control-Allow-Methods"] || "Not set"
+            }
+Access-Control-Allow-Headers: ${
+              result.headers["Access-Control-Allow-Headers"] || "Not set"
+            }
+Access-Control-Max-Age: ${result.headers["Access-Control-Max-Age"] || "Not set"}
+                    </pre>
+                </div>`;
+          })
+          .catch((error) => {
+            resultsDiv.innerHTML += `<div class="test-result error">
+                    <strong>❌ CORS Preflight Error:</strong><br>
+                    ${error.message}
+                </div>`;
+          });
+      }
+
+      function clearResults() {
+        document.getElementById("results").innerHTML = "";
+      }
+
+      window.addEventListener("load", function () {
+        document.getElementById("results").innerHTML =
+          '<div class="test-result info">✅ Test page ready. Click buttons to test swagger.php</div>';
+      });
+    </script>
+  </body>
+</html>

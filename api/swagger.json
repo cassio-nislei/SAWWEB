@@ -1,0 +1,2656 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "SAW API - Sistema de Atendimento Web Rest",
+    "description": "API RESTful completa em PHP puro para gerenciamento de atendimentos, mensagens, anexos, contatos, agendamentos e configurações. Suporta JWT para autenticação.",
+    "version": "2.0.0",
+    "contact": {
+      "name": "Suporte SAW",
+      "email": "suporte@saw.local"
+    },
+    "license": {
+      "name": "MIT"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://localhost/SAW-main/api/v1",
+      "description": "Servidor de Desenvolvimento"
+    },
+    {
+      "url": "https://whatsaap.easilybr.com.br/api/v1",
+      "description": "Servidor de Produção"
+    },
+    {
+      "url": "https://whatsaap.easilybr.com.br/api/v1",
+      "description": "Servidor de Produção HTTPS"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "Status e verificação da API"
+    },
+    {
+      "name": "Autenticação",
+      "description": "Endpoints de autenticação"
+    },
+    {
+      "name": "Atendimentos",
+      "description": "Gerenciamento de atendimentos"
+    },
+    {
+      "name": "Mensagens",
+      "description": "Gerenciamento de mensagens"
+    },
+    {
+      "name": "Anexos",
+      "description": "Upload e gerenciamento de anexos"
+    },
+    {
+      "name": "Contatos",
+      "description": "Gerenciamento de contatos"
+    },
+    {
+      "name": "Agendamentos",
+      "description": "Gerenciamento de agendamentos"
+    },
+    {
+      "name": "Parâmetros",
+      "description": "Configurações do sistema"
+    },
+    {
+      "name": "Menus",
+      "description": "Gerenciamento de menus"
+    },
+    {
+      "name": "Respostas",
+      "description": "Respostas automáticas"
+    },
+    {
+      "name": "Horários",
+      "description": "Horários de funcionamento"
+    },
+    {
+      "name": "Departamentos",
+      "description": "Gerenciamento de departamentos"
+    },
+    {
+      "name": "Avisos",
+      "description": "Gerenciamento de avisos"
+    },
+    {
+      "name": "Banco de Dados",
+      "description": "Operações de estrutura do banco de dados"
+    },
+    {
+      "name": "Procedures",
+      "description": "Gerenciamento e execução de stored procedures e SQL"
+    }
+  ],
+  "paths": {
+    "/": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health Check",
+        "description": "Verifica se a API está funcionando",
+        "operationId": "healthCheck",
+        "responses": {
+          "200": {
+            "description": "API operacional",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SuccessResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "tags": [
+          "Autenticação"
+        ],
+        "summary": "Login",
+        "description": "Autentica usuário e retorna token JWT",
+        "operationId": "authLogin",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "login": {
+                    "type": "string",
+                    "example": "admin"
+                  },
+                  "senha": {
+                    "type": "string",
+                    "example": "123456"
+                  }
+                },
+                "required": [
+                  "login",
+                  "senha"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Login bem-sucedido",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LoginResponse"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Credenciais inválidas"
+          }
+        }
+      }
+    },
+    "/atendimentos": {
+      "get": {
+        "tags": [
+          "Atendimentos"
+        ],
+        "summary": "Listar atendimentos",
+        "operationId": "listAtendimentos",
+        "parameters": [
+          {
+            "name": "page",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 1
+            }
+          },
+          {
+            "name": "perPage",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 20
+            }
+          },
+          {
+            "name": "situacao",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de atendimentos",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AtendimentoListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Atendimentos"
+        ],
+        "summary": "Criar novo atendimento (P2: sprGeraNovoAtendimento)",
+        "operationId": "createAtendimento",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "numero": {
+                    "type": "string",
+                    "description": "Número de telefone/identificador"
+                  },
+                  "nome": {
+                    "type": "string",
+                    "description": "Nome do cliente"
+                  },
+                  "id_atendente": {
+                    "type": "integer",
+                    "description": "ID do atendente (opcional)"
+                  },
+                  "nome_atendente": {
+                    "type": "string",
+                    "description": "Nome do atendente (opcional)"
+                  },
+                  "situacao": {
+                    "type": "string",
+                    "enum": [
+                      "P",
+                      "A",
+                      "T",
+                      "F"
+                    ],
+                    "description": "Pendente, Atendendo, Triagem, Finalizado (padrão: P)"
+                  },
+                  "canal": {
+                    "type": "string",
+                    "description": "Canal de comunicação: WhatsApp, Telegram, Chat, Email (opcional)"
+                  },
+                  "setor": {
+                    "type": "string",
+                    "description": "Setor responsável (opcional)"
+                  }
+                },
+                "required": [
+                  "numero",
+                  "nome"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Atendimento criado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "id": {
+                          "type": "integer"
+                        },
+                        "login": {
+                          "type": "string"
+                        },
+                        "nome": {
+                          "type": "string"
+                        },
+                        "situacao": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "mensagem": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetros obrigatórios ausentes"
+          },
+          "500": {
+            "description": "Erro ao criar atendimento"
+          }
+        }
+      }
+    },
+    "/atendimentos/verificar-pendente": {
+      "post": {
+        "tags": [
+          "Atendimentos"
+        ],
+        "summary": "Verificar atendimento pendente",
+        "operationId": "verificarAtendimentoPendente",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "numero": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "numero"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verificação concluída"
+          }
+        }
+      }
+    },
+    "/atendimentos/finalizar": {
+      "post": {
+        "tags": [
+          "Atendimentos"
+        ],
+        "summary": "Finalizar atendimento",
+        "operationId": "finalizarAtendimento",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "observacao": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atendimento finalizado"
+          },
+          "404": {
+            "description": "Atendimento não encontrado"
+          }
+        }
+      }
+    },
+    "/atendimentos/gravar-mensagem": {
+      "post": {
+        "tags": [
+          "Mensagens"
+        ],
+        "summary": "Gravar mensagem em atendimento",
+        "operationId": "gravarMensagemAtendimento",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id_atendimento": {
+                    "type": "integer"
+                  },
+                  "mensagem": {
+                    "type": "string"
+                  },
+                  "arquivo": {
+                    "type": "string",
+                    "format": "binary"
+                  }
+                },
+                "required": [
+                  "id_atendimento",
+                  "mensagem"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Mensagem gravada"
+          },
+          "400": {
+            "description": "Dados inválidos"
+          }
+        }
+      }
+    },
+    "/atendimentos/atualizar-setor": {
+      "put": {
+        "tags": [
+          "Atendimentos"
+        ],
+        "summary": "Atualizar setor do atendimento",
+        "operationId": "atualizarSetorAtendimento",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "setor": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "id",
+                  "setor"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Setor atualizado"
+          }
+        }
+      }
+    },
+    "/atendimentos/inativos": {
+      "get": {
+        "tags": [
+          "Atendimentos"
+        ],
+        "summary": "Listar atendimentos inativos",
+        "operationId": "listarAtendimentosInativos",
+        "responses": {
+          "200": {
+            "description": "Lista de atendimentos inativos"
+          }
+        }
+      }
+    },
+    "/mensagens/verificar-duplicada": {
+      "post": {
+        "tags": [
+          "Mensagens"
+        ],
+        "summary": "Verificar mensagem duplicada",
+        "operationId": "verificarMensagemDuplicada",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "conteudo": {
+                    "type": "string"
+                  },
+                  "remetente": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "conteudo"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Verificação concluída"
+          }
+        }
+      }
+    },
+    "/mensagens/status-multiplas": {
+      "post": {
+        "tags": [
+          "Mensagens"
+        ],
+        "summary": "Obter status de múltiplas mensagens",
+        "operationId": "getStatusMultiplasMensagens",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "ids": {
+                    "type": "array",
+                    "items": {
+                      "type": "integer"
+                    }
+                  }
+                },
+                "required": [
+                  "ids"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status retornado"
+          }
+        }
+      }
+    },
+    "/mensagens/pendentes-envio": {
+      "get": {
+        "tags": [
+          "Mensagens"
+        ],
+        "summary": "Listar mensagens pendentes de envio",
+        "operationId": "listMensagensParaEnviar",
+        "responses": {
+          "200": {
+            "description": "Lista de mensagens pendentes"
+          }
+        }
+      }
+    },
+    "/mensagens/proxima-sequencia": {
+      "get": {
+        "tags": [
+          "Mensagens"
+        ],
+        "summary": "Obter próxima sequência de mensagem",
+        "operationId": "proximaSequenciaMensagem",
+        "parameters": [
+          {
+            "name": "id_atendimento",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Próxima sequência retornada"
+          }
+        }
+      }
+    },
+    "/mensagens/marcar-excluida": {
+      "put": {
+        "tags": [
+          "Mensagens"
+        ],
+        "summary": "Marcar mensagem como excluída (P5: spAtualizaExcluida)",
+        "operationId": "marcarMensagemExcluida",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "chatid": {
+                    "type": "string",
+                    "description": "Identificador único do chat"
+                  }
+                },
+                "required": [
+                  "chatid"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mensagem marcada como excluída com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "chatid": {
+                          "type": "string"
+                        },
+                        "executado": {
+                          "type": "boolean"
+                        }
+                      }
+                    },
+                    "mensagem": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "chatid obrigatório"
+          },
+          "500": {
+            "description": "Erro ao marcar mensagem como excluída"
+          }
+        }
+      }
+    },
+    "/mensagens/marcar-reacao": {
+      "post": {
+        "tags": [
+          "Mensagens"
+        ],
+        "summary": "Marcar reação na mensagem",
+        "operationId": "marcarMensagemReacao",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  },
+                  "reacao": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "id",
+                  "reacao"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Reação marcada"
+          }
+        }
+      }
+    },
+    "/mensagens/marcar-enviada": {
+      "put": {
+        "tags": [
+          "Mensagens"
+        ],
+        "summary": "Marcar mensagem como enviada",
+        "operationId": "marcarMensagemEnviada",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "integer"
+                  }
+                },
+                "required": [
+                  "id"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Mensagem marcada como enviada"
+          }
+        }
+      }
+    },
+    "/mensagens/comparar-duplicacao": {
+      "post": {
+        "tags": [
+          "Mensagens"
+        ],
+        "summary": "Comparar duplicação de mensagem",
+        "operationId": "compararDuplicacaoMensagem",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "mensagem1": {
+                    "type": "string"
+                  },
+                  "mensagem2": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "mensagem1",
+                  "mensagem2"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Comparação concluída"
+          }
+        }
+      }
+    },
+    "/contatos/exportar": {
+      "get": {
+        "tags": [
+          "Contatos"
+        ],
+        "summary": "Exportar contatos",
+        "operationId": "exportarContatos",
+        "parameters": [
+          {
+            "name": "formato",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "json",
+                "csv",
+                "xlsx"
+              ]
+            },
+            "description": "Formato de exportação"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contatos exportados"
+          }
+        }
+      }
+    },
+    "/contatos/buscar-nome": {
+      "get": {
+        "tags": [
+          "Contatos"
+        ],
+        "summary": "Buscar contato por nome",
+        "operationId": "buscarNomeContato",
+        "parameters": [
+          {
+            "name": "nome",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Contatos encontrados"
+          }
+        }
+      }
+    },
+    "/agendamentos/pendentes": {
+      "get": {
+        "tags": [
+          "Agendamentos"
+        ],
+        "summary": "Listar agendamentos pendentes",
+        "operationId": "listarAgendamentosPendentes",
+        "responses": {
+          "200": {
+            "description": "Agendamentos pendentes"
+          }
+        }
+      }
+    },
+    "/parametros/sistema": {
+      "get": {
+        "tags": [
+          "Parâmetros"
+        ],
+        "summary": "Obter parâmetros do sistema",
+        "operationId": "getParametrosSistema",
+        "responses": {
+          "200": {
+            "description": "Parâmetros do sistema"
+          }
+        }
+      }
+    },
+    "/parametros/verificar-expediente": {
+      "get": {
+        "tags": [
+          "Parâmetros"
+        ],
+        "summary": "Verificar expediente",
+        "operationId": "verificarExpediente",
+        "responses": {
+          "200": {
+            "description": "Status do expediente"
+          }
+        }
+      }
+    },
+    "/menus/principal": {
+      "get": {
+        "tags": [
+          "Menus"
+        ],
+        "summary": "Obter menu principal",
+        "operationId": "getMenuPrincipal",
+        "responses": {
+          "200": {
+            "description": "Menu principal"
+          }
+        }
+      }
+    },
+    "/menus/submenus": {
+      "get": {
+        "tags": [
+          "Menus"
+        ],
+        "summary": "Obter submenus",
+        "operationId": "getSubmenus",
+        "parameters": [
+          {
+            "name": "id_menu",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "required": false
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Submenus"
+          }
+        }
+      }
+    },
+    "/respostas/respostas-automaticas": {
+      "get": {
+        "tags": [
+          "Respostas"
+        ],
+        "summary": "Obter respostas automáticas",
+        "operationId": "getRespostasAutomaticas",
+        "responses": {
+          "200": {
+            "description": "Respostas automáticas"
+          }
+        }
+      }
+    },
+    "/departamentos/por-menu": {
+      "get": {
+        "tags": [
+          "Departamentos"
+        ],
+        "summary": "Obter departamentos por menu",
+        "operationId": "getDepartamentoPorMenu",
+        "parameters": [
+          {
+            "name": "id_menu",
+            "in": "query",
+            "schema": {
+              "type": "integer"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Departamentos"
+          }
+        }
+      }
+    },
+    "/avisos/registrar": {
+      "post": {
+        "tags": [
+          "Avisos"
+        ],
+        "summary": "Registrar aviso",
+        "operationId": "registrarAvisoSemExpediente",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "numero": {
+                    "type": "string"
+                  },
+                  "mensagem": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "numero",
+                  "mensagem"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Aviso registrado"
+          }
+        }
+      }
+    },
+    "/avisos/limpar-antigos": {
+      "delete": {
+        "tags": [
+          "Avisos"
+        ],
+        "summary": "Limpar avisos antigos",
+        "operationId": "limparAvisoAntigos",
+        "parameters": [
+          {
+            "name": "dias",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 30
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Avisos antigos removidos"
+          }
+        }
+      }
+    },
+    "/avisos/limpar-numero": {
+      "delete": {
+        "tags": [
+          "Avisos"
+        ],
+        "summary": "Limpar avisos por número",
+        "operationId": "limparAvisoNumero",
+        "parameters": [
+          {
+            "name": "numero",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Avisos removidos"
+          }
+        }
+      }
+    },
+    "/avisos/verificar-existente": {
+      "get": {
+        "tags": [
+          "Avisos"
+        ],
+        "summary": "Verificar aviso existente",
+        "operationId": "verificarAvisoExistente",
+        "parameters": [
+          {
+            "name": "numero",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Aviso verificado"
+          }
+        }
+      }
+    },
+    "/avisos/buscar-por-numero": {
+      "get": {
+        "tags": [
+          "Avisos"
+        ],
+        "summary": "Buscar avisos por número (Q18: com limpeza de antigos)",
+        "operationId": "buscarAvisosPorNumero",
+        "description": "Remove avisos antigos da data atual e retorna avisos existentes do número",
+        "parameters": [
+          {
+            "name": "numero",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Número de telefone para buscar avisos"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Avisos retornados com sucesso (antigos removidos automaticamente)",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "numero": {
+                          "type": "string"
+                        },
+                        "avisos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id": {
+                                "type": "integer"
+                              },
+                              "numero": {
+                                "type": "string"
+                              },
+                              "mensagem": {
+                                "type": "string"
+                              },
+                              "dt_aviso": {
+                                "type": "string",
+                                "format": "date-time"
+                              }
+                            }
+                          }
+                        },
+                        "total_avisos": {
+                          "type": "integer"
+                        },
+                        "linhas_limpas_gerais": {
+                          "type": "integer",
+                          "description": "Avisos antigos removidos"
+                        },
+                        "linhas_limpas_numero": {
+                          "type": "integer",
+                          "description": "Avisos do número removidos"
+                        }
+                      }
+                    },
+                    "mensagem": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Número obrigatório"
+          },
+          "500": {
+            "description": "Erro ao buscar avisos"
+          }
+        }
+      }
+    },
+    "/anexos/pendentes": {
+      "get": {
+        "tags": [
+          "Anexos"
+        ],
+        "summary": "Listar anexos pendentes (Q19)",
+        "operationId": "listarAnexosPendentes",
+        "description": "Retorna lista de anexos com enviado=1 para serem processados",
+        "parameters": [
+          {
+            "name": "canal",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "default": "WhatsApp"
+            },
+            "description": "Canal de comunicação (WhatsApp, Telegram, etc)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Anexos pendentes retornados",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "canal": {
+                          "type": "string"
+                        },
+                        "anexos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "pk": {
+                                "type": "string",
+                                "description": "CONCAT(id, seq, numero)"
+                              },
+                              "id": {
+                                "type": "integer"
+                              },
+                              "seq": {
+                                "type": "integer"
+                              },
+                              "numero": {
+                                "type": "string"
+                              },
+                              "nome_arquivo": {
+                                "type": "string"
+                              },
+                              "enviado": {
+                                "type": "integer"
+                              },
+                              "msg": {
+                                "type": "string"
+                              },
+                              "canal": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        },
+                        "total": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "mensagem": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Erro ao listar anexos"
+          }
+        }
+      }
+    },
+    "/anexos/{pk}": {
+      "get": {
+        "tags": [
+          "Anexos"
+        ],
+        "summary": "Buscar anexo por PK (Q20)",
+        "operationId": "buscarAnexoPorPK",
+        "description": "Retorna detalhes completos de um anexo específico",
+        "parameters": [
+          {
+            "name": "pk",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "PK no formato CONCAT(id, seq, numero)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Anexo encontrado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "pk": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "type": "integer"
+                        },
+                        "seq": {
+                          "type": "integer"
+                        },
+                        "numero": {
+                          "type": "string"
+                        },
+                        "nome_arquivo": {
+                          "type": "string"
+                        },
+                        "enviado": {
+                          "type": "integer"
+                        },
+                        "tamanho_arquivo": {
+                          "type": "integer"
+                        },
+                        "msg": {
+                          "type": "string"
+                        },
+                        "canal": {
+                          "type": "string"
+                        },
+                        "data_msg": {
+                          "type": "string",
+                          "format": "date-time"
+                        }
+                      }
+                    },
+                    "mensagem": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Anexo não encontrado"
+          },
+          "500": {
+            "description": "Erro ao buscar anexo"
+          }
+        }
+      }
+    },
+    "/anexos/{pk}/marcar-enviado": {
+      "put": {
+        "tags": [
+          "Anexos"
+        ],
+        "summary": "Marcar anexo como enviado (P16)",
+        "operationId": "marcarAnexoEnviado",
+        "description": "Atualiza o status enviado do anexo (0=enviado, 1=pendente)",
+        "parameters": [
+          {
+            "name": "pk",
+            "in": "path",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "PK no formato CONCAT(id, seq, numero)"
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "enviado": {
+                    "type": "integer",
+                    "enum": [
+                      0,
+                      1
+                    ],
+                    "default": 0,
+                    "description": "0=enviado, 1=pendente"
+                  }
+                },
+                "required": [
+                  "enviado"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Anexo marcado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "pk": {
+                          "type": "string"
+                        },
+                        "id": {
+                          "type": "integer"
+                        },
+                        "seq": {
+                          "type": "integer"
+                        },
+                        "numero": {
+                          "type": "string"
+                        },
+                        "enviado": {
+                          "type": "integer"
+                        },
+                        "linhas_atualizadas": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "mensagem": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "PK obrigatório"
+          },
+          "404": {
+            "description": "Anexo não encontrado"
+          },
+          "500": {
+            "description": "Erro ao marcar anexo"
+          }
+        }
+      }
+    },
+    "/mensagens/pendentes-status": {
+      "get": {
+        "tags": [
+          "Mensagens"
+        ],
+        "summary": "Listar mensagens pendentes de verificação de status",
+        "operationId": "listarMensagensStatusPendentes",
+        "description": "Lista mensagens que precisam de verificação de status via WPPConnect. Baseado em VerificaStatusMessage_Mult",
+        "parameters": [
+          {
+            "name": "canal",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Canal de atendimento (ex: 'whatsapp')"
+          },
+          {
+            "name": "horas_atras",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 24
+            },
+            "description": "Quantidade de horas para buscar (padrão: 24)"
+          },
+          {
+            "name": "minutos_futuros",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "default": 10
+            },
+            "description": "Minutos para frente (padrão: 10)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de mensagens pendentes",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": {
+                      "type": "boolean"
+                    },
+                    "dados": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "id_msg": {
+                            "type": "integer"
+                          },
+                          "chatid": {
+                            "type": "string"
+                          },
+                          "dt_msg": {
+                            "type": "string"
+                          },
+                          "id_atend": {
+                            "type": "integer"
+                          },
+                          "situacao": {
+                            "type": "string"
+                          },
+                          "status_msg": {
+                            "type": "integer"
+                          },
+                          "canal": {
+                            "type": "string"
+                          }
+                        }
+                      }
+                    },
+                    "mensagem": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetro 'canal' obrigatório"
+          }
+        }
+      }
+    },
+    "/mensagens/status/atualizar": {
+      "post": {
+        "tags": [
+          "Mensagens"
+        ],
+        "summary": "Atualizar status de mensagem",
+        "operationId": "atualizarStatusMensagem",
+        "description": "Atualiza o status de uma mensagem após WPPConnect verificar",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id_msg": {
+                    "type": "integer",
+                    "description": "ID da mensagem"
+                  },
+                  "chatid": {
+                    "type": "string",
+                    "description": "ID da conversa (ex: '5585987654321@c.us')"
+                  },
+                  "novo_status": {
+                    "type": "integer",
+                    "enum": [
+                      0,
+                      1,
+                      2,
+                      3,
+                      4
+                    ],
+                    "description": "0=Pendente, 1=Enviada, 2=Entregue, 3=Lida, 4=Erro"
+                  }
+                },
+                "required": [
+                  "id_msg",
+                  "chatid",
+                  "novo_status"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Status atualizado com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": {
+                      "type": "boolean"
+                    },
+                    "dados": {
+                      "type": "object",
+                      "properties": {
+                        "id_msg": {
+                          "type": "integer"
+                        },
+                        "status_anterior": {
+                          "type": "integer"
+                        },
+                        "status_novo": {
+                          "type": "integer"
+                        },
+                        "atualizado_em": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "mensagem": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetros inválidos"
+          },
+          "404": {
+            "description": "Mensagem não encontrada"
+          }
+        }
+      }
+    },
+    "/mensagens/status/processar-mult": {
+      "post": {
+        "tags": [
+          "Mensagens"
+        ],
+        "summary": "Processar múltiplas atualizações de status em lote",
+        "operationId": "processarMultiplasAtualizacoes",
+        "description": "Atualiza múltiplas mensagens de uma vez para melhor performance",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "atualizacoes": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "id_msg": {
+                          "type": "integer"
+                        },
+                        "chatid": {
+                          "type": "string"
+                        },
+                        "novo_status": {
+                          "type": "integer",
+                          "enum": [
+                            0,
+                            1,
+                            2,
+                            3,
+                            4
+                          ]
+                        }
+                      },
+                      "required": [
+                        "id_msg",
+                        "chatid",
+                        "novo_status"
+                      ]
+                    }
+                  }
+                },
+                "required": [
+                  "atualizacoes"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Atualizações processadas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": {
+                      "type": "boolean"
+                    },
+                    "dados": {
+                      "type": "object",
+                      "properties": {
+                        "processadas": {
+                          "type": "integer"
+                        },
+                        "atualizadas": {
+                          "type": "integer"
+                        },
+                        "erros": {
+                          "type": "integer"
+                        },
+                        "detalhes": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "id_msg": {
+                                "type": "integer"
+                              },
+                              "status_novo": {
+                                "type": "integer"
+                              },
+                              "sucesso": {
+                                "type": "boolean"
+                              },
+                              "erro": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Campo 'atualizacoes' obrigatório"
+          }
+        }
+      }
+    },
+    "/mensagens/status/relatorio": {
+      "get": {
+        "tags": [
+          "Mensagens"
+        ],
+        "summary": "Relatório de mensagens por status",
+        "operationId": "relatorioStatusMensagens",
+        "description": "Gera relatório de mensagens agrupadas por status em um período",
+        "parameters": [
+          {
+            "name": "canal",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            },
+            "required": true,
+            "description": "Canal de atendimento (ex: 'whatsapp')"
+          },
+          {
+            "name": "data_ini",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Data inicial (padrão: 7 dias atrás)"
+          },
+          {
+            "name": "data_fim",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date"
+            },
+            "description": "Data final (padrão: hoje)"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Relatório gerado",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "sucesso": {
+                      "type": "boolean"
+                    },
+                    "dados": {
+                      "type": "object",
+                      "properties": {
+                        "total": {
+                          "type": "integer"
+                        },
+                        "por_status": {
+                          "type": "object",
+                          "properties": {
+                            "0": {
+                              "type": "integer",
+                              "description": "Pendentes"
+                            },
+                            "1": {
+                              "type": "integer",
+                              "description": "Enviadas"
+                            },
+                            "2": {
+                              "type": "integer",
+                              "description": "Entregues"
+                            },
+                            "3": {
+                              "type": "integer",
+                              "description": "Lidas"
+                            },
+                            "4": {
+                              "type": "integer",
+                              "description": "Erros"
+                            }
+                          }
+                        },
+                        "pendentes": {
+                          "type": "integer"
+                        },
+                        "enviadas": {
+                          "type": "integer"
+                        },
+                        "entregues": {
+                          "type": "integer"
+                        },
+                        "lidas": {
+                          "type": "integer"
+                        },
+                        "periodo": {
+                          "type": "object",
+                          "properties": {
+                            "inicio": {
+                              "type": "string",
+                              "format": "date"
+                            },
+                            "fim": {
+                              "type": "string",
+                              "format": "date"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Parâmetro 'canal' obrigatório"
+          }
+        }
+      }
+    },
+    "/banco-dados/tabelas": {
+      "get": {
+        "summary": "Listar todas as tabelas do banco de dados",
+        "tags": [
+          "Banco de Dados"
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de tabelas",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "string"
+                      }
+                    },
+                    "count": {
+                      "type": "integer"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/banco-dados/tabela/existe": {
+      "get": {
+        "summary": "Verificar se uma tabela existe (TabelaExistenoMYSQL)",
+        "tags": [
+          "Banco de Dados"
+        ],
+        "parameters": [
+          {
+            "name": "tabela",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Nome da tabela a verificar"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado da verificação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "tabela": {
+                          "type": "string"
+                        },
+                        "existe": {
+                          "type": "boolean"
+                        },
+                        "verificado_em": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/banco-dados/campo/existe": {
+      "get": {
+        "summary": "Verificar se um campo existe em uma tabela (CampoExiste)",
+        "tags": [
+          "Banco de Dados"
+        ],
+        "parameters": [
+          {
+            "name": "tabela",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Nome da tabela"
+          },
+          {
+            "name": "campo",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Nome do campo"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Resultado da verificação",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "tabela": {
+                          "type": "string"
+                        },
+                        "campo": {
+                          "type": "string"
+                        },
+                        "existe": {
+                          "type": "boolean"
+                        },
+                        "tipo": {
+                          "type": "string"
+                        },
+                        "permite_null": {
+                          "type": "boolean"
+                        },
+                        "padrao": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "chave": {
+                          "type": "string"
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/banco-dados/tabela/estrutura": {
+      "get": {
+        "summary": "Obter estrutura completa de uma tabela",
+        "tags": [
+          "Banco de Dados"
+        ],
+        "parameters": [
+          {
+            "name": "tabela",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            },
+            "description": "Nome da tabela"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Estrutura da tabela",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean"
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "tabela": {
+                          "type": "string"
+                        },
+                        "total_campos": {
+                          "type": "integer"
+                        },
+                        "campos": {
+                          "type": "array",
+                          "items": {
+                            "type": "object",
+                            "properties": {
+                              "nome": {
+                                "type": "string"
+                              },
+                              "tipo": {
+                                "type": "string"
+                              },
+                              "permite_null": {
+                                "type": "boolean"
+                              },
+                              "padrao": {
+                                "type": [
+                                  "string",
+                                  "null"
+                                ]
+                              },
+                              "chave": {
+                                "type": "string"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/banco-dados/campo/info": {
+      "get": {
+        "summary": "Obter informações detalhadas de um campo",
+        "tags": [
+          "Banco de Dados"
+        ],
+        "parameters": [
+          {
+            "name": "tabela",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "campo",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Informações do campo"
+          }
+        }
+      }
+    },
+    "/banco-dados/tabela/criar": {
+      "post": {
+        "summary": "Criar nova tabela (ADMIN ONLY)",
+        "tags": [
+          "Banco de Dados"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "description": "Nome da tabela"
+                  },
+                  "campos": {
+                    "type": "array",
+                    "description": "Definição dos campos",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "nome": {
+                          "type": "string"
+                        },
+                        "tipo": {
+                          "type": "string"
+                        },
+                        "chave_primaria": {
+                          "type": "boolean"
+                        },
+                        "auto_incremento": {
+                          "type": "boolean"
+                        },
+                        "permite_null": {
+                          "type": "boolean"
+                        }
+                      }
+                    }
+                  }
+                },
+                "required": [
+                  "nome",
+                  "campos"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Tabela criada com sucesso"
+          }
+        }
+      }
+    },
+    "/banco-dados/campo/adicionar": {
+      "post": {
+        "summary": "Adicionar campo a uma tabela (ADMIN ONLY)",
+        "tags": [
+          "Banco de Dados"
+        ],
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tabela": {
+                    "type": "string"
+                  },
+                  "nome": {
+                    "type": "string"
+                  },
+                  "tipo": {
+                    "type": "string"
+                  },
+                  "permite_null": {
+                    "type": "boolean"
+                  },
+                  "apos": {
+                    "type": "string",
+                    "description": "Nome do campo anterior"
+                  }
+                },
+                "required": [
+                  "tabela",
+                  "nome",
+                  "tipo"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Campo adicionado com sucesso"
+          }
+        }
+      }
+    },
+    "/procedures/listar": {
+      "get": {
+        "tags": [
+          "Procedures"
+        ],
+        "summary": "Listar Procedures",
+        "description": "Lista todas as procedures do banco de dados MySQL",
+        "operationId": "listProcedures",
+        "security": [
+          {
+            "BearerToken": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Lista de procedures obtida com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "array",
+                      "items": {
+                        "type": "object",
+                        "properties": {
+                          "nome": {
+                            "type": "string",
+                            "example": "sprDashBoardAnoAtual"
+                          },
+                          "banco": {
+                            "type": "string",
+                            "example": "saw_db"
+                          }
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/procedures/existe": {
+      "get": {
+        "tags": [
+          "Procedures"
+        ],
+        "summary": "Verificar Existência de Procedure",
+        "description": "Verifica se uma procedure existe no banco de dados. Substitui TabelaExistenoMYSQL do Delphi.",
+        "operationId": "procedureExists",
+        "security": [
+          {
+            "BearerToken": []
+          }
+        ],
+        "parameters": [
+          {
+            "name": "nome",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "example": "sprDashBoardAnoAtual"
+            },
+            "description": "Nome da procedure a verificar"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Verificação realizada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "existe": {
+                          "type": "boolean",
+                          "example": true
+                        },
+                        "nome": {
+                          "type": "string"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/procedures/executar": {
+      "post": {
+        "tags": [
+          "Procedures"
+        ],
+        "summary": "Executar Procedure",
+        "description": "Executa uma procedure com parâmetros opcionais",
+        "operationId": "executeProcedure",
+        "security": [
+          {
+            "BearerToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "example": "sprDashBoardAnoAtual",
+                    "description": "Nome da procedure a executar"
+                  },
+                  "parametros": {
+                    "type": "array",
+                    "items": {
+                      "type": "string"
+                    },
+                    "example": [
+                      "2024",
+                      "01"
+                    ],
+                    "description": "Array com valores dos parâmetros"
+                  }
+                },
+                "required": [
+                  "nome"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Procedure executada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "description": "Resultado da procedure"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/procedures/criar": {
+      "post": {
+        "tags": [
+          "Procedures"
+        ],
+        "summary": "Criar Procedure (ADMIN)",
+        "description": "Cria uma nova procedure no banco de dados. Requer permissão de administrador.",
+        "operationId": "createProcedure",
+        "security": [
+          {
+            "BearerToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "example": "sprNovaProc",
+                    "description": "Nome da nova procedure"
+                  },
+                  "sql": {
+                    "type": "string",
+                    "example": "CREATE PROCEDURE sprNovaProc() BEGIN SELECT 1; END",
+                    "description": "Código SQL completo da procedure"
+                  }
+                },
+                "required": [
+                  "nome",
+                  "sql"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Procedure criada com sucesso"
+          },
+          "403": {
+            "description": "Acesso negado (requer admin)"
+          }
+        }
+      }
+    },
+    "/procedures/droppar": {
+      "post": {
+        "tags": [
+          "Procedures"
+        ],
+        "summary": "Remover Procedure (ADMIN)",
+        "description": "Remove uma procedure do banco de dados. Requer permissão de administrador.",
+        "operationId": "dropProcedure",
+        "security": [
+          {
+            "BearerToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "nome": {
+                    "type": "string",
+                    "example": "sprNovaProc",
+                    "description": "Nome da procedure a remover"
+                  }
+                },
+                "required": [
+                  "nome"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Procedure removida com sucesso"
+          },
+          "403": {
+            "description": "Acesso negado (requer admin)"
+          }
+        }
+      }
+    },
+    "/sql/executar": {
+      "post": {
+        "tags": [
+          "Procedures"
+        ],
+        "summary": "Executar SQL Arbitrário (ADMIN)",
+        "description": "Executa código SQL arbitrário. CUIDADO: Requer permissão de administrador e deve ser usado com cautela.",
+        "operationId": "executeSQL",
+        "security": [
+          {
+            "BearerToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "sql": {
+                    "type": "string",
+                    "example": "UPDATE tbusuario SET em_almoco = 1 WHERE id = 123",
+                    "description": "Código SQL a executar"
+                  }
+                },
+                "required": [
+                  "sql"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "SQL executado com sucesso"
+          },
+          "403": {
+            "description": "Acesso negado (requer admin)"
+          }
+        }
+      }
+    },
+    "/tabelas/sincronizar-estrutura": {
+      "post": {
+        "tags": [
+          "Procedures"
+        ],
+        "summary": "Sincronizar Estrutura de Tabelas",
+        "description": "Cria tabelas e colunas se não existirem. Substitui VerificaTabelaseColunas do Delphi.",
+        "operationId": "syncTableStructure",
+        "security": [
+          {
+            "BearerToken": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "tabela": {
+                    "type": "string",
+                    "example": "tbusuario",
+                    "description": "Nome da tabela"
+                  },
+                  "colunas": {
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "nome": {
+                          "type": "string",
+                          "example": "em_almoco"
+                        },
+                        "tipo": {
+                          "type": "string",
+                          "example": "INT"
+                        },
+                        "permite_null": {
+                          "type": "boolean",
+                          "example": true
+                        }
+                      }
+                    },
+                    "description": "Array com definição das colunas"
+                  },
+                  "sql_criacao": {
+                    "type": "string",
+                    "description": "SQL para criar a tabela se não existir"
+                  },
+                  "criar_se_nao_existe": {
+                    "type": "boolean",
+                    "default": true,
+                    "description": "Se deve criar a tabela quando ela não existir"
+                  }
+                },
+                "required": [
+                  "tabela",
+                  "colunas"
+                ]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Estrutura sincronizada com sucesso",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": {
+                      "type": "boolean",
+                      "example": true
+                    },
+                    "data": {
+                      "type": "object",
+                      "properties": {
+                        "tabela_criada": {
+                          "type": "boolean"
+                        },
+                        "colunas_adicionadas": {
+                          "type": "array"
+                        },
+                        "total": {
+                          "type": "integer"
+                        }
+                      }
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "SuccessResponse": {
+        "type": "object",
+        "properties": {
+          "sucesso": {
+            "type": "boolean",
+            "example": true
+          },
+          "mensagem": {
+            "type": "string"
+          },
+          "dados": {
+            "type": "object"
+          }
+        }
+      },
+      "LoginResponse": {
+        "type": "object",
+        "properties": {
+          "sucesso": {
+            "type": "boolean",
+            "example": true
+          },
+          "dados": {
+            "type": "object",
+            "properties": {
+              "token": {
+                "type": "string"
+              },
+              "refresh_token": {
+                "type": "string"
+              },
+              "usuario": {
+                "type": "object"
+              }
+            }
+          }
+        }
+      },
+      "AtendimentoListResponse": {
+        "type": "object",
+        "properties": {
+          "sucesso": {
+            "type": "boolean"
+          },
+          "dados": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "integer"
+                },
+                "numero": {
+                  "type": "string"
+                },
+                "nome": {
+                  "type": "string"
+                },
+                "situacao": {
+                  "type": "string"
+                },
+                "canal": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

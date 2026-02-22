@@ -1,0 +1,75 @@
+# SAW API - Apache Configuration
+# Habilitar mod_rewrite
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /api/
+    
+    # Servir arquivos estáticos normalmente (including swagger.json)
+    RewriteCond %{REQUEST_FILENAME} -f
+    RewriteRule ^.*$ - [L]
+    
+    # Servir diretórios normalmente
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^.*$ - [L]
+    
+    # Redirecionar requisições para v1/index.php
+    RewriteRule ^v1/(.*)$ v1/index.php?request=$1 [QSA,L]
+    
+    # Redirecionar outras requisições para v1/index.php
+    RewriteRule ^(.+)$ v1/index.php?request=$1 [QSA,L]
+</IfModule>
+
+# CORS Headers - Aplicado GLOBALMENTE
+<IfModule mod_headers.c>
+    Header set Access-Control-Allow-Origin "*"
+    Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD"
+    Header set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization"
+    Header set Access-Control-Max-Age "86400"
+</IfModule>
+
+# Specific headers for JSON files
+<FilesMatch "\.json$">
+    <IfModule mod_headers.c>
+        Header set Access-Control-Allow-Origin "*"
+        Header set Content-Type "application/json; charset=utf-8"
+        Header set Cache-Control "max-age=3600, public"
+    </IfModule>
+</FilesMatch>
+
+# Cache para arquivos estáticos
+<FilesMatch "\.(jpg|jpeg|png|gif|ico|css|js|woff|woff2)$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "max-age=2592000, public"
+    </IfModule>
+</FilesMatch>
+
+# Cache control for HTML and PHP
+<FilesMatch "\.(html|php)$">
+    <IfModule mod_headers.c>
+        Header set Cache-Control "max-age=0, public, must-revalidate"
+    </IfModule>
+</FilesMatch>
+
+# Compression
+<IfModule mod_deflate.c>
+    AddOutputFilterByType DEFLATE text/html
+    AddOutputFilterByType DEFLATE text/plain
+    AddOutputFilterByType DEFLATE text/xml
+    AddOutputFilterByType DEFLATE text/css
+    AddOutputFilterByType DEFLATE text/javascript
+    AddOutputFilterByType DEFLATE application/javascript
+    AddOutputFilterByType DEFLATE application/json
+    AddOutputFilterByType DEFLATE application/xml
+</IfModule>
+
+# Segurança
+<FilesMatch "^\.">
+    Order allow,deny
+    Deny from all
+</FilesMatch>
+
+# Tipos MIME
+AddType application/json .json
+AddType text/html .html
+AddEncoding gzip .gz
+

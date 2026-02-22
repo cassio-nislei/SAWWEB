@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>SAW API - Swagger UI (Proxy)</title>
+    <link
+      rel="stylesheet"
+      type="text/css"
+      href="https://unpkg.com/swagger-ui-dist@3/swagger-ui.css"
+    />
+    <link
+      rel="icon"
+      type="image/png"
+      href="https://unpkg.com/swagger-ui-dist@3/favicon-32x32.png"
+      sizes="32x32"
+    />
+    <style>
+      html {
+        box-sizing: border-box;
+        overflow-y: scroll;
+      }
+      *,
+      *:before,
+      *:after {
+        box-sizing: inherit;
+      }
+      body {
+        margin: 0;
+        padding: 0;
+        background: #fafafa;
+      }
+      .topbar {
+        background-color: #1a1a1a;
+        padding: 15px;
+        color: white;
+        border-bottom: 3px solid #4caf50;
+      }
+      .topbar h1 {
+        margin: 0;
+        font-size: 24px;
+        font-weight: 600;
+      }
+      .topbar p {
+        margin: 5px 0 0 0;
+        font-size: 12px;
+        opacity: 0.8;
+      }
+      .info-banner {
+        background-color: #e8f5e9;
+        border-left: 4px solid #4caf50;
+        padding: 12px 15px;
+        margin: 10px 0;
+        border-radius: 4px;
+        font-size: 12px;
+      }
+      .info-banner.warning {
+        background-color: #fff3e0;
+        border-left-color: #ff9800;
+      }
+      .info-banner.error {
+        background-color: #ffebee;
+        border-left-color: #f44336;
+      }
+      .loading {
+        text-align: center;
+        padding: 40px;
+        font-size: 18px;
+        color: #666;
+      }
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #4caf50;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 20px auto;
+      }
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <h1>🔌 SAW API - Swagger Documentation (Proxy Mode)</h1>
+      <p>Sistema de Atendimento Web - API RESTful v2.0.0</p>
+    </div>
+    <div id="info-message"></div>
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Carregando especificação Swagger...</p>
+    </div>
+    <div id="swagger-ui" style="display: none"></div>
+
+    <script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-bundle.js"></script>
+    <script src="https://unpkg.com/swagger-ui-dist@3/swagger-ui-standalone-preset.js"></script>
+    <script>
+      window.onload = function () {
+        const protocol = window.location.protocol;
+        const host = window.location.host;
+        const pathname = window.location.pathname;
+
+        let swaggerUrl = "";
+
+        // Detectar URL do swagger.json via rota da API
+        if (pathname.includes("/SAW-main/api")) {
+          swaggerUrl = protocol + "//" + host + "/SAW-main/api/v1/swagger.json";
+        } else if (pathname.includes("/api")) {
+          swaggerUrl = protocol + "//" + host + "/api/v1/swagger.json";
+        } else {
+          swaggerUrl = protocol + "//" + host + "/SAW-main/api/v1/swagger.json";
+        }
+
+        const infoDiv = document.getElementById("info-message");
+        const loadingDiv = document.getElementById("loading");
+        const swaggerDiv = document.getElementById("swagger-ui");
+
+        console.log("📍 Current URL:", window.location.href);
+        console.log("🔗 Swagger JSON URL:", swaggerUrl);
+
+        infoDiv.innerHTML = `<div class="info-banner">📡 Carregando especificação de: <strong>${swaggerUrl}</strong></div>`;
+
+        // Fazer fetch do swagger.json com proxy
+        fetch(swaggerUrl, {
+          method: "GET",
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+          credentials: "omit", // Não enviar cookies
+        })
+          .then((response) => {
+            console.log("Response status:", response.status);
+            console.log("Response headers:", {
+              "content-type": response.headers.get("content-type"),
+              "access-control-allow-origin": response.headers.get(
+                "access-control-allow-origin"
+              ),
+            });
+
+            if (!response.ok) {
+              throw new Error(
+                `HTTP Error: ${response.status} ${response.statusText}`
+              );
+            }
+            return response.json();
+          })
+          .then((spec) => {
+            console.log("✅ Especificação carregada com sucesso");
+            console.log(
+              "Endpoints encontrados:",
+              Object.keys(spec.paths || {}).length
+            );
+
+            // Carregar Swagger UI com a especificação já carregada
+            loadingDiv.style.display = "none";
+            swaggerDiv.style.display = "block";
+
+            window.ui = SwaggerUIBundle({
+              spec: spec, // Usar a especificação já carregada em vez de URL
+              dom_id: "#swagger-ui",
+              deepLinking: true,
+              preloadContent: true,
+              presets: [
+                SwaggerUIBundle.presets.apis,
+                SwaggerUIBundle.SwaggerUIStandalonePreset,
+              ],
+              plugins: [SwaggerUIBundle.plugins.DownloadUrl],
+              layout: "BaseLayout",
+              requestInterceptor: function (request) {
+                console.log("Swagger Request:", request.url);
+                return request;
+              },
+              responseInterceptor: function (response) {
+                console.log("Swagger Response:", response.url, response.status);
+                return response;
+              },
+              onComplete: function () {
+                console.log("✅ Swagger UI carregado com sucesso");
+                infoDiv.innerHTML = `<div class="info-banner">✅ Documentação carregada com sucesso! (${
+                  Object.keys(spec.paths).length
+                } endpoints)</div>`;
+              },
+              onFailure: function (error) {
+                console.error("❌ Erro ao carregar Swagger UI:", error);
+                infoDiv.innerHTML = `<div class="info-banner error">
+                ❌ Erro ao inicializar Swagger UI<br>
+                Erro: ${error.message || error}
+              </div>`;
+              },
+            });
+          })
+          .catch((error) => {
+            console.error("❌ Erro ao carregar especificação:", error);
+            loadingDiv.innerHTML = `<div class="info-banner error">
+            <strong>❌ Erro ao carregar documentação</strong><br>
+            URL: <strong>${swaggerUrl}</strong><br>
+            Erro: ${error.message}<br><br>
+            <strong>Possíveis causas:</strong>
+            <ul>
+              <li>Servidor não está respondendo</li>
+              <li>Arquivo swagger.json não encontrado</li>
+              <li>Problema de conectividade</li>
+              <li>Erro no servidor (check console/logs)</li>
+            </ul>
+            <strong>Tente:</strong>
+            <ul>
+              <li>Recarregar a página (F5 ou Ctrl+R)</li>
+              <li>Verificar se a URL é correta: <code>${swaggerUrl}</code></li>
+              <li>Verificar console do navegador (F12 → Console)</li>
+              <li>Verificar se o servidor está rodando</li>
+            </ul>
+          </div>`;
+            loadingDiv.style.display = "block";
+          });
+      };
+    </script>
+  </body>
+</html>
