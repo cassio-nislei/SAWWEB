@@ -42,6 +42,7 @@ function safe_session($key1, $key2 = null, $default = '') {
     <script src="js/notification.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
     <link href="https://cdnjs.cloudflare.com/ajax/libs/select2.js/4.0.13/css/select2.min.css" rel="stylesheet" />
+    <link href="css/select2-local.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!-- Bootstrap 5 para WebChat -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -89,6 +90,16 @@ function safe_session($key1, $key2 = null, $default = '') {
             if (pluginCheckAttempts >= 20) {
                 clearInterval(pluginCheckInterval);
                 console.log('Plugins finais:', window.pluginsReady);
+                
+                // Diagnóstico final
+                console.log('\n========== DIAGNÓSTICO FINAL ==========');
+                console.log('jQuery:', typeof jQuery !== 'undefined' ? '✅ v' + jQuery.fn.jquery : '❌ NÃO');
+                console.log('jQuery UI Tabs:', typeof $.fn.tabs !== 'undefined' ? '✅ OK' : '❌ NÃO');
+                console.log('Select2:', typeof $.fn.select2 !== 'undefined' ? '✅ OK' : '❌ NÃO');
+                console.log('jQuery Mask:', typeof $.fn.mask !== 'undefined' ? '✅ OK' : '❌ NÃO');
+                console.log('#my-photo:', $("#my-photo").length > 0 ? '✅ EXISTE' : '❌ NÃO');
+                console.log('.panel-left:', $(".panel-left").length > 0 ? '✅ EXISTE' : '❌ NÃO');
+                console.log('========================================\n');
             }
         }, 500);
         
@@ -114,6 +125,28 @@ function safe_session($key1, $key2 = null, $default = '') {
             };
             select2Script.onerror = function() {
                 console.error('❌ Falha ao carregar Select2 de cdnjs');
+                console.log('↻ Carregando Select2 local minimalista...');
+                
+                // Carregar versão local minimalista
+                var localSelect2 = document.createElement('script');
+                localSelect2.src = 'js/select2-local.min.js';
+                localSelect2.async = true;
+                localSelect2.onload = function() {
+                    window.pluginsReady.select2 = true;
+                    console.log('✅ Select2 Local (fallback) carregado');
+                    // Inicializar em elementos existentes
+                    if (typeof $.fn.select2 === 'function') {
+                        $('.pesqEtiquetas:not(.select2-hidden-accessible)').select2({
+                            placeholder: 'TAGS',
+                            maximumSelectionLength: 10
+                        });
+                    }
+                };
+                localSelect2.onerror = function() {
+                    console.warn('⚠️ Não foi possível carregar Select2 (local ou CDN)');
+                    window.pluginsReady.select2 = false;
+                };
+                document.head.appendChild(localSelect2);
             };
             document.head.appendChild(select2Script);
         }
@@ -1641,9 +1674,6 @@ function safe_session($key1, $key2 = null, $default = '') {
   });
   // ===== FIM Carregar foto do usuário =====
 </script>
-
-<!-- DEBUG CLICK EVENTS -->
-<script src="js/debug-click.js"></script>
 
 </body>
 </html>
