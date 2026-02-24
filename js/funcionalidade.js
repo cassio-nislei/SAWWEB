@@ -21,19 +21,16 @@ $(function () {
     ev.preventDefault();
     $("#box-operadores").css("left", "0");
   });
-  $(".voltar").click(function (ev) {
+  $(document).on("click", ".voltar", function (ev) {
     ev.preventDefault();
     $("#box-operadores").css("left", "-360px");
+    $("#box-contatos").css("left", "-360px");
   });
 
   /*** chama lista de contatos **/
-  $("#contatos-bt-lista").click(function (ev) {
+  $(document).on("click", "#contatos-bt-lista", function (ev) {
     ev.preventDefault();
     $("#box-contatos").css("left", "0");
-  });
-  $(".voltar").click(function (ev) {
-    ev.preventDefault();
-    $("#box-contatos").css("left", "-360px");
   });
 
   /*** abri perfil **/
@@ -47,7 +44,7 @@ $(function () {
   });
 
   /*** chama chat **/
-  $(".action_arrow").click(function (e) {
+  $(document).on("click", ".action_arrow", function (e) {
     if ($("#chatOperadores").val() === "0") {
       mostraDialogo("Chat não liberado pelo Administrador!", "danger", 2500);
     } else {
@@ -64,7 +61,7 @@ $(function () {
   });
 
   /*** Fecha o Chat **/
-  $(".sair").click(function (e) {
+  $(document).on("click", ".sair", function (e) {
     e.preventDefault();
     $("#Verchat").css("right", "-235px");
     $("._3zJZ2").css("width", "100%");
@@ -76,7 +73,7 @@ $(function () {
   });
 
   /*** mostra etiquetas **/
-  $(".uk-flutua").click(function () {
+  $(document).on("click", ".uk-flutua", function () {
     $("#EtiQueta").slideToggle();
     $(this).toggleClass("active");
     return false;
@@ -102,7 +99,7 @@ $(function () {
   });
 
   /*** mostra filtro **/
-  $(".filtrar").click(function () {
+  $(document).on("click", ".filtrar", function () {
     $("#_filtro").slideToggle();
     return false;
   });
