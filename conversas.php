@@ -30,6 +30,65 @@ function safe_session($key1, $key2 = null, $default = '') {
     <link rel="stylesheet" href="css/all.min.css">
     <link rel="stylesheet" href="css/whatsapp-styles.css">
     <script src="js/jquery-3.6.0.min.js"></script>
+    <!-- Injetar funções de plugins IMEDIATAMENTE após jQuery carregar -->
+    <script>
+    // Select2 inline - carrega ANTES de qualquer coisa tentar usar
+    if (typeof jQuery !== "undefined" && jQuery.fn) {
+      jQuery.fn.select2 = function (options) {
+        options = options || {};
+        return this.each(function () {
+          const $el = jQuery(this);
+          $el.addClass("select2-hidden-accessible");
+          $el.data("select2", true);
+          if (options.placeholder && !$el.find('option[value=""]').length) {
+            $el.prepend('<option value="">' + options.placeholder + "</option>");
+          }
+        });
+      };
+      if (typeof $ !== "undefined" && $ !== jQuery) {
+        $.fn.select2 = jQuery.fn.select2;
+      }
+      window.pluginsReady = window.pluginsReady || {};
+      window.pluginsReady.select2 = true;
+      console.log("✅ Select2 injetado diretamente no conversas.php");
+    }
+    
+    // jQuery UI Tabs inline - carrega ANTES de qualquer coisa tentar usar
+    if (typeof jQuery !== "undefined" && jQuery.fn) {
+      jQuery.fn.tabs = function (options) {
+        const $this = jQuery(this);
+        options = options || {};
+        $this.each(function () {
+          const $el = jQuery(this);
+          const $tabs = $el.find('[role="tab"], [data-tab], > ul > li, > div > ul > li');
+          const $panels = $el.find('[role="tabpanel"], [data-panel], > div > div');
+          $tabs.attr("role", "tab").attr("aria-selected", "false");
+          $panels.attr("role", "tabpanel").css({ display: "none" });
+          if ($tabs.length > 0) {
+            $tabs.first().attr("aria-selected", "true");
+            if ($panels.length > 0) $panels.first().css({ display: "block" });
+          }
+          $tabs.on("click", function () {
+            const $tab = jQuery(this);
+            const index = $tabs.index($tab);
+            $tabs.attr("aria-selected", "false");
+            $panels.hide();
+            $tab.attr("aria-selected", "true");
+            if ($panels.eq(index).length) {
+              $panels.eq(index).show();
+            }
+          });
+        });
+        return $this;
+      };
+      if (typeof $ !== "undefined" && $ !== jQuery) {
+        $.fn.tabs = jQuery.fn.tabs;
+      }
+      window.pluginsReady = window.pluginsReady || {};
+      window.pluginsReady.tabs = true;
+      console.log("✅ jQuery UI Tabs injetado diretamente no conversas.php");
+    }
+    </script>
     <script src="js/plugin-loader.js"></script>
     <script src="js/jquery.form.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
