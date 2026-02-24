@@ -30,63 +30,51 @@ function safe_session($key1, $key2 = null, $default = '') {
     <link rel="stylesheet" href="css/all.min.css">
     <link rel="stylesheet" href="css/whatsapp-styles.css">
     <script src="js/jquery-3.6.0.min.js"></script>
-    <!-- Injetar funções de plugins IMEDIATAMENTE após jQuery carregar -->
     <script>
-    // Select2 inline - carrega ANTES de qualquer coisa tentar usar
-    if (typeof jQuery !== "undefined" && jQuery.fn) {
-      jQuery.fn.select2 = function (options) {
-        options = options || {};
-        return this.each(function () {
-          const $el = jQuery(this);
-          $el.addClass("select2-hidden-accessible");
-          $el.data("select2", true);
-          if (options.placeholder && !$el.find('option[value=""]').length) {
-            $el.prepend('<option value="">' + options.placeholder + "</option>");
-          }
-        });
-      };
-      if (typeof $ !== "undefined" && $ !== jQuery) {
-        $.fn.select2 = jQuery.fn.select2;
-      }
-      window.pluginsReady = window.pluginsReady || {};
-      window.pluginsReady.select2 = true;
-      console.log("✅ Select2 injetado diretamente no conversas.php");
-    }
-    
-    // jQuery UI Tabs inline - carrega ANTES de qualquer coisa tentar usar
-    if (typeof jQuery !== "undefined" && jQuery.fn) {
-      jQuery.fn.tabs = function (options) {
-        const $this = jQuery(this);
-        options = options || {};
-        $this.each(function () {
-          const $el = jQuery(this);
-          const $tabs = $el.find('[role="tab"], [data-tab], > ul > li, > div > ul > li');
-          const $panels = $el.find('[role="tabpanel"], [data-panel], > div > div');
-          $tabs.attr("role", "tab").attr("aria-selected", "false");
-          $panels.attr("role", "tabpanel").css({ display: "none" });
-          if ($tabs.length > 0) {
-            $tabs.first().attr("aria-selected", "true");
-            if ($panels.length > 0) $panels.first().css({ display: "block" });
-          }
-          $tabs.on("click", function () {
-            const $tab = jQuery(this);
-            const index = $tabs.index($tab);
-            $tabs.attr("aria-selected", "false");
-            $panels.hide();
-            $tab.attr("aria-selected", "true");
-            if ($panels.eq(index).length) {
-              $panels.eq(index).show();
+    // Garantir que as funções de plugins persistam - rodar DURANTE document.ready
+    if (typeof jQuery !== 'undefined') {
+      jQuery(function($) {
+        // Select2 plugin function
+        $.fn.select2 = $.fn.select2 || function(options) {
+          options = options || {};
+          return this.each(function() {
+            const $el = $(this);
+            $el.addClass('select2-hidden-accessible').data('select2', true);
+            if (options.placeholder && !$el.find('option[value=""]').length) {
+              $el.prepend('<option value="">' + options.placeholder + '</option>');
             }
           });
-        });
-        return $this;
-      };
-      if (typeof $ !== "undefined" && $ !== jQuery) {
-        $.fn.tabs = jQuery.fn.tabs;
-      }
-      window.pluginsReady = window.pluginsReady || {};
-      window.pluginsReady.tabs = true;
-      console.log("✅ jQuery UI Tabs injetado diretamente no conversas.php");
+        };
+        
+        // jQuery UI Tabs plugin function
+        $.fn.tabs = $.fn.tabs || function(options) {
+          options = options || {};
+          return this.each(function() {
+            const $this = $(this);
+            const $tabs = $this.find('[role="tab"], [data-tab], > ul > li, > div > ul > li');
+            const $panels = $this.find('[role="tabpanel"], [data-panel], > div > div');
+            $tabs.attr('role', 'tab').attr('aria-selected', 'false');
+            $panels.attr('role', 'tabpanel').hide();
+            if ($tabs.length > 0 && $panels.length > 0) {
+              $tabs.eq(0).attr('aria-selected', 'true');
+              $panels.eq(0).show();
+            }
+            $tabs.on('click', function() {
+              const idx = $tabs.index($(this));
+              $tabs.attr('aria-selected', 'false');
+              $panels.hide();
+              $tabs.eq(idx).attr('aria-selected', 'true');
+              $panels.eq(idx).show();
+            });
+          });
+        };
+        
+        // Marcar como ready
+        window.pluginsReady = window.pluginsReady || {};
+        window.pluginsReady.select2 = true;
+        window.pluginsReady.tabs = true;
+        console.log('✅ Select2 e jQuery UI Tabs definidos e prontos no document.ready');
+      });
     }
     </script>
     <script src="js/plugin-loader.js"></script>
@@ -1512,11 +1500,11 @@ function safe_session($key1, $key2 = null, $default = '') {
                 function initializeTabs() {
                     tabsInitAttempts++;
                     if (typeof $.fn.tabs !== 'function') {
-                        if (tabsInitAttempts < 20) {  // Máximo 20 tentativas (10 segundos)
-                            console.warn('jQuery UI Tabs não disponível ainda. Tentando novamente... [' + tabsInitAttempts + '/20]');
-                            setTimeout(initializeTabs, 500);
+                        if (tabsInitAttempts < 10) {  // Máximo 10 tentativas (1 segundo)
+                            console.warn('[' + tabsInitAttempts + '/10] jQuery UI Tabs aguardando...');
+                            setTimeout(initializeTabs, 100);
                         } else {
-                            console.error('❌ jQuery UI Tabs não carregou após múltiplas tentativas');
+                            console.error('❌ jQuery UI Tabs não carregou');
                         }
                         return;
                     }

@@ -161,11 +161,11 @@
     function initializeSelect2Tags() {
         select2InitAttempts++;
         if (typeof $.fn.select2 !== 'function') {
-            if (select2InitAttempts < 20) {  // Máximo 20 tentativas (10 segundos)
-                console.warn('Select2 ainda não está disponível. Tentando novamente em 500ms... [' + select2InitAttempts + '/20]');
-                setTimeout(initializeSelect2Tags, 500);
+            if (select2InitAttempts < 10) {  // Máximo 10 tentativas (1 segundo)
+                console.warn('[' + select2InitAttempts + '/10] Select2 aguardando...');
+                setTimeout(initializeSelect2Tags, 100);
             } else {
-                console.error('❌ Select2 não carregou após múltiplas tentativas');
+                console.error('❌ Select2 não carregou');
             }
             return;
         }
