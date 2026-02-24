@@ -1,5 +1,16 @@
+<?php
+// Buscar cor dos parâmetros
+$corParametros = '#075e54'; // cor padrão
+if (isset($conexao)) {
+    $resultado = $conexao->query("SELECT color FROM tbparametros LIMIT 1");
+    if ($resultado && $resultado->num_rows > 0) {
+        $linha = $resultado->fetch_assoc();
+        $corParametros = $linha['color'] ?? '#075e54';
+    }
+}
+?>
 <div id="box-operadores">
-    <div class="box-azul">
+    <div class="box-azul" style="background-color: <?php echo $corParametros; ?> !important;">
         <p class="suport">
             <img src="img/ico-operador.svg" class="ico-image"> <span class="title">Operadores</span>
             <span class="voltar"></span>

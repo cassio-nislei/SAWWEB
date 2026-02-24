@@ -242,33 +242,38 @@
 
     <!-- Área da Digitação -->
     <div class="_3oju3" style="display: flex" id="divDigitacao">
-        <div tabindex="-1" class="_2uQuX" data-tab="4">
-            <!-- Respostas Rápidas -->
-            <span style="display: flex; float: left;" class="adjustIconsTalk">
-                <a id="lnkRespostaRapida" href="javascript:;" onclick="abrirModal('#modalRespostaRapida')">
-                    <i class="far fa-comments adjustFastAns"></i>
-                </a>
-            </span>
-
-            <!-- Enviar Contatos -->
-            <span style="display: flex; float: left;" class="adjustIconsTalk">
-                <a id="lnkEnviarContato" href="javascript:;">
-                    <i class="far fa-id-card adjustFastAns"></i>
-                </a>
-            </span>
-
-            <!-- Inserir Emojis -->
-            <span style="display: flex; float: left;" class="adjustIconsTalk">
-                <a id="btnViewEmojs" href="#">
-                    <i class="far fa-grin-alt adjustFastAns"></i>
-                </a>
-            </span>
-        </div>
                     
         <!-- Digitar Mensagem -->
         <div tabindex="-1" class="_2bXVy">
             <div tabindex="-1" class="_3F6QL _2WovP">
+                <!-- Respostas Rápidas -->
+                <span style="display: flex; float: left;" class="adjustIconsTalk">
+                    <a id="lnkRespostaRapida" href="javascript:;" onclick="abrirModal('#modalRespostaRapida')">
+                        <i class="far fa-comments adjustFastAns"></i>
+                    </a>
+                </span>
+
+                <!-- Inserir Emojis -->
+                <span style="display: flex; float: left;" class="adjustIconsTalk">
+                    <a id="btnViewEmojs" href="#">
+                        <i class="far fa-grin-alt adjustFastAns"></i>
+                    </a>
+                </span>
+
                 <textarea name="msg" id="msg" class="form-control type_msg" placeholder="Escreva aqui sua mensagem" style="height: 50px;"></textarea>
+                
+                <!-- Gravar Áudio -->
+                <div id="divAudio" class="audioIcons">
+            <div class="gravando" style="display: none;">
+                <a href="#" class="bt-cancel" title="Cancelar Gravação"><i class="far fa-times-circle"></i></a>
+                <i class="fas fa-circle" title="Gravando"></i> <span id="time" title="Gravando">00:00</span>
+                <a href="#" class="bt-send" title="Enviar Gravação"><i class="far fa-check-circle"></i></a>    
+            </div>
+            <div class="microfone">
+                <button id="btnFotografar" class="bt-fotografar" title="Iniciar Camera"><i class="fas fa-camera"></i></button>
+                <button id="btnRecorder" class="bt-recorder" title="Iniciar Gravação"  style="margin-left:2px;"><i class="fas fa-microphone"></i></button>
+            </div>            
+                </div>
             </div>
         </div>
         <!-- FIM Digitar Mensagem -->
@@ -281,19 +286,6 @@
                 </svg>
             </span>
         </button>
-        
-        <!-- Gravar Áudio -->
-        <div id="divAudio" class="audioIcons">
-            <div class="gravando">
-                <a href="#" class="bt-cancel" title="Cancelar Gravação"><i class="far fa-times-circle"></i></a>
-                <i class="fas fa-circle" title="Gravando"></i> <span id="time" title="Gravando">00:00</span>
-                <a href="#" class="bt-send" title="Enviar Gravação"><i class="far fa-check-circle"></i></a>    
-            </div>
-            <div class="microfone">
-                <button id="btnFotografar" class="bt-fotografar" title="Iniciar Camera"><i class="fas fa-camera"></i></button>
-                <button id="btnRecorder" class="bt-recorder" title="Iniciar Gravação"  style="margin-left:2px;"><i class="fas fa-microphone"></i></button>
-            </div>            
-        </div>
     </div>
     <div id="transferirParaMim" class="_3oju3" style="display:flex; display: none;">
         <button id="btnTransferirAtendimentoTriagem" class="btn btn-primary">Transferir Atendimento para mim</button>

@@ -28,6 +28,7 @@ function safe_session($key1, $key2 = null, $default = '') {
     <link rel="stylesheet" href="css/jquery-ui.min.css">
     <link rel="stylesheet" href="css/uikit.min.css">
     <link rel="stylesheet" href="css/all.min.css">
+    <link rel="stylesheet" href="css/whatsapp-styles.css">
     <script src="js/jquery-3.6.0.min.js"></script>
     <script src="js/jquery.form.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
@@ -498,7 +499,7 @@ function safe_session($key1, $key2 = null, $default = '') {
         }
 
         .gravando {
-            display: flex !important;
+            display: flex;
             align-items: center !important;
             gap: 10px !important;
             padding: 8px 15px !important;

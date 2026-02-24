@@ -1,11 +1,35 @@
+<?php
+// Buscar cor e imagem dos parâmetros
+$corParametros = '#075e54'; // cor padrão
+$imagemPerfil = 'img/ico-addcontato.svg'; // imagem padrão
+if (isset($conexao)) {
+    $resultado = $conexao->query("SELECT color, imagem_perfil FROM tbparametros LIMIT 1");
+    if ($resultado && $resultado->num_rows > 0) {
+        $linha = $resultado->fetch_assoc();
+        $corParametros = $linha['color'] ?? '#075e54';
+        // Se a imagem estiver em base64, monta o data URI
+        if (!empty($linha['imagem_perfil'])) {
+            $base64 = $linha['imagem_perfil'];
+            // Detecta o tipo da imagem (assume PNG se não conseguir detectar)
+            if (strpos($base64, 'data:image') === 0) {
+                // Já é um data URI válido
+                $imagemPerfil = $base64;
+            } else {
+                // É apenas o base64, precisa montar o data URI
+                $imagemPerfil = 'data:image/png;base64,' . $base64;
+            }
+        }
+    }
+}
+?>
 <div id="box-contatos">
-	<div class="box-azul">
+	<div class="box-azul" style="background-color: <?php echo $corParametros; ?> !important;">
 		<p class="suport">
-			<img src="img/ico-addcontato.svg" class="ico-image"> <span class="title" style="font-size:1rem">Lista de contatos (<span id="qtdeContatos"></span>)</span>
+			<img src="<?php echo $imagemPerfil; ?>" class="ico-image" style="width:30px;height:30px;display:inline-block;" onerror="this.src='img/ico-addcontato.svg'"> <span class="title" style="font-size:1rem">Lista de contatos (<span id="qtdeContatos"></span>)</span>
 			<span class="voltar"></span>
 		</p>
-		<a id="aModalEtiquetas" href="javascript:;" onclick="abrirModal('#modalEtiqueta');" class="uk-bottom uk-bottom-line" style="position:relative;top:-10px">Etiquetas</a>
-		<a id="aModalContatosBoxContatos" href="javascript:;" onclick="abrirModal('#modalContato')" class="uk-bottom uk-bottom-line" style="position:relative;top:-10px">Adicionar Contato</a>
+		<a id="aModalEtiquetas" href="javascript:;" onclick="abrirModal('#modalEtiqueta');" class="uk-bottom uk-bottom-line" style="position:relative;top:-10px;color:<?php echo $corParametros; ?> !important;">Etiquetas</a>
+		<a id="aModalContatosBoxContatos" href="javascript:;" onclick="abrirModal('#modalContato')" class="uk-bottom uk-bottom-line" style="position:relative;top:-10px;color:<?php echo $corParametros; ?> !important;">Adicionar Contato</a>
 	</div>
 	<div class="card-geral">
 		<div tabindex="-1" class="_3CPl4">

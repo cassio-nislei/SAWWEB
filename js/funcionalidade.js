@@ -23,7 +23,7 @@ $(function () {
   });
   $(".voltar").click(function (ev) {
     ev.preventDefault();
-    $("#box-operadores").css("left", "-445px");
+    $("#box-operadores").css("left", "-360px");
   });
 
   /*** chama lista de contatos **/
@@ -33,7 +33,7 @@ $(function () {
   });
   $(".voltar").click(function (ev) {
     ev.preventDefault();
-    $("#box-contatos").css("left", "-445px");
+    $("#box-contatos").css("left", "-360px");
   });
 
   /*** abri perfil **/

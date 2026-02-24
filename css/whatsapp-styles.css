@@ -1,0 +1,582 @@
+/* ===== ESTILOS PARA AS CLASSES DO WHATSAPP WEB ===== */
+
+/* ===== HEADER PRINCIPAL ===== */
+header._3auIg {
+  background-color: #ffffff !important;
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.1),
+    0 1px 3px rgba(0, 0, 0, 0.08) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05) !important;
+  padding: 12px 15px !important;
+  border-radius: 0 8px 0 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  position: relative !important;
+}
+
+/* ===== FOTO DO USUÁRIO - LADO ESQUERDO ===== */
+._2umId {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  position: absolute !important;
+  left: 10px !important;
+  top: 50% !important;
+  transform: translateY(-50%) !important;
+  width: 40px !important;
+  height: 40px !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  line-height: 40px !important;
+  border: none !important;
+}
+
+._1WliW {
+  height: 40px !important;
+  width: 40px !important;
+  cursor: pointer !important;
+  border-radius: 50% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  overflow: hidden !important;
+  background-color: #f0f0f0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+._3ZW2E {
+  width: 100% !important;
+  height: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 50% !important;
+  overflow: hidden !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+._3ZW2E img {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  border-radius: 50% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+._3ZW2E span {
+  width: 100% !important;
+  height: 100% !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* ===== CONTAINER DOS BOTÕES - LADO DIREITO ===== */
+._20NlL {
+  flex: 1 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  margin-left: 10px !important;
+  min-width: 0 !important;
+}
+
+._3Kxus {
+  display: flex !important;
+  align-items: center !important;
+  flex: 1 !important;
+  min-width: 0 !important;
+}
+
+/* ===== LISTA DE BOTÕES ===== */
+.user-options {
+  list-style: none !important;
+  display: flex !important;
+  gap: 8px !important;
+  align-items: center !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex-wrap: nowrap !important;
+  width: 100% !important;
+  min-width: 0 !important;
+  justify-content: flex-end !important;
+}
+
+.user-options li {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  flex-shrink: 0 !important;
+  width: 32px !important;
+  height: 32px !important;
+  list-style: none !important;
+}
+
+.user-options li a {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* ===== ÍCONES ===== */
+.user-options i,
+.itemIcon {
+  font-size: 16px !important;
+  color: #128c7e !important;
+  transition: all 0.2s ease !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.user-options i:hover,
+.itemIcon:hover {
+  color: #075e54 !important;
+  transform: scale(1.1) !important;
+}
+
+/* ===== TOOLTIPS ===== */
+.tooltip {
+  position: relative !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.tooltiptext {
+  visibility: hidden !important;
+  background-color: #333 !important;
+  color: #fff !important;
+  text-align: center !important;
+  padding: 5px 10px !important;
+  border-radius: 6px !important;
+  position: absolute !important;
+  z-index: 1000 !important;
+  font-size: 12px !important;
+  white-space: nowrap !important;
+  opacity: 0 !important;
+  transition: opacity 0.3s !important;
+  pointer-events: none !important;
+}
+
+.tooltip-bottom {
+  bottom: -35px !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+}
+
+.tooltip:hover .tooltiptext {
+  visibility: visible !important;
+  opacity: 1 !important;
+}
+
+/* ===== BOX DE CONTATOS ===== */
+#box-contatos {
+  padding: 10px !important;
+  background-color: #ffffff !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: -360px;
+  width: 360px !important;
+  height: 100vh !important;
+  z-index: 9999 !important;
+  overflow-y: auto !important;
+  transition: left 0.3s ease !important;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+/* ===== BOX DE OPERADORES ===== */
+#box-operadores {
+  padding: 10px !important;
+  background-color: #ffffff !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: -360px;
+  width: 360px !important;
+  height: 100vh !important;
+  z-index: 9999 !important;
+  overflow-y: auto !important;
+  transition: left 0.3s ease !important;
+  box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1) !important;
+}
+
+.box-azul {
+  background-color: #075e54 !important;
+  border-radius: 8px !important;
+  padding: 10px !important;
+  margin-bottom: 10px !important;
+  color: #fff !important;
+}
+
+.suport {
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  color: #fff !important;
+}
+}
+
+.suport .ico-image {
+  width: 20px !important;
+  height: 20px !important;
+}
+
+.suport .title {
+  flex: 1 !important;
+}
+
+/* ===== CARD GERAL ===== */
+.card-geral {
+  background-color: #fff !important;
+  border-radius: 8px !important;
+  overflow: hidden !important;
+  width: 350px !important;
+}
+
+.gQzdc {
+  display: flex !important;
+  align-items: center !important;
+  padding: 3px 10px 15px 10px !important;
+  background-color: #f5f5f5 !important;
+  gap: 10px !important;
+  flex-wrap: wrap !important;
+  flex-direction: row !important;
+}
+
+.gQzdc label {
+  display: flex !important;
+  align-items: center !important;
+  gap: 5px !important;
+  flex: 0 1 auto !important;
+}
+
+.gQzdc label:nth-of-type(1) {
+  flex: 0 0 auto !important;
+}
+
+.gQzdc label:nth-of-type(2) {
+  flex: 1 1 auto !important;
+  max-width: 180px !important;
+}
+
+.gQzdc #etiqueta {
+  width: 80px !important;
+  margin-left: -10px !important;
+}
+
+.gQzdc #tipo_pesquisa {
+  width: 120px !important;
+  flex-shrink: 0 !important;
+}
+}
+
+.gQzdc > div {
+  width: 320px !important;
+}
+
+#pesquisaContato {
+  margin-left: -10px !important;
+  width: 320px !important;
+  flex-shrink: 0 !important;
+  margin-right: 10px !important;
+  margin-top: 3px !important;
+}
+
+.gQzdc .uk-select,
+.gQzdc .uk-input {
+  padding: 8px 10px !important;
+  border: 1px solid #ddd !important;
+  border-radius: 20px !important;
+  font-size: 14px !important;
+}
+
+.gQzdc button {
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+  padding: 8px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  margin-left: auto !important;
+  margin-right: 20px !important;
+  transition: all 0.2s ease !important;
+}
+
+.gQzdc button:hover {
+  transform: scale(1.05) !important;
+}
+
+.gQzdc button svg {
+  width: 20px !important;
+  height: 20px !important;
+  fill: #075e54 !important;
+}
+
+#ListaViewContatos {
+  height: 77vh !important;
+  overflow-y: auto !important;
+  background-color: #fff !important;
+}
+
+/* ===== ESTILOS GERAIS ===== */
+.btNovaConversa {
+  list-style: none !important;
+}
+
+#aModalEtiquetas,
+#aModalContatosBoxContatos {
+  text-decoration: none !important;
+  font-weight: 500 !important;
+  transition: all 0.2s ease !important;
+  display: block !important;
+  margin-top: 40px !important;
+}
+
+#aModalEtiquetas:hover,
+#aModalContatosBoxContatos:hover {
+  color: #054a40 !important;
+  text-decoration: underline !important;
+}
+
+.box-azul .voltar {
+  filter: brightness(0) invert(1) !important;
+  opacity: 0.8 !important;
+}
+
+.box-azul .voltar:hover {
+  opacity: 1 !important;
+}
+
+.ico-image {
+  width: 40px !important;
+  height: 40px !important;
+  display: inline-block !important;
+  object-fit: cover !important;
+  border-radius: 4px !important;
+}
+
+.box-azul .ico-image[src*="ico-addcontato"] {
+  filter: brightness(0) invert(1) !important;
+}
+
+a#aModalEtiquetas,
+a#aModalContatosBoxContatos {
+  color: inherit !important;
+}
+
+@media (max-width: 1024px) {
+  header._3auIg {
+    padding: 10px !important;
+    gap: 8px !important;
+  }
+
+  .user-options {
+    gap: 6px !important;
+  }
+
+  .user-options li {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .user-options i,
+  .itemIcon {
+    font-size: 14px !important;
+  }
+
+  .gQzdc {
+    padding: 8px !important;
+    gap: 8px !important;
+  }
+}
+
+@media (max-width: 768px) {
+  header._3auIg {
+    padding: 8px !important;
+  }
+
+  ._2umId {
+    margin-left: 3px !important;
+  }
+
+  ._20NlL {
+    margin-left: 8px !important;
+  }
+
+  .user-options {
+    gap: 5px !important;
+  }
+
+  .user-options li {
+    width: 24px !important;
+    height: 24px !important;
+  }
+
+  .user-options i,
+  .itemIcon {
+    font-size: 12px !important;
+  }
+
+  .gQzdc {
+    padding: 8px !important;
+    gap: 8px !important;
+    flex-wrap: nowrap !important;
+  }
+
+  .gQzdc > div {
+    width: 320px !important;
+  }
+
+  .gQzdc #etiqueta {
+    width: 80px !important;
+  }
+
+  .gQzdc #tipo_pesquisa {
+    width: 120px !important;
+  }
+
+  #pesquisaContato {
+    width: 160px !important;
+  }
+
+  #ListaViewContatos {
+    height: auto !important;
+    max-height: 60vh !important;
+  }
+}
+/* ===== HIDE ELEMENTS ===== */
+#lnkEnviarContato {
+  display: none !important;
+}
+
+/* ===== MESSAGE INPUT CONTAINER LAYOUT ===== */
+#divDigitacao {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+  gap: 10px !important;
+  padding: 8px 12px !important;
+  background-color: #f0f0f0 !important;
+  border-radius: 20px !important;
+  margin: 8px 10px !important;
+  position: relative !important;
+  width: calc(100% - 44px) !important;
+  flex-wrap: nowrap !important;
+}
+
+/* LEFT ICONS */
+._2uQuX {
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  flex-shrink: 0 !important;
+  order: 1 !important;
+}
+
+._2uQuX span {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  float: none !important;
+}
+
+._2uQuX a {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+#btnViewEmojs {
+  margin-left: -10px !important;
+}
+
+.adjustIconsTalk {
+  margin-top: 25px !important;
+  margin-left: 7px !important;
+}
+
+/* INPUT FIELD - MIDDLE */
+._2bXVy {
+  flex: 1 !important;
+  order: 2 !important;
+  min-width: 200px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+._2bXVy ._3F6QL {
+  width: 100% !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+._2bXVy textarea {
+  background: transparent !important;
+  border: none !important;
+  outline: none !important;
+  padding: 0 8px !important;
+  margin: 0 auto !important;
+  margin-left: 30px !important;
+  width: 70% !important;
+  resize: none !important;
+  font-size: 14px !important;
+  color: #333 !important;
+}
+
+/* AUDIO CONTROLS - RIGHT */
+#divAudio {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+  flex-shrink: 0 !important;
+  order: 3 !important;
+}
+
+#divAudio .microfone {
+  display: flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+#divAudio .gravando {
+  align-items: center !important;
+  gap: 6px !important;
+  padding: 4px 10px !important;
+  background-color: rgba(0,0,0,0.05) !important;
+  border-radius: 15px !important;
+}
+
+/* SEND BUTTON - FAR RIGHT */
+._2lkdt {
+  flex-shrink: 0 !important;
+  order: 4 !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: none !important;
+  border: none !important;
+  cursor: pointer !important;
+}
+
+#btnEnviar {
+  display: none !important;
+}

@@ -421,8 +421,8 @@
                 var myInterval = startTimer(0, $("#time"));
                 $("#myInterval").val(myInterval);
                 $("#gravando").val("1");
-                $(".gravando").toggle();
-                $(".bt-recorder").toggle();
+                $(".gravando").slideDown(200);
+                $(".microfone").slideUp(200);
                 $("#msg").prop("disabled", true);
             });
             // Reaparecer microfone ao clicar em Stop
@@ -431,8 +431,8 @@
 
                 stopRecording()
                 $("#gravando").val("9");
-                $(".gravando").toggle();
-                $(".bt-recorder").toggle();
+                $(".gravando").slideUp(200);
+                $(".microfone").slideDown(200);
                 $("#time").text("00:00");
                 $("#msg").prop( "disabled", false );
             });
@@ -442,8 +442,8 @@
                 
                 stopRecording();
                 $("#gravando").val("0");
-                $(".gravando").toggle();
-                $(".bt-recorder").toggle();
+                $(".gravando").slideUp(200);
+                $(".microfone").slideDown(200);
                 $("#time").text("00:00");
                 $("#msg").prop( "disabled", false );
             });
