@@ -240,6 +240,7 @@ function safe_session($key1, $key2 = null, $default = '') {
     <script src="js/uikit.min.js"></script>
     <script src="js/uikit-icons.min.js"></script>
     <script src="js/funcionalidade.js"></script>
+    <script src="js/panel-fix.js"></script>
     <script src="js/profile_foto_upload.js"></script>
     <script src="js/jquery.mask.min.js"></script>
     <script>
@@ -295,7 +296,8 @@ function safe_session($key1, $key2 = null, $default = '') {
     <script>
         // Função para aplicar estilos corretos aos ícones
         function forceIconStyles() {
-            var icons = document.querySelectorAll('.itemIcon, .user-options i, .btNovaConversa i, .action-btn i, .action-btn .bi');
+            // Ícones gerais
+            var icons = document.querySelectorAll('.itemIcon, .user-options i, .btNovaConversa i, .action-btn i, .action-btn .bi, #panel-edit-profile i, #panel-edit-profile svg');
             icons.forEach(function(icon) {
                 var parent = icon.parentElement;
                 var color = '#128c7e'; // cor padrão
@@ -308,24 +310,40 @@ function safe_session($key1, $key2 = null, $default = '') {
                 else if (parent && parent.classList.contains('btn-edit')) {
                     color = '#667eea';
                 }
+                // Se o ícone é um SVG, aplicar fill em vez de color
+                else if (parent && parent.classList.contains('btn-save')) {
+                    color = '#075e54';
+                }
                 
                 // Aplicar cor
-                icon.style.color = color + ' !important';
-                
-                // Garantir que pointer-events está habilitado
-                icon.style.pointerEvents = 'auto';
-                icon.style.display = 'flex';
-                icon.style.alignItems = 'center';
-                icon.style.justifyContent = 'center';
+                if (icon.tagName === 'SVG') {
+                    // Para SVG, aplicar fill e stroke
+                    var paths = icon.querySelectorAll('path');
+                    paths.forEach(function(path) {
+                        if (!path.getAttribute('fill') || path.getAttribute('fill') === 'none') {
+                            path.setAttribute('fill', color);
+                        }
+                    });
+                } else {
+                    icon.style.color = color + ' !important';
+                    icon.style.pointerEvents = 'auto';
+                    icon.style.display = 'flex';
+                    icon.style.alignItems = 'center';
+                    icon.style.justifyContent = 'center';
+                }
             });
             
             // Forçar cores também para os botões
-            var actionBtns = document.querySelectorAll('.action-btn');
+            var actionBtns = document.querySelectorAll('.action-btn, #btn-save-panel-edit-profile, .btn-save, #btn-close-panel-edit-profile');
             actionBtns.forEach(function(btn) {
                 if (btn.classList.contains('btn-delete')) {
                     btn.style.color = '#dc3545 !important';
                 } else if (btn.classList.contains('btn-edit')) {
                     btn.style.color = '#667eea !important';
+                } else if (btn.classList.contains('btn-save') || btn.id === 'btn-save-panel-edit-profile') {
+                    btn.style.color = '#075e54 !important';
+                } else if (btn.id === 'btn-close-panel-edit-profile') {
+                    btn.style.color = '#fff !important';
                 }
             });
         }
@@ -340,7 +358,7 @@ function safe_session($key1, $key2 = null, $default = '') {
         // Reaplica estilos periodicamente em caso de mudanças dinâmicas
         setInterval(forceIconStyles, 500);
         
-        console.log('✅ Icon styles enforcer ativado');
+        console.log('✅ Icon styles enforcer ativado (incluindo painel de perfil)');
     </script>
     
     <!-- Script para verificar se plugins estão carregados -->
@@ -1352,7 +1370,21 @@ function safe_session($key1, $key2 = null, $default = '') {
                                     console.log('   ID:', $panelTest.attr("id"));
                                     console.log('   Classes:', $panelTest.attr("class"));
                                     console.log('   Display:', $panelTest.css("display"));
+                                    console.log('   Transform:', $panelTest.css("transform"));
                                 }
+                                
+                                // Informações sobre testes disponíveis
+                                setTimeout(function() {
+                                    console.log('%c🧪 FUNÇÕES DE TESTE DISPONÍVEIS:', 'background: #128c7e; color: white; padding: 5px 10px; border-radius: 3px;');
+                                    if (window.panelUtils) {
+                                        console.log('   ✅ window.panelUtils.open() - Abre o painel');
+                                        console.log('   ✅ window.panelUtils.close() - Fecha o painel');
+                                        console.log('   ✅ window.panelUtils.check() - Verifica estado do painel');
+                                        console.log('   ✅ window.panelUtils.forceShow() - Força mostrar o painel');
+                                    } else {
+                                        console.warn('   ⚠️ window.panelUtils não disponível ainda');
+                                    }
+                                }, 1000);
                             </script>
                         </span>
                         <span>
