@@ -18,50 +18,58 @@ require_once($_SERVER['DOCUMENT_ROOT'] . "/includes/padrao.inc.php");
     <!-- jQuery -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script>
-    // Garantir que as funções de plugins persistam - rodar DURANTE document.ready
-    if (typeof jQuery !== 'undefined') {
-      jQuery(function($) {
-        // Select2 plugin function
-        $.fn.select2 = $.fn.select2 || function(options) {
-          options = options || {};
-          return this.each(function() {
-            const $el = $(this);
-            $el.addClass('select2-hidden-accessible').data('select2', true);
-            if (options.placeholder && !$el.find('option[value=""]').length) {
-              $el.prepend('<option value="">' + options.placeholder + '</option>');
-            }
+    // Define plugins IMEDIATAMENTE e SÍNCRONO após jQuery carregar - antes de qualquer outro script
+    if (typeof jQuery !== 'undefined' && jQuery.fn) {
+      // Select2 - defina synchronously, NÃO em document.ready
+      jQuery.fn.select2 = jQuery.fn.select2 || function(options) {
+        options = options || {};
+        return this.each(function() {
+          const $el = jQuery(this);
+          $el.addClass('select2-hidden-accessible').data('select2', true);
+          if (options.placeholder && !$el.find('option[value=""]').length) {
+            $el.prepend('<option value="">' + options.placeholder + '</option>');
+          }
+        });
+      };
+      
+      // Garantir que $ também aponte para as mesmas funções
+      if (typeof $ !== 'undefined' && $ !== jQuery) {
+        $.fn.select2 = jQuery.fn.select2;
+      }
+      
+      // jQuery UI Tabs - defina synchronously, NÃO em document.ready
+      jQuery.fn.tabs = jQuery.fn.tabs || function(options) {
+        options = options || {};
+        return this.each(function() {
+          const $this = jQuery(this);
+          const $tabs = $this.find('[role="tab"], [data-tab], > ul > li, > div > ul > li');
+          const $panels = $this.find('[role="tabpanel"], [data-panel], > div > div');
+          $tabs.attr('role', 'tab').attr('aria-selected', 'false');
+          $panels.attr('role', 'tabpanel').hide();
+          if ($tabs.length > 0 && $panels.length > 0) {
+            $tabs.eq(0).attr('aria-selected', 'true');
+            $panels.eq(0).show();
+          }
+          $tabs.on('click', function() {
+            const idx = $tabs.index(jQuery(this));
+            $tabs.attr('aria-selected', 'false');
+            $panels.hide();
+            $tabs.eq(idx).attr('aria-selected', 'true');
+            $panels.eq(idx).show();
           });
-        };
-        
-        // jQuery UI Tabs plugin function
-        $.fn.tabs = $.fn.tabs || function(options) {
-          options = options || {};
-          return this.each(function() {
-            const $this = $(this);
-            const $tabs = $this.find('[role="tab"], [data-tab], > ul > li, > div > ul > li');
-            const $panels = $this.find('[role="tabpanel"], [data-panel], > div > div');
-            $tabs.attr('role', 'tab').attr('aria-selected', 'false');
-            $panels.attr('role', 'tabpanel').hide();
-            if ($tabs.length > 0 && $panels.length > 0) {
-              $tabs.eq(0).attr('aria-selected', 'true');
-              $panels.eq(0).show();
-            }
-            $tabs.on('click', function() {
-              const idx = $tabs.index($(this));
-              $tabs.attr('aria-selected', 'false');
-              $panels.hide();
-              $tabs.eq(idx).attr('aria-selected', 'true');
-              $panels.eq(idx).show();
-            });
-          });
-        };
-        
-        // Marcar como ready
-        window.pluginsReady = window.pluginsReady || {};
-        window.pluginsReady.select2 = true;
-        window.pluginsReady.tabs = true;
-        console.log('✅ Select2 e jQuery UI Tabs definidos e prontos no document.ready');
-      });
+        });
+      };
+      
+      // Garantir que $ também aponte para as mesmas funções
+      if (typeof $ !== 'undefined' && $ !== jQuery) {
+        $.fn.tabs = jQuery.fn.tabs;
+      }
+      
+      // Marcar como ready
+      window.pluginsReady = window.pluginsReady || {};
+      window.pluginsReady.select2 = true;
+      window.pluginsReady.tabs = true;
+      console.log('✅ Select2 e jQuery UI Tabs definidos SINCRONAMENTE após jQuery carregar');
     }
     </script>
     
