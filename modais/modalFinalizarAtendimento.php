@@ -160,9 +160,23 @@
     var select2InitAttempts = 0;
     function initializeSelect2Tags() {
         select2InitAttempts++;
-        if (typeof $.fn.select2 !== 'function') {
+        
+        // PRIMEIRO: Tentar restaurar do backup se necessário
+        if (select2InitAttempts === 1 && typeof window.restaurarPlugins === 'function') {
+            window.restaurarPlugins();
+        }
+        
+        // Verificar ambos jQuery e $ para maior compatibilidade
+        var select2Available = typeof $.fn.select2 === 'function' || typeof jQuery.fn.select2 === 'function';
+        
+        if (!select2Available) {
+            // Se ainda não temos, chamar restore novamente
+            if (select2InitAttempts > 1 && typeof window.restaurarPlugins === 'function') {
+                window.restaurarPlugins();
+            }
+            
             if (select2InitAttempts < 10) {  // Máximo 10 tentativas (1 segundo)
-                console.warn('[' + select2InitAttempts + '/10] Select2 aguardando...');
+                console.warn('[' + select2InitAttempts + '/10] Select2 aguardando... (jQuery: ' + typeof jQuery.fn.select2 + ', $: ' + typeof $.fn.select2 + ')');
                 setTimeout(initializeSelect2Tags, 100);
             } else {
                 console.error('❌ Select2 não carregou');

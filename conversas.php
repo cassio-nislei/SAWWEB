@@ -31,65 +31,163 @@ function safe_session($key1, $key2 = null, $default = '') {
     <link rel="stylesheet" href="css/whatsapp-styles.css">
     <script src="js/jquery-3.6.0.min.js"></script>
     <script>
-    // Define plugins IMEDIATAMENTE e SÍNCRONO após jQuery carregar - antes de qualquer outro script
-    if (typeof jQuery !== 'undefined' && jQuery.fn) {
-      // Select2 - defina synchronously, NÃO em document.ready
-      jQuery.fn.select2 = jQuery.fn.select2 || function(options) {
-        options = options || {};
-        return this.each(function() {
-          const $el = jQuery(this);
-          $el.addClass('select2-hidden-accessible').data('select2', true);
-          if (options.placeholder && !$el.find('option[value=""]').length) {
-            $el.prepend('<option value="">' + options.placeholder + '</option>');
-          }
-        });
-      };
-      
-      // Garantir que $ também aponte para as mesmas funções
-      if (typeof $ !== 'undefined' && $ !== jQuery) {
-        $.fn.select2 = jQuery.fn.select2;
-      }
-      
-      // jQuery UI Tabs - defina synchronously, NÃO em document.ready
-      jQuery.fn.tabs = jQuery.fn.tabs || function(options) {
-        options = options || {};
-        return this.each(function() {
-          const $this = jQuery(this);
-          const $tabs = $this.find('[role="tab"], [data-tab], > ul > li, > div > ul > li');
-          const $panels = $this.find('[role="tabpanel"], [data-panel], > div > div');
-          $tabs.attr('role', 'tab').attr('aria-selected', 'false');
-          $panels.attr('role', 'tabpanel').hide();
-          if ($tabs.length > 0 && $panels.length > 0) {
-            $tabs.eq(0).attr('aria-selected', 'true');
-            $panels.eq(0).show();
-          }
-          $tabs.on('click', function() {
-            const idx = $tabs.index(jQuery(this));
-            $tabs.attr('aria-selected', 'false');
-            $panels.hide();
-            $tabs.eq(idx).attr('aria-selected', 'true');
-            $panels.eq(idx).show();
+    (function() {
+      // Aguardar jQuery estar totalmente carregado
+      function definirPlugins() {
+        if (typeof jQuery === 'undefined' || !jQuery.fn) {
+          console.log('⏳ jQuery ainda não está pronto, tentando novamente...');
+          setTimeout(definirPlugins, 50);
+          return;
+        }
+        
+        // Select2 - defina forçadamente, sobrescrevendo qualquer coisa que existisse
+        jQuery.fn.select2 = function(options) {
+          console.log('📌 $.fn.select2 foi chamado');
+          options = options || {};
+          return this.each(function() {
+            const $el = jQuery(this);
+            $el.addClass('select2-hidden-accessible').data('select2', true);
+            if (options.placeholder && !$el.find('option[value=""]').length) {
+              $el.prepend('<option value="">' + options.placeholder + '</option>');
+            }
           });
-        });
-      };
-      
-      // Garantir que $ também aponte para as mesmas funções
-      if (typeof $ !== 'undefined' && $ !== jQuery) {
-        $.fn.tabs = jQuery.fn.tabs;
+        };
+        
+        // jQuery UI Tabs - defina forçadamente
+        jQuery.fn.tabs = function(options) {
+          console.log('📌 $.fn.tabs foi chamado');
+          options = options || {};
+          return this.each(function() {
+            const $this = jQuery(this);
+            const $tabs = $this.find('[role="tab"], [data-tab], > ul > li, > div > ul > li');
+            const $panels = $this.find('[role="tabpanel"], [data-panel], > div > div');
+            $tabs.attr('role', 'tab').attr('aria-selected', 'false');
+            $panels.attr('role', 'tabpanel').hide();
+            if ($tabs.length > 0 && $panels.length > 0) {
+              $tabs.eq(0).attr('aria-selected', 'true');
+              $panels.eq(0).show();
+            }
+            $tabs.on('click', function() {
+              const idx = $tabs.index(jQuery(this));
+              $tabs.attr('aria-selected', 'false');
+              $panels.hide();
+              $tabs.eq(idx).attr('aria-selected', 'true');
+              $panels.eq(idx).show();
+            });
+          });
+        };
+        
+        // Garantir que $ também aponta para jQuery
+        if (typeof $ !== 'undefined') {
+          $.fn.select2 = jQuery.fn.select2;
+          $.fn.tabs = jQuery.fn.tabs;
+        }
+        
+        // Marcar globalmente
+        window.pluginsReady = window.pluginsReady || {};
+        window.pluginsReady.select2 = true;
+        window.pluginsReady.tabs = true;
+        
+        // Diagnóstico
+        console.log('✅ Plugins definidos. typeof $.fn.select2:', typeof jQuery.fn.select2);
+        console.log('✅ Plugins definidos. typeof $.fn.tabs:', typeof jQuery.fn.tabs);
       }
       
-      // Marcar como ready
-      window.pluginsReady = window.pluginsReady || {};
-      window.pluginsReady.select2 = true;
-      window.pluginsReady.tabs = true;
-      console.log('✅ Select2 e jQuery UI Tabs definidos SINCRONAMENTE após jQuery carregar');
-    }
+      // Executar IMEDIATAMENTE
+      definirPlugins();
+    })();
     </script>
     <script src="js/plugin-loader.js"></script>
+    <script>
+      // CRÍTICO: Sistema de backup persistente para plugins
+      // Problema: jQuery/$ é limpo ou substituído em tempo de execução
+      window.SAW_PLUGINS = window.SAW_PLUGINS || {};
+      window.SAW_PLUGINS.backup = {};
+      
+      (function() {
+        function setupPluginBackup() {
+          if (typeof jQuery === 'undefined' || !jQuery.fn) {
+            setTimeout(setupPluginBackup, 50);
+            return;
+          }
+          
+          // Criar referência global se não existir
+          if (typeof $ === 'undefined') {
+            window.$ = jQuery;
+          }
+          
+          // BACKUP DAS FUNÇÕES - salvar em objeto que não pode ser sobrescrito
+          if (typeof jQuery.fn.select2 === 'function') {
+            window.SAW_PLUGINS.backup.select2 = jQuery.fn.select2;
+            console.log('✅ Backup de select2 criado');
+          }
+          
+          if (typeof jQuery.fn.tabs === 'function') {
+            window.SAW_PLUGINS.backup.tabs = jQuery.fn.tabs;
+            console.log('✅ Backup de tabs criado');
+          }
+          
+          // Garantir sincronização entre jQuery e $
+          if (window.SAW_PLUGINS.backup.select2 && typeof $.fn.select2 !== 'function') {
+            $.fn.select2 = window.SAW_PLUGINS.backup.select2;
+          }
+          
+          if (window.SAW_PLUGINS.backup.tabs && typeof $.fn.tabs !== 'function') {
+            $.fn.tabs = window.SAW_PLUGINS.backup.tabs;
+          }
+          
+          window.pluginsReady = {select2: true, tabs: true};
+        }
+        
+        // Função para restaurar plugins se forem perdidos
+        window.restaurarPlugins = function() {
+          var restaurado = false;
+          
+          // Se jQuery desapareceu, tentar recuperar do backup
+          if (typeof jQuery !== 'undefined' && jQuery.fn) {
+            if (window.SAW_PLUGINS.backup.select2 && typeof jQuery.fn.select2 !== 'function') {
+              jQuery.fn.select2 = window.SAW_PLUGINS.backup.select2;
+              if (typeof $ !== 'undefined' && $.fn) {
+                $.fn.select2 = window.SAW_PLUGINS.backup.select2;
+              }
+              console.log('🔄 Select2 restaurado do backup');
+              restaurado = true;
+            }
+            
+            if (window.SAW_PLUGINS.backup.tabs && typeof jQuery.fn.tabs !== 'function') {
+              jQuery.fn.tabs = window.SAW_PLUGINS.backup.tabs;
+              if (typeof $ !== 'undefined' && $.fn) {
+                $.fn.tabs = window.SAW_PLUGINS.backup.tabs;
+              }
+              console.log('🔄 Tabs restaurado do backup');
+              restaurado = true;
+            }
+          }
+          
+          return restaurado;
+        };
+        
+        setupPluginBackup();
+      })();
+      
+      // Monitorar e restaurar funções a cada 500ms se necessário
+      (function() {
+        function monitarPlugins() {
+          if (typeof $ !== 'undefined' && typeof $.fn !== 'undefined') {
+            if (typeof $.fn.select2 !== 'function' || typeof $.fn.tabs !== 'function') {
+              window.restaurarPlugins();
+            }
+          }
+        }
+        
+        setInterval(monitarPlugins, 500);
+      })();
+      
+      console.log('=== POST-PLUGIN SYNC WITH BACKUP ACTIVATED ===');
+    </script>
     <script src="js/jquery.form.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
-    <!-- Carregar jQuery UI Tabs local imediatamente como fallback garantido -->
-    <script src="js/jquery-ui-tabs-local.min.js"></script>
+    <!-- REMOVIDO: jquery-ui-tabs-local.min.js - já definido sincronamente acima -->
     <script src="js/js_modal.js"></script>
     <script src="js/uikit.min.js"></script>
     <script src="js/uikit-icons.min.js"></script>
@@ -98,8 +196,7 @@ function safe_session($key1, $key2 = null, $default = '') {
     <script src="js/jquery.mask.min.js"></script>
     <script src="js/notification.js"></script>
     <link href="css/select2-local.min.css" rel="stylesheet" />
-    <!-- NÃO carregar Select2 de CDN - usar apenas local -->
-    <script src="js/select2-local.min.js"></script>
+    <!-- REMOVIDO: select2-local.min.js - já definido sincronamente acima -->
     <!-- Bootstrap 5 para WebChat -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -1507,9 +1604,23 @@ function safe_session($key1, $key2 = null, $default = '') {
                 var tabsInitAttempts = 0;
                 function initializeTabs() {
                     tabsInitAttempts++;
-                    if (typeof $.fn.tabs !== 'function') {
+                    
+                    // PRIMEIRO: Tentar restaurar do backup se necessário
+                    if (tabsInitAttempts === 1 && typeof window.restaurarPlugins === 'function') {
+                        window.restaurarPlugins();
+                    }
+                    
+                    // Verificar ambos jQuery e $ para maior compatibilidade
+                    var tabsAvailable = typeof $.fn.tabs === 'function' || typeof jQuery.fn.tabs === 'function';
+                    
+                    if (!tabsAvailable) {
+                        // Se ainda não temos, chamar restore novamente
+                        if (tabsInitAttempts > 1 && typeof window.restaurarPlugins === 'function') {
+                            window.restaurarPlugins();
+                        }
+                        
                         if (tabsInitAttempts < 10) {  // Máximo 10 tentativas (1 segundo)
-                            console.warn('[' + tabsInitAttempts + '/10] jQuery UI Tabs aguardando...');
+                            console.warn('[' + tabsInitAttempts + '/10] jQuery UI Tabs aguardando... (jQuery: ' + typeof jQuery.fn.tabs + ', $: ' + typeof $.fn.tabs + ')');
                             setTimeout(initializeTabs, 100);
                         } else {
                             console.error('❌ jQuery UI Tabs não carregou');
@@ -1517,6 +1628,8 @@ function safe_session($key1, $key2 = null, $default = '') {
                         return;
                     }
                     try {
+                        // Usar a função disponível (prefira a sincrona do $)
+                        var tabsFunc = (typeof $.fn.tabs === 'function')?$.fn.tabs:jQuery.fn.tabs;
                         $("#tabs").tabs();
                         $("#tabs2").tabs();
                         $("#tabs3").tabs();
