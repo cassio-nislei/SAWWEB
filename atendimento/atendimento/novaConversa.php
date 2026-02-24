@@ -24,15 +24,41 @@
     $("#numero_inicio").focus();
     
     // Formatando o 'Número do Telefone' //
-    var behavior = function (val) {
-        return val.replace(/\D/g, '').length === 13 ? '+00 (00) 00000-0000' : '+00 (00) 0000-00009';
-    },
-    options = {
-        onKeyPress: function (val, e, field, options) {
-            field.mask(behavior.apply({}, arguments), options);
+    function aplicarMaskNumero() {
+        // Restaurar plugins antes de usar
+        if (typeof window.restaurarPlugins === 'function') {
+            window.restaurarPlugins();
         }
-    };
-    $('#numero_inicio').mask(behavior, options);
+        
+        if (typeof $.fn.mask === 'function') {
+            var behavior = function (val) {
+                return val.replace(/\D/g, '').length === 13 ? '+00 (00) 00000-0000' : '+00 (00) 0000-00009';
+            },
+            options = {
+                onKeyPress: function (val, e, field, options) {
+                    field.mask(behavior.apply({}, arguments), options);
+                }
+            };
+            $('#numero_inicio').mask(behavior, options);
+            console.log('✅ Mask aplicado em #numero_inicio');
+            return true;
+        } else {
+            console.warn('⏳ jQuery Mask ainda não está disponível');
+            return false;
+        }
+    }
+    
+    // Tentar aplicar imediatamente
+    if (!aplicarMaskNumero()) {
+        // Se falhar, tentar novamente periodicamente
+        var attempts = 0;
+        var interval = setInterval(function() {
+            attempts++;
+            if (aplicarMaskNumero() || attempts >= 10) {
+                clearInterval(interval);
+            }
+        }, 500);
+    }
 // Criar um Novo Atendimento //
 		$('#btnIniciarConversa').click(function(e){
             e.preventDefault();

@@ -127,6 +127,11 @@ function safe_session($key1, $key2 = null, $default = '') {
             console.log('✅ Backup de tabs criado');
           }
           
+          if (typeof jQuery.fn.mask === 'function') {
+            window.SAW_PLUGINS.backup.mask = jQuery.fn.mask;
+            console.log('✅ Backup de mask criado');
+          }
+          
           // Garantir sincronização entre jQuery e $
           if (window.SAW_PLUGINS.backup.select2 && typeof $.fn.select2 !== 'function') {
             $.fn.select2 = window.SAW_PLUGINS.backup.select2;
@@ -136,7 +141,11 @@ function safe_session($key1, $key2 = null, $default = '') {
             $.fn.tabs = window.SAW_PLUGINS.backup.tabs;
           }
           
-          window.pluginsReady = {select2: true, tabs: true};
+          if (window.SAW_PLUGINS.backup.mask && typeof $.fn.mask !== 'function') {
+            $.fn.mask = window.SAW_PLUGINS.backup.mask;
+          }
+          
+          window.pluginsReady = {select2: true, tabs: true, mask: true};
         }
         
         // Função para restaurar plugins se forem perdidos
@@ -162,6 +171,15 @@ function safe_session($key1, $key2 = null, $default = '') {
               console.log('🔄 Tabs restaurado do backup');
               restaurado = true;
             }
+            
+            if (window.SAW_PLUGINS.backup.mask && typeof jQuery.fn.mask !== 'function') {
+              jQuery.fn.mask = window.SAW_PLUGINS.backup.mask;
+              if (typeof $ !== 'undefined' && $.fn) {
+                $.fn.mask = window.SAW_PLUGINS.backup.mask;
+              }
+              console.log('🔄 Mask restaurado do backup');
+              restaurado = true;
+            }
           }
           
           return restaurado;
@@ -174,7 +192,7 @@ function safe_session($key1, $key2 = null, $default = '') {
       (function() {
         function monitarPlugins() {
           if (typeof $ !== 'undefined' && typeof $.fn !== 'undefined') {
-            if (typeof $.fn.select2 !== 'function' || typeof $.fn.tabs !== 'function') {
+            if (typeof $.fn.select2 !== 'function' || typeof $.fn.tabs !== 'function' || typeof $.fn.mask !== 'function') {
               window.restaurarPlugins();
             }
           }
@@ -183,7 +201,36 @@ function safe_session($key1, $key2 = null, $default = '') {
         setInterval(monitarPlugins, 500);
       })();
       
+      
       console.log('=== POST-PLUGIN SYNC WITH BACKUP ACTIVATED ===');
+      
+      // Função segura para aplicar máscaras garantindo que o plugin está disponível
+      window.aplicarMask = function(selector, maskPattern) {
+        window.restaurarPlugins(); // Restaurar antes de tentar usar
+        
+        if (typeof $.fn.mask === 'function') {
+          $(selector).each(function() {
+            try {
+              if (typeof maskPattern === 'function') {
+                // Mask com comportamento dinâmico
+                var options = {
+                  onKeyPress: function (val, e, field, options) {
+                    field.mask(maskPattern.apply({}, arguments), options);
+                  }
+                };
+                $(this).mask(maskPattern, options);
+              } else {
+                // Mask simples
+                $(this).mask(maskPattern);
+              }
+            } catch (e) {
+              console.warn('Erro ao aplicar mask em ' + selector + ':', e);
+            }
+          });
+        } else {
+          console.warn('jQuery Mask Plugin não está disponível em ' + selector);
+        }
+      };
     </script>
     <script src="js/jquery.form.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
@@ -194,6 +241,47 @@ function safe_session($key1, $key2 = null, $default = '') {
     <script src="js/funcionalidade.js"></script>
     <script src="js/profile_foto_upload.js"></script>
     <script src="js/jquery.mask.min.js"></script>
+    <script>
+      // POST-LOAD HOOK: Backup jQuery Mask imediatamente após carregar
+      (function() {
+        function backupMaskOnLoad() {
+          if (typeof jQuery !== 'undefined' && jQuery.fn && typeof jQuery.fn.mask === 'function') {
+            if (!window.SAW_PLUGINS.backup.mask) {
+              window.SAW_PLUGINS.backup.mask = jQuery.fn.mask;
+              console.log('✅ Backup de mask criado (post-load hook)');
+            }
+            
+            // Sincronizar com $ se necessário
+            if (typeof $ !== 'undefined' && $.fn && typeof $.fn.mask !== 'function') {
+              $.fn.mask = jQuery.fn.mask;
+              console.log('✅ Mask sincronizado com $');
+            }
+            
+            // Marcar como pronto
+            if (window.pluginsReady) {
+              window.pluginsReady.mask = true;
+            }
+            return true;
+          }
+          return false;
+        }
+        
+        // Tentar immediately
+        if (!backupMaskOnLoad()) {
+          // Se não conseguir agora, tentar por até 5 segundos
+          var attempts = 0;
+          var interval = setInterval(function() {
+            attempts++;
+            if (backupMaskOnLoad() || attempts >= 10) {
+              clearInterval(interval);
+              if (attempts >= 10) {
+                console.warn('⚠️ jQuery Mask não foi detectado após 5 segundos');
+              }
+            }
+          }, 500);
+        }
+      })();
+    </script>
     <script src="js/notification.js"></script>
     <link href="css/select2-local.min.css" rel="stylesheet" />
     <!-- REMOVIDO: select2-local.min.js - já definido sincronamente acima -->

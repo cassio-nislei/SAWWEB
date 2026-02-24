@@ -115,7 +115,15 @@ function (e) {
 
 	
 	//Adiciona as Mascaras nos campos
-	$("#emissao, #saida, #de, #ate").mask("99/99/9999");
+	// Restaurar plugins e aplicar mask
+	if (typeof window.restaurarPlugins === 'function') {
+		window.restaurarPlugins();
+	}
+	if (typeof $.fn.mask === 'function') {
+		$("#emissao, #saida, #de, #ate").mask("99/99/9999");
+	} else {
+		console.warn("jQuery Mask não está disponível em relatorios atendimentos");
+	}
 		
 	function updateAb(value){     
        $("#emissao, #saida, #de, #ate").trigger('blur');    

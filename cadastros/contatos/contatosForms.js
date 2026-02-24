@@ -21,21 +21,52 @@ $(function () {
 
 // Formatando o 'Número do Telefone' //
 $(document).ready(function () {
-  if (typeof $.fn.mask === "function") {
-    var behavior = function (val) {
-        return val.replace(/\D/g, "").length === 13
-          ? "+00 (00) 00000-0000"
-          : "+00 (00) 0000-00009";
-      },
-      options = {
-        onKeyPress: function (val, e, field, options) {
-          field.mask(behavior.apply({}, arguments), options);
-        },
-      };
+  // Criar função para aplicar mask com retry
+  function aplicarMaskContato() {
+    // Tentar restaurar plugins antes de usar
+    if (typeof window.restaurarPlugins === "function") {
+      window.restaurarPlugins();
+    }
 
-    $("#numero_contato").mask(behavior, options);
-  } else {
-    console.log("jQuery Mask Plugin não está carregado");
+    if (typeof $.fn.mask === "function") {
+      var behavior = function (val) {
+          return val.replace(/\D/g, "").length === 13
+            ? "+00 (00) 00000-0000"
+            : "+00 (00) 0000-00009";
+        },
+        options = {
+          onKeyPress: function (val, e, field, options) {
+            field.mask(behavior.apply({}, arguments), options);
+          },
+        };
+
+      $("#numero_contato").mask(behavior, options);
+      console.log("✅ Mask aplicado com sucesso em #numero_contato");
+      return true;
+    } else {
+      console.warn(
+        "⏳ jQuery Mask Plugin ainda não está carregado, tentando novamente...",
+      );
+      return false;
+    }
+  }
+
+  // Tentar aplicar imediatamente
+  if (!aplicarMaskContato()) {
+    // Se não conseguir, tentar periodicamente por até 10 segundos
+    var maskAttempts = 0;
+    var maskInterval = setInterval(function () {
+      maskAttempts++;
+      if (aplicarMaskContato() || maskAttempts >= 20) {
+        // 20 * 500ms = 10 segundos
+        clearInterval(maskInterval);
+        if (maskAttempts >= 20) {
+          console.warn(
+            "❌ jQuery Mask não foi carregado após 10 segundos em contatosForms.js",
+          );
+        }
+      }
+    }, 500);
   }
 
   // REMOVER Comportamento padrão de form submit

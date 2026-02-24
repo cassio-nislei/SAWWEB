@@ -157,6 +157,10 @@ window.retrySelect2Loading = function () {
   var attempts = 0;
   var interval = setInterval(function () {
     attempts++;
+    // Sempre tentar restaurar plugins antes de verificar
+    if (typeof window.restaurarPlugins === "function") {
+      window.restaurarPlugins();
+    }
     if (typeof $.fn.select2 === "function") {
       clearInterval(interval);
       console.log("✅ Select2 disponível após " + attempts + " tentativas");
@@ -174,5 +178,56 @@ window.retrySelect2Loading = function () {
   }, 500);
 };
 
-// Iniciar tentativa ao carregar script
+// Função para inicializar jQuery Mask em elementos dinâmicos
+window.initMaskIfNeeded = function (selector, maskPattern) {
+  if (typeof $.fn.mask === "function") {
+    $(selector).each(function () {
+      try {
+        if (maskPattern && typeof maskPattern === "function") {
+          var options = {
+            onKeyPress: function (val, e, field, options) {
+              field.mask(maskPattern.apply({}, arguments), options);
+            },
+          };
+          $(this).mask(maskPattern, options);
+        } else if (maskPattern && typeof maskPattern === "string") {
+          $(this).mask(maskPattern);
+        }
+      } catch (e) {
+        console.error("Erro ao inicializar Mask:", e);
+      }
+    });
+  } else {
+    console.warn("jQuery Mask ainda não está disponível");
+  }
+};
+
+// Tentar carregar jQuery Mask periodicamente
+window.retryMaskLoading = function () {
+  var maxAttempts = 60; // 30 segundos (60 * 500ms)
+  var attempts = 0;
+  var interval = setInterval(function () {
+    attempts++;
+    // Sempre tentar restaurar plugins antes de verificar
+    if (typeof window.restaurarPlugins === "function") {
+      window.restaurarPlugins();
+    }
+    if (typeof $.fn.mask === "function") {
+      clearInterval(interval);
+      console.log("✅ jQuery Mask disponível após " + attempts + " tentativas");
+    } else if (attempts >= maxAttempts) {
+      clearInterval(interval);
+      console.warn(
+        "⚠️ jQuery Mask não foi carregado após " +
+          maxAttempts +
+          " tentativas (" +
+          maxAttempts * 500 +
+          "ms)",
+      );
+    }
+  }, 500);
+};
+
+// Iniciar tentativas ao carregar script
 window.retrySelect2Loading();
+window.retryMaskLoading();

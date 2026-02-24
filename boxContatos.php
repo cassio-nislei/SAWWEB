@@ -108,9 +108,19 @@ if (isset($conexao)) {
 		$("#etiqueta, #tipo_pesquisa").change(function(){
 			var tipo_pesquisa = $("#tipo_pesquisa option:selected").val();
 					if (tipo_pesquisa==0 || tipo_pesquisa==3 ){
-						$('#pesquisaContato').unmask();
+						if (typeof $.fn.unmask === 'function') {
+							$('#pesquisaContato').unmask();
+						}
 					}else{
-						$("#pesquisaContato").mask("99999999999999");
+						// Restaurar plugins e aplicar mask com segurança
+						if (typeof window.restaurarPlugins === 'function') {
+							window.restaurarPlugins();
+						}
+						if (typeof $.fn.mask === 'function') {
+							$("#pesquisaContato").mask("99999999999999");
+						} else {
+							console.warn("jQuery Mask não está disponível em boxContatos");
+						}
 					}					
 					$("#pesquisaContato").focus();
                 });
