@@ -34,12 +34,66 @@ $(function () {
   });
 
   /*** abri perfil **/
+  // Método 1: Event delegation (padrão)
   $(document).on("click", "#my-photo", function (ev) {
+    console.log("🎯 Click detectado em #my-photo (method 1 - delegation)");
     ev.preventDefault();
+    ev.stopPropagation();
     $(".panel-left").addClass("open");
   });
+
+  // Método 2: Listener direto (fallback - em caso de problema)
+  $(function () {
+    var $myPhoto = $("#my-photo");
+    if ($myPhoto.length > 0) {
+      $myPhoto.off("click").on("click", function (ev) {
+        console.log("🎯 Click detectado em #my-photo (method 2 - direct)");
+        ev.preventDefault();
+        ev.stopPropagation();
+        $(".panel-left").addClass("open");
+      });
+      console.log("✅ Listener direto adicionado a #my-photo");
+    } else {
+      console.warn("⚠️ #my-photo não encontrado para listener direto");
+    }
+  });
+
+  // Método 3: Mousedown fallback (em caso de preventDefault não funcionar)
+  $(document).on("mousedown", "#my-photo", function (ev) {
+    if (ev.which === 1) {
+      // Apenas click esquerdo
+      console.log(
+        "🎯 Mousedown detectado em #my-photo (method 3 - mousedown fallback)",
+      );
+      $(".panel-left").addClass("open");
+    }
+  });
+
+  // Verificar se elemento tem pointer-events disabled
+  $(function () {
+    var $myPhoto = $("#my-photo");
+    if ($myPhoto.length > 0) {
+      var pointerEvents = $myPhoto.css("pointer-events");
+      var cursor = $myPhoto.css("cursor");
+      console.log(
+        "🔍 #my-photo CSS - pointer-events:",
+        pointerEvents,
+        ", cursor:",
+        cursor,
+      );
+
+      if (pointerEvents === "none") {
+        console.warn(
+          "⚠️ PROBLEMA: #my-photo tem pointer-events: none - corrigindo...",
+        );
+        $myPhoto.css("pointer-events", "auto");
+      }
+    }
+  });
   $(document).on("click", "#btn-close-panel-edit-profile", function (ev) {
+    console.log("🎯 Click detectado em #btn-close-panel-edit-profile");
     ev.preventDefault();
+    ev.stopPropagation();
     $(".panel-left").removeClass("open");
   });
 
@@ -231,3 +285,64 @@ window.retryMaskLoading = function () {
 // Iniciar tentativas ao carregar script
 window.retrySelect2Loading();
 window.retryMaskLoading();
+
+// Função global para reinicializar handlers (em caso de problemas em Docker)
+window.reinitializeClickHandlers = function () {
+  console.log("🔄 Reinicializando todos os click handlers...");
+
+  // Remover handlers antigos
+  $(document).off("click", "#my-photo");
+  $(document).off("click", "#btn-close-panel-edit-profile");
+  $(document).off("mousedown", "#my-photo");
+
+  // Reattach #my-photo handlers
+  $(document).on("click", "#my-photo", function (ev) {
+    console.log("🎯 Click em #my-photo (reinicialized)");
+    ev.preventDefault();
+    ev.stopPropagation();
+    $(".panel-left").addClass("open");
+  });
+
+  $(document).on("mousedown", "#my-photo", function (ev) {
+    if (ev.which === 1) {
+      console.log("🎯 Mousedown em #my-photo (reinicialized)");
+      $(".panel-left").addClass("open");
+    }
+  });
+
+  // Reattach #btn-close-panel-edit-profile handlers
+  $(document).on("click", "#btn-close-panel-edit-profile", function (ev) {
+    console.log("🎯 Click em #btn-close-panel-edit-profile (reinicialized)");
+    ev.preventDefault();
+    ev.stopPropagation();
+    $(".panel-left").removeClass("open");
+  });
+
+  // Verificar CSS
+  var $myPhoto = $("#my-photo");
+  if ($myPhoto.length > 0) {
+    var pointerEvents = $myPhoto.css("pointer-events");
+    if (pointerEvents === "none") {
+      console.warn("🔧 Corrigindo pointer-events em #my-photo");
+      $myPhoto.css("pointer-events", "auto");
+    }
+  }
+
+  console.log("✅ Click handlers reinicializados");
+};
+
+// Chamar reinitialize após 1 segundo para garantir que tudo está pronto
+setTimeout(function () {
+  if (typeof window.reinitializeClickHandlers === "function") {
+    window.reinitializeClickHandlers();
+  }
+}, 1000);
+
+// Também chamar quando document está totalmente pronto (para casos com latência alta)
+$(document).ready(function () {
+  setTimeout(function () {
+    if (typeof window.reinitializeClickHandlers === "function") {
+      window.reinitializeClickHandlers();
+    }
+  }, 500);
+});

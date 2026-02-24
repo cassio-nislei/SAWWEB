@@ -329,6 +329,12 @@ function safe_session($key1, $key2 = null, $default = '') {
                 console.log('#my-photo:', $("#my-photo").length > 0 ? '✅ EXISTE' : '❌ NÃO');
                 console.log('.panel-left:', $(".panel-left").length > 0 ? '✅ EXISTE' : '❌ NÃO');
                 console.log('========================================\n');
+                
+                // IMPORTANTE: Reinicializar handlers de click para garantir que funcionam em Docker
+                if (typeof window.reinitializeClickHandlers === 'function') {
+                    console.log('🔄 Chamando reinitializeClickHandlers após diagnóstico...');
+                    window.reinitializeClickHandlers();
+                }
             }
         }, 500);
     </script>
