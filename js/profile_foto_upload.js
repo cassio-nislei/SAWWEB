@@ -40,9 +40,13 @@ function setupFotoProfileUpload() {
   });
 
   // Quando clica no container da foto (usando event delegation para elementos dinâmicos)
-  $(document).on("click", "#photo-container-edit-profile, #img-default-panel-edit-profile", function () {
-    $("#input-profile-photo").click();
-  });
+  $(document).on(
+    "click",
+    "#photo-container-edit-profile, #img-default-panel-edit-profile",
+    function () {
+      $("#input-profile-photo").click();
+    },
+  );
 
   // Carregar foto salva quando o painel é aberto
   loadSavedFoto();
