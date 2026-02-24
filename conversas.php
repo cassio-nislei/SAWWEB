@@ -33,6 +33,22 @@ function safe_session($key1, $key2 = null, $default = '') {
     <script src="js/plugin-loader.js"></script>
     <script src="js/jquery.form.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
+    <!-- jQuery UI Fallback - carrega se a versão acima falhar -->
+    <script>
+        setTimeout(function() {
+            if (typeof $.fn.tabs === 'undefined') {
+                console.log('↻ jQuery UI Tabs não carregou, usando fallback local...');
+                var uiScript = document.createElement('script');
+                uiScript.src = 'js/jquery-ui-tabs-local.min.js';
+                uiScript.async = true;
+                uiScript.onload = function() {
+                    window.pluginsReady.tabs = true;
+                    console.log('✅ jQuery UI Tabs (fallback local) carregado');
+                };
+                document.head.appendChild(uiScript);
+            }
+        }, 150);
+    </script>
     <script src="js/js_modal.js"></script>
     <script src="js/uikit.min.js"></script>
     <script src="js/uikit-icons.min.js"></script>
