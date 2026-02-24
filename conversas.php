@@ -23,13 +23,40 @@ function safe_session($key1, $key2 = null, $default = '') {
     <!-- Bootstrap CSS -->
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.3/css/bootstrap.min.css"
         integrity="sha384-MCw98/SFnGE8fJT3GXwEOngsV7Zt27NXFoaoApmYm81iuXoPkFOJwJ8ERdknLPMO" crossorigin="anonymous">
-    <link rel="stylesheet" href="css/style.css">
-    <link rel="stylesheet" href="css/panel-fix.css">
-    <link rel="stylesheet" href="css/jquery-ui.min.css">
-    <link rel="stylesheet" href="css/uikit.min.css">
-    <link rel="stylesheet" href="css/all.min.css">
-    <link rel="stylesheet" href="css/whatsapp-styles.css">
-    <link rel="stylesheet" href="css/icon-fix.css">
+    <link rel="stylesheet" href="css/style.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="css/panel-fix.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="css/jquery-ui.min.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="css/uikit.min.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="css/all.min.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="css/whatsapp-styles.css?v=<?php echo time(); ?>">
+    <link rel="stylesheet" href="css/icon-fix.css?v=<?php echo time(); ?>">
+    
+    <!-- Inline critical styles para garantir cores dos ícones -->
+    <style>
+        * {
+            /* Nada por enquanto */
+        }
+        
+        /* CRÍTICO: Forçar cinza em TODOS os ícones */
+        i, [class*="icon"], [class*="fa-"], [class*="bi-"], svg {
+            color: #333333 !important;
+        }
+        
+        i.fa, i.fas, i.far, i.fal, i.fab {
+            color: #333333 !important;
+        }
+        
+        .itemIcon, .fa-history, .user-options i, .btNovaConversa i,
+        .action-btn i, .action-btn .bi {
+            color: #333333 !important;
+        }
+        
+        /* SVG paths */
+        svg path, svg circle, svg rect, svg line {
+            fill: #333333 !important;
+            stroke: #333333 !important;
+        }
+    </style>>
     <script src="js/jquery-3.6.0.min.js"></script>
     <script>
     (function() {
@@ -338,6 +365,91 @@ function safe_session($key1, $key2 = null, $default = '') {
         setInterval(forceIconStyles, 500);
         
         console.log('✅ Icon styles enforcer ativado (TODOS os ícones em cinza escuro #333333)');
+    </script>
+    
+    <!-- Script para FORÇAR cores com MutationObserver e CSS aggressivo -->
+    <script>
+        (function() {
+            'use strict';
+            
+            /**
+             * Função ultra-agressiva para forçar cores
+             */
+            function aggressiveIconForce() {
+                // Selecionar TODOS os ícones possíveis
+                var selectors = [
+                    'i', 'span[class*="icon"]', 'svg', 
+                    '[class*="icon"]', '[class*="fa-"]',
+                    '[class*="bi-"]'
+                ];
+                
+                var allIcons = [];
+                selectors.forEach(function(sel) {
+                    try {
+                        var elements = document.querySelectorAll(sel);
+                        allIcons = allIcons.concat(Array.from(elements));
+                    } catch(e) {
+                        // Ignorar seletores inválidos
+                    }
+                });
+                
+                // Remover duplicatas
+                allIcons = Array.from(new Set(allIcons));
+                
+                allIcons.forEach(function(icon) {
+                    // Forçar cor cinza escuro em TUDO
+                    icon.style.setProperty('color', '#333333', 'important');
+                    
+                    // Se tem atributo fill, atualizar também
+                    if (icon.hasAttribute('fill')) {
+                        icon.setAttribute('fill', '#333333');
+                    }
+                    
+                    // Para SVG paths
+                    if (icon.tagName === 'SVG') {
+                        var paths = icon.querySelectorAll('path, circle, rect, line');
+                        paths.forEach(function(el) {
+                            if (!el.getAttribute('fill') || el.getAttribute('fill') === 'none' || el.getAttribute('fill') === '#fff' || el.getAttribute('fill') === 'white') {
+                                el.setAttribute('fill', '#333333');
+                            }
+                            if (!el.getAttribute('stroke') || el.getAttribute('stroke') === '#fff' || el.getAttribute('stroke') === 'white') {
+                                el.setAttribute('stroke', '#333333');
+                            }
+                        });
+                    }
+                });
+                
+                console.log('🔧 Força agressiva aplicada em ' + allIcons.length + ' ícones');
+            }
+            
+            // Executar imediatamente
+            aggressiveIconForce();
+            
+            // Executar a cada 200ms
+            setInterval(aggressiveIconForce, 200);
+            
+            // Usar MutationObserver para detectar novos elementos
+            try {
+                var observer = new MutationObserver(function(mutations) {
+                    // Debounce: só executar após 100ms sem mais mudanças
+                    clearTimeout(observer.timeout);
+                    observer.timeout = setTimeout(function() {
+                        aggressiveIconForce();
+                    }, 100);
+                });
+                
+                observer.observe(document.body, {
+                    childList: true,
+                    subtree: true,
+                    attributes: true,
+                    attributeFilter: ['class', 'style', 'fill']
+                });
+                
+                console.log('📊 MutationObserver iniciado para detecção de ícones dinâmicos');
+            } catch(e) {
+                console.warn('⚠️ MutationObserver não suportado:', e.message);
+            }
+        })();
     </script>
     
     <!-- Script para verificar se plugins estão carregados -->
