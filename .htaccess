@@ -27,15 +27,14 @@
 
 <IfModule mod_headers.c>
 
-    # Permitir apenas seu domínio (necessário se usar credentials)
-    Header set Access-Control-Allow-Origin "https://whatsaap.easilybr.com.br"
+    # Permitir requisições de qualquer origem (necessário para desenvolvimento/Docker)
+    # Em produção, configure para domínio específico
+    Header set Access-Control-Allow-Origin "*"
     Header set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS, PATCH"
     Header set Access-Control-Allow-Headers "Origin, X-Requested-With, Content-Type, Accept, Authorization"
-    Header set Access-Control-Allow-Credentials "true"
     Header set Access-Control-Max-Age "86400"
 
     # Security
-    Header always set Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
     Header always set X-Content-Type-Options "nosniff"
     Header always set X-Frame-Options "SAMEORIGIN"
     Header always set Referrer-Policy "strict-origin-when-cross-origin"

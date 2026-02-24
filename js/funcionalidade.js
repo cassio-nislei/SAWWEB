@@ -37,11 +37,11 @@ $(function () {
   });
 
   /*** abri perfil **/
-  $("#my-photo").click(function (ev) {
+  $(document).on("click", "#my-photo", function (ev) {
     ev.preventDefault();
     $(".panel-left").addClass("open");
   });
-  $("#btn-close-panel-edit-profile").click(function (ev) {
+  $(document).on("click", "#btn-close-panel-edit-profile", function (ev) {
     ev.preventDefault();
     $(".panel-left").removeClass("open");
   });
