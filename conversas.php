@@ -33,22 +33,8 @@ function safe_session($key1, $key2 = null, $default = '') {
     <script src="js/plugin-loader.js"></script>
     <script src="js/jquery.form.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
-    <!-- jQuery UI Fallback - carrega se a versão acima falhar -->
-    <script>
-        setTimeout(function() {
-            if (typeof $.fn.tabs === 'undefined') {
-                console.log('↻ jQuery UI Tabs não carregou, usando fallback local...');
-                var uiScript = document.createElement('script');
-                uiScript.src = 'js/jquery-ui-tabs-local.min.js';
-                uiScript.async = true;
-                uiScript.onload = function() {
-                    window.pluginsReady.tabs = true;
-                    console.log('✅ jQuery UI Tabs (fallback local) carregado');
-                };
-                document.head.appendChild(uiScript);
-            }
-        }, 150);
-    </script>
+    <!-- Carregar jQuery UI Tabs local imediatamente como fallback garantido -->
+    <script src="js/jquery-ui-tabs-local.min.js"></script>
     <script src="js/js_modal.js"></script>
     <script src="js/uikit.min.js"></script>
     <script src="js/uikit-icons.min.js"></script>
@@ -56,10 +42,9 @@ function safe_session($key1, $key2 = null, $default = '') {
     <script src="js/profile_foto_upload.js"></script>
     <script src="js/jquery.mask.min.js"></script>
     <script src="js/notification.js"></script>
-    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2.js/4.0.13/css/select2.min.css" rel="stylesheet" />
     <link href="css/select2-local.min.css" rel="stylesheet" />
-    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+    <!-- NÃO carregar Select2 de CDN - usar apenas local -->
+    <script src="js/select2-local.min.js"></script>
     <!-- Bootstrap 5 para WebChat -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -84,28 +69,16 @@ function safe_session($key1, $key2 = null, $default = '') {
         // Verificação inicial
         checkPluginsAvailable();
         
-        // Verificar repetidamente nos primeiros 10 segundos
+        // Verificar rapidamente se tudo carregou (máximo 3 segundos)
         var pluginCheckAttempts = 0;
         var pluginCheckInterval = setInterval(function() {
             pluginCheckAttempts++;
             checkPluginsAvailable();
             
-            if (!window.pluginsReady.select2) {
-                console.warn('[' + pluginCheckAttempts + '] Select2 ainda não está carregado');
-                if (pluginCheckAttempts === 1) loadSelect2Fallback();
-            }
-            if (!window.pluginsReady.mask) {
-                console.warn('[' + pluginCheckAttempts + '] jQuery Mask ainda não está carregado');
-                if (pluginCheckAttempts === 1) loadMaskFallback();
-            }
-            if (!window.pluginsReady.tabs) {
-                console.warn('[' + pluginCheckAttempts + '] jQuery UI Tabs ainda não está carregado');
-            }
-            
-            // Parar depois de 20 tentativas (10 segundos)
-            if (pluginCheckAttempts >= 20) {
+            // Parar após 6 tentativas (3 segundos total)
+            if (pluginCheckAttempts >= 6) {
                 clearInterval(pluginCheckInterval);
-                console.log('Plugins finais:', window.pluginsReady);
+                console.log('✅ Verificação de plugins concluída. Status:', window.pluginsReady);
                 
                 // Diagnóstico final
                 console.log('\n========== DIAGNÓSTICO FINAL ==========');
@@ -118,71 +91,6 @@ function safe_session($key1, $key2 = null, $default = '') {
                 console.log('========================================\n');
             }
         }, 500);
-        
-        // Função fallback para carregar Select2
-        function loadSelect2Fallback() {
-            console.log('Carregando Select2 via fallback...');
-            
-            // Tentar alternativa 1
-            var select2Script = document.createElement('script');
-            select2Script.src = 'https://cdnjs.cloudflare.com/ajax/libs/select2.js/4.0.13/select2.min.js';
-            select2Script.async = true;
-            select2Script.onload = function() {
-                window.pluginsReady.select2 = true;
-                console.log('✅ Select2 carregado via cdnjs fallback');
-                // Inicializar Select2 em elementos existentes
-                if (typeof $.fn.select2 === 'function') {
-                    $('.pesqEtiquetas:not(.select2-hidden-accessible)').select2({
-                        placeholder: 'TAGS',
-                        maximumSelectionLength: 10,
-                        language: 'pt-BR'
-                    });
-                }
-            };
-            select2Script.onerror = function() {
-                console.error('❌ Falha ao carregar Select2 de cdnjs');
-                console.log('↻ Carregando Select2 local minimalista...');
-                
-                // Carregar versão local minimalista
-                var localSelect2 = document.createElement('script');
-                localSelect2.src = 'js/select2-local.min.js';
-                localSelect2.async = true;
-                localSelect2.onload = function() {
-                    window.pluginsReady.select2 = true;
-                    console.log('✅ Select2 Local (fallback) carregado');
-                    // Inicializar em elementos existentes
-                    if (typeof $.fn.select2 === 'function') {
-                        $('.pesqEtiquetas:not(.select2-hidden-accessible)').select2({
-                            placeholder: 'TAGS',
-                            maximumSelectionLength: 10
-                        });
-                    }
-                };
-                localSelect2.onerror = function() {
-                    console.warn('⚠️ Não foi possível carregar Select2 (local ou CDN)');
-                    window.pluginsReady.select2 = false;
-                };
-                document.head.appendChild(localSelect2);
-            };
-            document.head.appendChild(select2Script);
-        }
-        
-        // Função fallback para carregar jQuery Mask
-        function loadMaskFallback() {
-            console.log('Carregando jQuery Mask via fallback...');
-            
-            var maskScript = document.createElement('script');
-            maskScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js';
-            maskScript.async = true;
-            maskScript.onload = function() {
-                window.pluginsReady.mask = true;
-                console.log('✅ jQuery Mask carregado via cdnjs fallback');
-            };
-            maskScript.onerror = function() {
-                console.error('❌ Falha ao carregar jQuery Mask de cdnjs');
-            };
-            document.head.appendChild(maskScript);
-        }
     </script>
     <style>
         /* Estilo para os menus de conversas com efeito WhatsApp */
