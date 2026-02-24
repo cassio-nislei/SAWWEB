@@ -466,7 +466,7 @@ if (!isset($_SESSION["usuariosaw"])) {
     .action-btn {
         background: none;
         border: none;
-        color: #667eea;
+        color: #667eea !important;
         cursor: pointer;
         display: flex;
         align-items: center;
@@ -478,17 +478,41 @@ if (!isset($_SESSION["usuariosaw"])) {
         height: auto;
     }
 
+    .action-btn i,
+    .action-btn .bi {
+        color: #667eea !important;
+        font-size: 16px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
     .action-btn.btn-edit {
-        color: #667eea;
+        color: #667eea !important;
+    }
+
+    .action-btn.btn-edit i,
+    .action-btn.btn-edit .bi {
+        color: #667eea !important;
     }
 
     .action-btn.btn-delete {
-        color: #dc3545;
+        color: #dc3545 !important;
+    }
+
+    .action-btn.btn-delete i,
+    .action-btn.btn-delete .bi {
+        color: #dc3545 !important;
     }
 
     .action-btn:hover {
         transform: scale(1.2);
         opacity: 0.8;
+    }
+
+    .action-btn:hover i,
+    .action-btn:hover .bi {
+        color: inherit !important;
     }
 
     .action-btn:active {
@@ -526,7 +550,77 @@ if (!isset($_SESSION["usuariosaw"])) {
             max-width: 85%;
         }
     }
+
+    /* ========== ICON FIX - Força cores visíveis em todos os ícones ========== */
+    
+    .bi {
+        color: #128c7e !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .action-btn .bi,
+    .action-btn i {
+        font-size: 16px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+    }
+
+    .action-btn.btn-edit .bi,
+    .action-btn.btn-edit i {
+        color: #667eea !important;
+    }
+
+    .action-btn.btn-delete .bi,
+    .action-btn.btn-delete i {
+        color: #dc3545 !important;
+    }
+
+    .bi-pencil {
+        color: #667eea !important;
+    }
+
+    .bi-trash,
+    .bi-trash-fill {
+        color: #dc3545 !important;
+    }
+
+    .bi-chat,
+    .bi-chat-left {
+        color: #128c7e !important;
+    }
+
+    .bi-lock-fill {
+        color: #128c7e !important;
+    }
 </style>
+<script>
+function forceMessageActionIconColors() {
+    var actionBtns = document.querySelectorAll('.action-btn');
+    actionBtns.forEach(function(btn) {
+        var icon = btn.querySelector('i.bi');
+        if (icon) {
+            if (btn.classList.contains('btn-delete')) {
+                icon.style.color = '#dc3545 !important';
+            } else if (btn.classList.contains('btn-edit')) {
+                icon.style.color = '#667eea !important';
+            } else {
+                icon.style.color = '#667eea !important';
+            }
+        }
+    });
+}
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', forceMessageActionIconColors);
+} else {
+    forceMessageActionIconColors();
+}
+
+setInterval(forceMessageActionIconColors, 1000);
+</script>
 
 <!-- Inputs necessários -->
 <input type="hidden" id="idDepartamentoChat" value="0" />

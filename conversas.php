@@ -29,6 +29,7 @@ function safe_session($key1, $key2 = null, $default = '') {
     <link rel="stylesheet" href="css/uikit.min.css">
     <link rel="stylesheet" href="css/all.min.css">
     <link rel="stylesheet" href="css/whatsapp-styles.css">
+    <link rel="stylesheet" href="css/icon-fix.css">
     <script src="js/jquery-3.6.0.min.js"></script>
     <script>
     (function() {
@@ -294,23 +295,38 @@ function safe_session($key1, $key2 = null, $default = '') {
     <script>
         // Função para aplicar estilos corretos aos ícones
         function forceIconStyles() {
-            var icons = document.querySelectorAll('.itemIcon, .user-options i, .btNovaConversa i');
+            var icons = document.querySelectorAll('.itemIcon, .user-options i, .btNovaConversa i, .action-btn i, .action-btn .bi');
             icons.forEach(function(icon) {
-                // Aplicar cor padrão #128c7e
-                if (!icon.style.color || icon.style.color === 'red' || icon.style.color === 'rgb(255, 0, 0)') {
-                    icon.style.color = '#128c7e !important';
+                var parent = icon.parentElement;
+                var color = '#128c7e'; // cor padrão
+                
+                // Se o botão pai é um btn-delete, usar cor vermelha
+                if (parent && parent.classList.contains('btn-delete')) {
+                    color = '#dc3545';
                 }
+                // Se o botão pai é um btn-edit, usar cor azul
+                else if (parent && parent.classList.contains('btn-edit')) {
+                    color = '#667eea';
+                }
+                
+                // Aplicar cor
+                icon.style.color = color + ' !important';
+                
                 // Garantir que pointer-events está habilitado
                 icon.style.pointerEvents = 'auto';
-                // Adicionar hover effect via JS se necessário
-                icon.addEventListener('mouseenter', function() {
-                    this.style.color = '#075e54 !important';
-                    this.style.transform = 'scale(1.1)';
-                });
-                icon.addEventListener('mouseleave', function() {
-                    this.style.color = '#128c7e !important';
-                    this.style.transform = 'scale(1)';
-                });
+                icon.style.display = 'flex';
+                icon.style.alignItems = 'center';
+                icon.style.justifyContent = 'center';
+            });
+            
+            // Forçar cores também para os botões
+            var actionBtns = document.querySelectorAll('.action-btn');
+            actionBtns.forEach(function(btn) {
+                if (btn.classList.contains('btn-delete')) {
+                    btn.style.color = '#dc3545 !important';
+                } else if (btn.classList.contains('btn-edit')) {
+                    btn.style.color = '#667eea !important';
+                }
             });
         }
         
@@ -322,7 +338,7 @@ function safe_session($key1, $key2 = null, $default = '') {
         }
         
         // Reaplica estilos periodicamente em caso de mudanças dinâmicas
-        setInterval(forceIconStyles, 2000);
+        setInterval(forceIconStyles, 500);
         
         console.log('✅ Icon styles enforcer ativado');
     </script>

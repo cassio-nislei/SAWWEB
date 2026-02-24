@@ -6,6 +6,7 @@
     <title>Chat Operadores</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../css/icon-fix.css" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -430,7 +431,7 @@
         .action-btn {
             background: none;
             border: none;
-            color: #667eea;
+            color: #667eea !important;
             cursor: pointer;
             display: flex;
             align-items: center;
@@ -442,17 +443,41 @@
             height: auto;
         }
 
+        .action-btn i,
+        .action-btn .bi {
+            color: #667eea !important;
+            font-size: 16px !important;
+            display: flex !important;
+            align-items: center !important;
+            justify-content: center !important;
+        }
+
         .action-btn.btn-edit {
-            color: #667eea;
+            color: #667eea !important;
+        }
+
+        .action-btn.btn-edit i,
+        .action-btn.btn-edit .bi {
+            color: #667eea !important;
         }
 
         .action-btn.btn-delete {
-            color: #dc3545;
+            color: #dc3545 !important;
+        }
+
+        .action-btn.btn-delete i,
+        .action-btn.btn-delete .bi {
+            color: #dc3545 !important;
         }
 
         .action-btn:hover {
             transform: scale(1.2);
             opacity: 0.8;
+        }
+
+        .action-btn:hover i,
+        .action-btn:hover .bi {
+            color: inherit !important;
         }
 
         .action-btn:active {
@@ -465,6 +490,36 @@
             border: none;
             box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
+
+        /* Force icon colors in message actions */
+        <script>
+        function forceMessageActionIconColors() {
+            // Selecionar todos os botões de ação
+            var actionBtns = document.querySelectorAll('.action-btn');
+            actionBtns.forEach(function(btn) {
+                var icon = btn.querySelector('i.bi');
+                if (icon) {
+                    if (btn.classList.contains('btn-delete')) {
+                        icon.style.color = '#dc3545 !important';
+                    } else if (btn.classList.contains('btn-edit')) {
+                        icon.style.color = '#667eea !important';
+                    } else {
+                        icon.style.color = '#667eea !important';
+                    }
+                }
+            });
+        }
+
+        // Aplicar ao carregar
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', forceMessageActionIconColors);
+        } else {
+            forceMessageActionIconColors();
+        }
+
+        // Re-aplicar periodicamente para elementos dinâmicos
+        setInterval(forceMessageActionIconColors, 1000);
+        </script>
 
         .modal-header {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);

@@ -1,0 +1,112 @@
+/* ========================================
+   ICON FIX - Força cores visíveis em todos os ícones
+   Garante que ícones não fiquem invisíveis em divs brancas
+   ======================================== */
+
+/* Bootstrap Icons (class .bi) - Verde WhatsApp padrão */
+.bi {
+  color: #128c7e !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Action buttons - Icons in message actions */
+.action-btn .bi,
+.action-btn i {
+  font-size: 16px !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Edit button - Azul */
+.action-btn.btn-edit .bi,
+.action-btn.btn-edit i,
+.btn-edit .bi {
+  color: #667eea !important;
+}
+
+/* Delete button - Vermelho */
+.action-btn.btn-delete .bi,
+.action-btn.btn-delete i,
+.btn-delete .bi {
+  color: #dc3545 !important;
+}
+
+/* Font Awesome Icons */
+i.fa,
+i.fas,
+i.far,
+i.fal,
+i.fab {
+  color: #128c7e !important;
+}
+
+/* Icons em tooltip */
+.tooltip i,
+li.tooltip .itemIcon {
+  color: #128c7e !important;
+}
+
+/* Icons em botões de opções */
+.user-options i,
+.user-options .itemIcon {
+  color: #128c7e !important;
+}
+
+/* Icons em botões de nova conversa */
+.btNovaConversa i,
+.btNovaConversa .itemIcon {
+  color: #128c7e !important;
+}
+
+/* Icons genéricas */
+.itemIcon {
+  color: #128c7e !important;
+}
+
+/* Icons em divs brancas específicas */
+.message-actions .bi,
+.message-actions i {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Garantir que icons não herdam branco */
+.bi-pencil {
+  color: #667eea !important;
+}
+
+.bi-trash,
+.bi-trash-fill {
+  color: #dc3545 !important;
+}
+
+.bi-chat,
+.bi-chat-left {
+  color: #128c7e !important;
+}
+
+.bi-lock-fill {
+  color: #128c7e !important;
+}
+
+/* Override para garantir que nada seja sobrescrito */
+i[style*="white"],
+i[style*="rgb(255, 255, 255)"] {
+  color: #128c7e !important;
+}
+
+.bi[style*="white"],
+.bi[style*="rgb(255, 255, 255)"] {
+  color: #128c7e !important;
+}
+
+/* Hover effects */
+.action-btn:hover .bi,
+.action-btn:hover i {
+  transform: scale(1.1) !important;
+  transition: all 0.2s ease !important;
+}
