@@ -368,6 +368,34 @@ function safe_session($key1, $key2 = null, $default = '') {
                 console.log('.panel-left:', $(".panel-left").length > 0 ? '✅ EXISTE' : '❌ NÃO');
                 console.log('========================================\n');
                 
+                // Diagnóstico DETALHADO do painel
+                console.log('\n========== DIAGNÓSTICO PAINEL DETALHADO ==========');
+                var $panelDiag = $(".panel-left");
+                console.log('Painel encontrado?', $panelDiag.length > 0);
+                if ($panelDiag.length > 0) {
+                    console.log('   ID:', $panelDiag.attr("id"));
+                    console.log('   Classes:', $panelDiag.attr("class"));
+                    console.log('   Display:', $panelDiag.css("display"));
+                    console.log('   Opacity:', $panelDiag.css("opacity"));
+                    console.log('   Visibility:', $panelDiag.css("visibility"));
+                    console.log('   Z-index:', $panelDiag.css("z-index"));
+                    console.log('   Position:', $panelDiag.css("position"));
+                    console.log('   Left:', $panelDiag.css("left"));
+                    console.log('   Top:', $panelDiag.css("top"));
+                    console.log('   Width:', $panelDiag.css("width"));
+                    console.log('   Height:', $panelDiag.css("height"));
+                }
+                var $btnClose = $("#btn-close-panel-edit-profile");
+                console.log('Botão fechar encontrado?', $btnClose.length > 0);
+                console.log('================================================\n');
+                
+                // DEBUG: Oferecer funções de teste no console
+                console.log('🧪 FUNÇÕES DE TESTE DISPONÍVEIS:');
+                console.log('   window.abrirPainel()   - Abre o painel manualmente');
+                console.log('   window.fecharPainel()  - Fecha o painel manualmente');
+                console.log('   window.verificarPainel() - Verifica o estado do painel');
+                console.log('');
+                
                 // IMPORTANTE: Reinicializar handlers de click para garantir que funcionam em Docker
                 if (typeof window.reinitializeClickHandlers === 'function') {
                     console.log('🔄 Chamando reinitializeClickHandlers após diagnóstico...');
@@ -1299,6 +1327,17 @@ function safe_session($key1, $key2 = null, $default = '') {
                             <!-- Dados do Usuário -->
                             <?php require_once("dadosUsuario.php"); ?>
                             <!-- FIM Dados do Usuário -->
+                            <script>
+                                // Verificar que o painel foi carregado no DOM
+                                console.log('📋 Script de verificação do painel executado');
+                                var $panelTest = $(".panel-left");
+                                console.log('🔍 .panel-left logo após carregamento?', $panelTest.length > 0);
+                                if ($panelTest.length > 0) {
+                                    console.log('   ID:', $panelTest.attr("id"));
+                                    console.log('   Classes:', $panelTest.attr("class"));
+                                    console.log('   Display:', $panelTest.css("display"));
+                                }
+                            </script>
                         </span>
                         <span>
                             <!-- Nova Conversa -->

@@ -39,7 +39,46 @@ $(function () {
     console.log("🎯 Click detectado em #my-photo (method 1 - delegation)");
     ev.preventDefault();
     ev.stopPropagation();
-    $(".panel-left").addClass("open");
+
+    var $panel = $(".panel-left");
+    console.log("🔍 .panel-left encontrado?", $panel.length > 0);
+    if ($panel.length > 0) {
+      $panel.addClass("open");
+      console.log(
+        "✅ Classe 'open' adicionada. Novo estado:",
+        $panel.attr("class"),
+      );
+      console.log(
+        "🔍 opacity:",
+        $panel.css("opacity"),
+        ", visibility:",
+        $panel.css("visibility"),
+      );
+
+      // Verificar estado após um pequeno delay
+      setTimeout(function () {
+        console.log(
+          "🔍 APÓS 100ms - opacity:",
+          $panel.css("opacity"),
+          ", visibility:",
+          $panel.css("visibility"),
+        );
+        console.log("🔍 APÓS 100ms - display:", $panel.css("display"));
+        console.log("🔍 APÓS 100ms - classes:", $panel.attr("class"));
+      }, 100);
+    } else {
+      console.warn("❌ .panel-left NÃO ENCONTRADO!");
+      // Tentar encontrar qualquer elemento com panel-left
+      console.log("🔍 Procurando elementos com 'panel-left':");
+      $("[class*='panel-left']").each(function () {
+        console.log(
+          "   Encontrado:",
+          this.id || "(sem id)",
+          "classe:",
+          this.className,
+        );
+      });
+    }
   });
 
   // Método 2: Listener direto (fallback - em caso de problema)
@@ -50,7 +89,13 @@ $(function () {
         console.log("🎯 Click detectado em #my-photo (method 2 - direct)");
         ev.preventDefault();
         ev.stopPropagation();
-        $(".panel-left").addClass("open");
+
+        var $panel = $(".panel-left");
+        console.log("🔍 .panel-left encontrado (method 2)?", $panel.length > 0);
+        if ($panel.length > 0) {
+          $panel.addClass("open");
+          console.log("✅ Classe 'open' adicionada (method 2)");
+        }
       });
       console.log("✅ Listener direto adicionado a #my-photo");
     } else {
@@ -65,7 +110,11 @@ $(function () {
       console.log(
         "🎯 Mousedown detectado em #my-photo (method 3 - mousedown fallback)",
       );
-      $(".panel-left").addClass("open");
+      var $panel = $(".panel-left");
+      if ($panel.length > 0) {
+        $panel.addClass("open");
+        console.log("✅ Painel aberto via mousedown fallback");
+      }
     }
   });
 
@@ -300,13 +349,39 @@ window.reinitializeClickHandlers = function () {
     console.log("🎯 Click em #my-photo (reinicialized)");
     ev.preventDefault();
     ev.stopPropagation();
-    $(".panel-left").addClass("open");
+
+    var $panel = $(".panel-left");
+    console.log(
+      "🔍 .panel-left encontrado na reinicialização?",
+      $panel.length > 0,
+    );
+
+    if ($panel.length > 0) {
+      $panel.addClass("open");
+      console.log(
+        "✅ Painel aberto (reinicialized), classe:",
+        $panel.attr("class"),
+      );
+      console.log(
+        "🔍 Novo CSS - opacity:",
+        $panel.css("opacity"),
+        ", visibility:",
+        $panel.css("visibility"),
+      );
+    } else {
+      console.error(
+        "❌ CRÍTICO: .panel-left NÃO ENCONTRADO NA REINICIALIZAÇÃO!",
+      );
+    }
   });
 
   $(document).on("mousedown", "#my-photo", function (ev) {
     if (ev.which === 1) {
       console.log("🎯 Mousedown em #my-photo (reinicialized)");
-      $(".panel-left").addClass("open");
+      var $panel = $(".panel-left");
+      if ($panel.length > 0) {
+        $panel.addClass("open");
+      }
     }
   });
 
@@ -328,7 +403,70 @@ window.reinitializeClickHandlers = function () {
     }
   }
 
+  // Verificar .panel-left
+  var $panelLeft = $(".panel-left");
+  console.log("🔍 DIAGNÓSTICO PAINEL:");
+  console.log("   .panel-left encontrado?", $panelLeft.length > 0);
+  if ($panelLeft.length > 0) {
+    console.log("   .panel-left classes:", $panelLeft.attr("class"));
+    console.log("   .panel-left display:", $panelLeft.css("display"));
+    console.log("   .panel-left opacity:", $panelLeft.css("opacity"));
+    console.log("   .panel-left visibility:", $panelLeft.css("visibility"));
+    console.log("   .panel-left z-index:", $panelLeft.css("z-index"));
+    console.log("   .panel-left position:", $panelLeft.css("position"));
+  } else {
+    console.error("   ❌ PAINEL NÃO ENCONTRADO!");
+  }
+
   console.log("✅ Click handlers reinicializados");
+};
+
+// Funções globais para controlar o painel (útil para debugging)
+window.abrirPainel = function () {
+  console.log("🔓 Abrindo painel manualmente...");
+  var $panel = $(".panel-left");
+  if ($panel.length > 0) {
+    $panel.addClass("open");
+    console.log("✅ Painel aberto com sucesso");
+    console.log("   Classes:", $panel.attr("class"));
+    console.log("   Opacity:", $panel.css("opacity"));
+    console.log("   Visibility:", $panel.css("visibility"));
+  } else {
+    console.error("❌ .panel-left não encontrado!");
+  }
+};
+
+window.fecharPainel = function () {
+  console.log("🔒 Fechando painel manualmente...");
+  var $panel = $(".panel-left");
+  if ($panel.length > 0) {
+    $panel.removeClass("open");
+    console.log("✅ Painel fechado com sucesso");
+  } else {
+    console.error("❌ .panel-left não encontrado!");
+  }
+};
+
+window.verificarPainel = function () {
+  console.log("🔍 VERIFICAÇÃO COMPLETA DO PAINEL:");
+  var $panel = $(".panel-left");
+  console.log("   Encontrado?", $panel.length > 0);
+  if ($panel.length > 0) {
+    console.log("   ID:", $panel.attr("id"));
+    console.log("   Classes:", $panel.attr("class"));
+    console.log("   Display:", $panel.css("display"));
+    console.log("   Opacity:", $panel.css("opacity"));
+    console.log("   Visibility:", $panel.css("visibility"));
+    console.log("   Z-index:", $panel.css("z-index"));
+    console.log("   Position:", $panel.css("position"));
+    console.log("   Tem classe 'open'?", $panel.hasClass("open"));
+
+    // Verificar btn-close
+    var $btnClose = $("#btn-close-panel-edit-profile");
+    console.log("   Botão fechar existe?", $btnClose.length > 0);
+  } else {
+    console.error("   ❌ .panel-left NÃO EXISTE");
+  }
 };
 
 // Chamar reinitialize após 1 segundo para garantir que tudo está pronto
