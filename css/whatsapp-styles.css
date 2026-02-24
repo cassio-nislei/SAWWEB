@@ -133,7 +133,11 @@ header._3auIg {
 
 /* ===== ÍCONES ===== */
 .user-options i,
-.itemIcon {
+.user-options .itemIcon,
+.itemIcon,
+li.tooltip .itemIcon,
+.btNovaConversa i,
+.btNovaConversa .itemIcon {
   font-size: 16px !important;
   color: #128c7e !important;
   transition: all 0.2s ease !important;
@@ -143,7 +147,11 @@ header._3auIg {
 }
 
 .user-options i:hover,
-.itemIcon:hover {
+.user-options .itemIcon:hover,
+.itemIcon:hover,
+li.tooltip .itemIcon:hover,
+.btNovaConversa i:hover,
+.btNovaConversa .itemIcon:hover {
   color: #075e54 !important;
   transform: scale(1.1) !important;
 }

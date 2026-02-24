@@ -289,6 +289,44 @@ function safe_session($key1, $key2 = null, $default = '') {
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- Script para forçar estilos de ícones no Docker -->
+    <script>
+        // Função para aplicar estilos corretos aos ícones
+        function forceIconStyles() {
+            var icons = document.querySelectorAll('.itemIcon, .user-options i, .btNovaConversa i');
+            icons.forEach(function(icon) {
+                // Aplicar cor padrão #128c7e
+                if (!icon.style.color || icon.style.color === 'red' || icon.style.color === 'rgb(255, 0, 0)') {
+                    icon.style.color = '#128c7e !important';
+                }
+                // Garantir que pointer-events está habilitado
+                icon.style.pointerEvents = 'auto';
+                // Adicionar hover effect via JS se necessário
+                icon.addEventListener('mouseenter', function() {
+                    this.style.color = '#075e54 !important';
+                    this.style.transform = 'scale(1.1)';
+                });
+                icon.addEventListener('mouseleave', function() {
+                    this.style.color = '#128c7e !important';
+                    this.style.transform = 'scale(1)';
+                });
+            });
+        }
+        
+        // Aplicar estilos quando documento está pronto
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', forceIconStyles);
+        } else {
+            forceIconStyles();
+        }
+        
+        // Reaplica estilos periodicamente em caso de mudanças dinâmicas
+        setInterval(forceIconStyles, 2000);
+        
+        console.log('✅ Icon styles enforcer ativado');
+    </script>
+    
     <!-- Script para verificar se plugins estão carregados -->
     <script>
         // Variáveis globais para controlar carregamento de plugins
