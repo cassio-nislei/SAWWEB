@@ -30,6 +30,7 @@ function safe_session($key1, $key2 = null, $default = '') {
     <link rel="stylesheet" href="css/all.min.css">
     <link rel="stylesheet" href="css/whatsapp-styles.css">
     <script src="js/jquery-3.6.0.min.js"></script>
+    <script src="js/plugin-loader.js"></script>
     <script src="js/jquery.form.min.js"></script>
     <script src="js/jquery-ui.min.js"></script>
     <script src="js/js_modal.js"></script>
@@ -49,53 +50,87 @@ function safe_session($key1, $key2 = null, $default = '') {
     <!-- Script para verificar se plugins estão carregados -->
     <script>
         // Variáveis globais para controlar carregamento de plugins
-        window.jqueryUILoaded = typeof $.fn.tabs !== 'undefined';
-        window.select2Loaded = typeof $.fn.select2 !== 'undefined';
-        window.maskLoaded = typeof $.fn.mask !== 'undefined';
+        window.pluginsReady = {
+            tabs: false,
+            select2: false,
+            mask: false
+        };
         
-        // Esperar um pouco para garantir que os scripts foram carregados
-        setTimeout(function() {
-            window.jqueryUILoaded = typeof $.fn.tabs !== 'undefined';
-            window.select2Loaded = typeof $.fn.select2 !== 'undefined';
-            window.maskLoaded = typeof $.fn.mask !== 'undefined';
+        // Função para verificar plugins
+        function checkPluginsAvailable() {
+            window.pluginsReady.tabs = typeof $.fn.tabs !== 'undefined';
+            window.pluginsReady.select2 = typeof $.fn.select2 !== 'undefined';
+            window.pluginsReady.mask = typeof $.fn.mask !== 'undefined';
+            return window.pluginsReady;
+        }
+        
+        // Verificação inicial
+        checkPluginsAvailable();
+        
+        // Verificar repetidamente nos primeiros 10 segundos
+        var pluginCheckAttempts = 0;
+        var pluginCheckInterval = setInterval(function() {
+            pluginCheckAttempts++;
+            checkPluginsAvailable();
             
-            if (!window.jqueryUILoaded) {
-                console.warn('jQuery UI não foi carregado. Tabs não funcionarão.');
+            if (!window.pluginsReady.select2) {
+                console.warn('[' + pluginCheckAttempts + '] Select2 ainda não está carregado');
+                if (pluginCheckAttempts === 1) loadSelect2Fallback();
             }
-            if (!window.select2Loaded) {
-                console.warn('Select2 não foi carregado. Tentando recarregar via fallback...');
-                loadSelect2Fallback();
+            if (!window.pluginsReady.mask) {
+                console.warn('[' + pluginCheckAttempts + '] jQuery Mask ainda não está carregado');
+                if (pluginCheckAttempts === 1) loadMaskFallback();
             }
-            if (!window.maskLoaded) {
-                console.warn('jQuery Mask não foi carregado. Tentando recarregar via fallback...');
-                loadMaskFallback();
+            if (!window.pluginsReady.tabs) {
+                console.warn('[' + pluginCheckAttempts + '] jQuery UI Tabs ainda não está carregado');
+            }
+            
+            // Parar depois de 20 tentativas (10 segundos)
+            if (pluginCheckAttempts >= 20) {
+                clearInterval(pluginCheckInterval);
+                console.log('Plugins finais:', window.pluginsReady);
             }
         }, 500);
         
         // Função fallback para carregar Select2
         function loadSelect2Fallback() {
+            console.log('Carregando Select2 via fallback...');
+            
+            // Tentar alternativa 1
             var select2Script = document.createElement('script');
             select2Script.src = 'https://cdnjs.cloudflare.com/ajax/libs/select2.js/4.0.13/select2.min.js';
+            select2Script.async = true;
             select2Script.onload = function() {
-                window.select2Loaded = true;
-                console.log('Select2 carregado via fallback');
+                window.pluginsReady.select2 = true;
+                console.log('✅ Select2 carregado via cdnjs fallback');
+                // Inicializar Select2 em elementos existentes
+                if (typeof $.fn.select2 === 'function') {
+                    $('.pesqEtiquetas:not(.select2-hidden-accessible)').select2({
+                        placeholder: 'TAGS',
+                        maximumSelectionLength: 10,
+                        language: 'pt-BR'
+                    });
+                }
             };
             select2Script.onerror = function() {
-                console.error('Falha ao carregar Select2 de ambas as CDNs');
+                console.error('❌ Falha ao carregar Select2 de cdnjs');
             };
             document.head.appendChild(select2Script);
         }
         
         // Função fallback para carregar jQuery Mask
         function loadMaskFallback() {
+            console.log('Carregando jQuery Mask via fallback...');
+            
             var maskScript = document.createElement('script');
             maskScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js';
+            maskScript.async = true;
             maskScript.onload = function() {
-                window.maskLoaded = true;
-                console.log('jQuery Mask carregado via fallback');
+                window.pluginsReady.mask = true;
+                console.log('✅ jQuery Mask carregado via cdnjs fallback');
             };
             maskScript.onerror = function() {
-                console.error('Falha ao carregar jQuery Mask da CDN');
+                console.error('❌ Falha ao carregar jQuery Mask de cdnjs');
             };
             document.head.appendChild(maskScript);
         }
@@ -1062,14 +1097,14 @@ function safe_session($key1, $key2 = null, $default = '') {
                                          <!-- Conexão -->
                                          <li class="tooltip btNovaConversa" style="z-index:0">
                                             <a href="javascript:;" id="btnConexao">
-                                                <i id="btnConexaoColor" class="fas fa-signal itemIcon"></i>
+                                                <i id="btnConexaoColor" class="fas fa-signal itemIcon" style="color: #128c7e;"></i>
                                             </a>
                                             <span class="tooltiptext tooltip-bottom" id="spanConectado"></span>
                                         </li>
                    
                                         <!-- Contatos -->
                                         <li class="tooltip btNovaConversa" id="contatos-bt-lista" style="z-index:0">
-                                            <i class="far fa-address-book itemIcon" style="color: dodgerblue;"></i>
+                                            <i class="far fa-address-book itemIcon" style="color: #128c7e;"></i>
                                             <span class="tooltiptext tooltip-bottom">Lista de contatos</span>
                                         </li>                              
                                         <!-- Módulos -->
@@ -1079,25 +1114,25 @@ function safe_session($key1, $key2 = null, $default = '') {
                                         ?>
                                                 <li class="tooltip btNovaConversa" style="z-index:0">
                                                     <a id="aModalBaseConhecimento" onclick="abrirModal('#modalBaseConhecimento');">
-                                                        <i class="fas fa-database itemIcon" style="color: dodgerblue;"></i>
+                                                        <i class="fas fa-database itemIcon" style="color: #128c7e;"></i>
                                                         <span class="tooltiptext tooltip-bottom">Base de Conhecimento</span>
                                                     </a>                                                   
                                                 </li>
                                         <?php } ?>
                                         <!-- Histórico de atendimentos -->                                        
                                         <li id="historico-atendimentos" class="tooltip btNovaConversa" style="display:none;z-index:0 !important;">
-                                            <i id="iModalRelatorio" class="fas fa-history itemIcon" style="color: blueviolet;" onclick="abrirModal('#modalRelatorio');"></i>
+                                            <i id="iModalRelatorio" class="fas fa-history itemIcon" style="color: #128c7e;" onclick="abrirModal('#modalRelatorio');"></i>
                                             <span class="tooltiptext tooltip-bottom">Histórico</span>
                                         </li>
                                         <li class="tooltip btNovaConversa" style="z-index:0 !important;">
-                                            <i id="iModalRedefinirSenha" class="fas fa-lock itemIcon" onclick="abrirModal('#modalRedefinirSenha');" style="padding-top:4px;"></i>
+                                            <i id="iModalRedefinirSenha" class="fas fa-lock itemIcon" onclick="abrirModal('#modalRedefinirSenha');" style="padding-top:4px; color: #128c7e;"></i>
                                             <span class="tooltiptext tooltip-bottom">Mudar Senha</span>
                                         </li>  
                                         
                                            <!-- Sair -->
                                      <li class="tooltip btNovaConversa" style="z-index:0">
                                             <a href="logOff.php">
-                                                <i class="fas fa-sign-out-alt itemIcon" style="color: red;"></i>                                               
+                                                <i class="fas fa-sign-out-alt itemIcon" style="color: #128c7e;"></i>                                               
                                             </a>
                                             <span class="tooltiptext tooltip-bottom">Logout</span>
                                         </li>   
@@ -1457,13 +1492,28 @@ function safe_session($key1, $key2 = null, $default = '') {
             // FIM Carregamento das Modais //
 
             // Habilita o sistema de Abas //
-                if (typeof $.fn.tabs === 'function') {
-                    $("#tabs").tabs();
-                    $("#tabs2").tabs();
-                    $("#tabs3").tabs();
-                    $("#tabs4").tabs();
+                function initializeTabs() {
+                    if (typeof $.fn.tabs !== 'function') {
+                        console.warn('jQuery UI Tabs não disponível ainda. Tentando novamente...');
+                        setTimeout(initializeTabs, 500);
+                        return;
+                    }
+                    try {
+                        $("#tabs").tabs();
+                        $("#tabs2").tabs();
+                        $("#tabs3").tabs();
+                        $("#tabs4").tabs();
+                        console.log('✅ jQuery UI Tabs inicializado com sucesso');
+                    } catch(e) {
+                        console.error('Erro ao inicializar tabs:', e);
+                    }
+                }
+                
+                // Tentar inicializar tabs
+                if (document.readyState === 'loading') {
+                    document.addEventListener('DOMContentLoaded', initializeTabs);
                 } else {
-                    console.warn('jQuery UI Tabs não está disponível');
+                    initializeTabs();
                 }
             // FIM Habilita o sistema de Abas //
 

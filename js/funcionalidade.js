@@ -138,11 +138,15 @@ window.initSelect2IfNeeded = function (selector) {
   if (typeof $.fn.select2 === "function") {
     $(selector).each(function () {
       if (!$(this).hasClass("select2-hidden-accessible")) {
-        $(this).select2({
-          placeholder: "TAGS",
-          maximumSelectionLength: 10,
-          language: "pt-BR",
-        });
+        try {
+          $(this).select2({
+            placeholder: "TAGS",
+            maximumSelectionLength: 10,
+            language: "pt-BR",
+          });
+        } catch (e) {
+          console.error("Erro ao inicializar Select2:", e);
+        }
       }
     });
   } else {
@@ -152,21 +156,25 @@ window.initSelect2IfNeeded = function (selector) {
 
 // Tentar recarregar select2 periodicamente até funcionar
 window.retrySelect2Loading = function () {
-  var maxAttempts = 10;
+  var maxAttempts = 60; // 30 segundos (60 * 500ms)
   var attempts = 0;
   var interval = setInterval(function () {
     attempts++;
     if (typeof $.fn.select2 === "function") {
       clearInterval(interval);
-      console.log("Select2 agora está disponível");
+      console.log("✅ Select2 disponível após " + attempts + " tentativas");
       window.initSelect2IfNeeded(".pesqEtiquetas");
     } else if (attempts >= maxAttempts) {
       clearInterval(interval);
       console.warn(
-        "Select2 não foi carregado após " + maxAttempts + " tentativas",
+        "⚠️ Select2 não foi carregado após " +
+          maxAttempts +
+          " tentativas (" +
+          maxAttempts * 500 +
+          "ms)",
       );
     }
-  }, 200);
+  }, 500);
 };
 
 // Iniciar tentativa ao carregar script

@@ -157,38 +157,54 @@
 
 
 // Aqui são os tratamentos para a escolha da TAG
-    if (typeof $.fn.select2 === 'function') {
-        $('.pesqEtiquetas').select2({
-            placeholder: 'TAGS',
-            maximumSelectionLength: 10,
-            "language": "pt-BR"
-        });
-    } else {
-        console.warn('Select2 não está disponível');
+    function initializeSelect2Tags() {
+        if (typeof $.fn.select2 !== 'function') {
+            console.warn('Select2 ainda não está disponível. Tentando novamente em 500ms...');
+            setTimeout(initializeSelect2Tags, 500);
+            return;
+        }
+        
+        try {
+            $('.pesqEtiquetas:not(.select2-hidden-accessible)').select2({
+                placeholder: 'TAGS',
+                maximumSelectionLength: 10,
+                "language": "pt-BR"
+            });
+            console.log('Select2 inicializado com sucesso');
+            ajustarCoresSelect2();
+        } catch(e) {
+            console.error('Erro ao inicializar Select2:', e);
+        }
     }
 
-  function ajustarCoresSelect2() {
+    function ajustarCoresSelect2() {
+        if (typeof $.fn.select2 !== 'function') return;
+        
+        var selectedColors = {};
     
-  var selectedColors = {};
-
-    $('.pesqEtiquetas').on('select2:select', function(e) {
-    var selectedOption = e.params.data.element;
-    var selectedColor = $(selectedOption).attr('data-color');
-    var selectedId = $(selectedOption).val();
-    var selectedTag = $(this).next().find('.select2-selection__choice[title="' + e.params.data.text + '"]');
-    selectedColors[selectedId] = selectedColor;
-    for (var id in selectedColors) {
-      var selectedOption = $(this).find('option[value="' + id + '"]');
-      selectedOption.css('background-color', selectedColors[id]);
-      var selectedTag = $(this).next().find('.select2-selection__choice[title="' + selectedOption.text() + '"]');
-      selectedTag.css('background-color', selectedColors[id]);
+        $('.pesqEtiquetas').on('select2:select', function(e) {
+            var selectedOption = e.params.data.element;
+            var selectedColor = $(selectedOption).attr('data-color');
+            var selectedId = $(selectedOption).val();
+            var selectedTag = $(this).next().find('.select2-selection__choice[title="' + e.params.data.text + '"]');
+            selectedColors[selectedId] = selectedColor;
+            for (var id in selectedColors) {
+                var selectedOption = $(this).find('option[value="' + id + '"]');
+                selectedOption.css('background-color', selectedColors[id]);
+                var selectedTag = $(this).next().find('.select2-selection__choice[title="' + selectedOption.text() + '"]');
+                selectedTag.css('background-color', selectedColors[id]);
+            }
+            selectedTag.css('background-color', selectedColor);
+        });
     }
-    selectedTag.css('background-color', selectedColor);
-  });
-}
 
-$('#id_etiqueta').on('select2:open', function() {
-  ajustarCoresSelect2();
-});
+    $('#id_etiqueta').on('select2:open', function() {
+        if (typeof $.fn.select2 === 'function') {
+            ajustarCoresSelect2();
+        }
+    });
+    
+    // Inicializar Select2 quando estiver disponível
+    initializeSelect2Tags();
 
 </script>
