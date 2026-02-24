@@ -132,3 +132,42 @@ function atualizaContatos() {
     },
   );
 }
+
+// Auxílio para inicializar Select2 em elementos dinâmicos
+window.initSelect2IfNeeded = function (selector) {
+  if (typeof $.fn.select2 === "function") {
+    $(selector).each(function () {
+      if (!$(this).hasClass("select2-hidden-accessible")) {
+        $(this).select2({
+          placeholder: "TAGS",
+          maximumSelectionLength: 10,
+          language: "pt-BR",
+        });
+      }
+    });
+  } else {
+    console.warn("Select2 ainda não está disponível");
+  }
+};
+
+// Tentar recarregar select2 periodicamente até funcionar
+window.retrySelect2Loading = function () {
+  var maxAttempts = 10;
+  var attempts = 0;
+  var interval = setInterval(function () {
+    attempts++;
+    if (typeof $.fn.select2 === "function") {
+      clearInterval(interval);
+      console.log("Select2 agora está disponível");
+      window.initSelect2IfNeeded(".pesqEtiquetas");
+    } else if (attempts >= maxAttempts) {
+      clearInterval(interval);
+      console.warn(
+        "Select2 não foi carregado após " + maxAttempts + " tentativas",
+      );
+    }
+  }, 200);
+};
+
+// Iniciar tentativa ao carregar script
+window.retrySelect2Loading();

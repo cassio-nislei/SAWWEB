@@ -157,11 +157,15 @@
 
 
 // Aqui são os tratamentos para a escolha da TAG
-    $('.pesqEtiquetas').select2({
-    placeholder: 'TAGS',
-    maximumSelectionLength: 10,
-    "language": "pt-BR"
-  });
+    if (typeof $.fn.select2 === 'function') {
+        $('.pesqEtiquetas').select2({
+            placeholder: 'TAGS',
+            maximumSelectionLength: 10,
+            "language": "pt-BR"
+        });
+    } else {
+        console.warn('Select2 não está disponível');
+    }
 
   function ajustarCoresSelect2() {
     

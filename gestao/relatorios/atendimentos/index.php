@@ -140,11 +140,15 @@ function (e) {
 	//Adiciono a data atual no filtro 
 	//$("#de, #ate").datepicker( "setDate" , dataAtualFormatada() );
 
-	$('.pesqEtiquetas').select2({
-    placeholder: 'TAGS',
-    maximumSelectionLength: 10,
-    "language": "pt-BR"
-  });
+	if (typeof $.fn.select2 === 'function') {
+		$('.pesqEtiquetas').select2({
+			placeholder: 'TAGS',
+			maximumSelectionLength: 10,
+			"language": "pt-BR"
+		});
+	} else {
+		console.warn('Select2 não está disponível');
+	}
 
 	
 		$("#btnFiltrar").click(function() {

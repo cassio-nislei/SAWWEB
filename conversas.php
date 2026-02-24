@@ -40,11 +40,66 @@ function safe_session($key1, $key2 = null, $default = '') {
     <script src="js/jquery.mask.min.js"></script>
     <script src="js/notification.js"></script>
     <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/select2.js/4.0.13/css/select2.min.css" rel="stylesheet" />
     <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!-- Bootstrap 5 para WebChat -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Script para verificar se plugins estão carregados -->
+    <script>
+        // Variáveis globais para controlar carregamento de plugins
+        window.jqueryUILoaded = typeof $.fn.tabs !== 'undefined';
+        window.select2Loaded = typeof $.fn.select2 !== 'undefined';
+        window.maskLoaded = typeof $.fn.mask !== 'undefined';
+        
+        // Esperar um pouco para garantir que os scripts foram carregados
+        setTimeout(function() {
+            window.jqueryUILoaded = typeof $.fn.tabs !== 'undefined';
+            window.select2Loaded = typeof $.fn.select2 !== 'undefined';
+            window.maskLoaded = typeof $.fn.mask !== 'undefined';
+            
+            if (!window.jqueryUILoaded) {
+                console.warn('jQuery UI não foi carregado. Tabs não funcionarão.');
+            }
+            if (!window.select2Loaded) {
+                console.warn('Select2 não foi carregado. Tentando recarregar via fallback...');
+                loadSelect2Fallback();
+            }
+            if (!window.maskLoaded) {
+                console.warn('jQuery Mask não foi carregado. Tentando recarregar via fallback...');
+                loadMaskFallback();
+            }
+        }, 500);
+        
+        // Função fallback para carregar Select2
+        function loadSelect2Fallback() {
+            var select2Script = document.createElement('script');
+            select2Script.src = 'https://cdnjs.cloudflare.com/ajax/libs/select2.js/4.0.13/select2.min.js';
+            select2Script.onload = function() {
+                window.select2Loaded = true;
+                console.log('Select2 carregado via fallback');
+            };
+            select2Script.onerror = function() {
+                console.error('Falha ao carregar Select2 de ambas as CDNs');
+            };
+            document.head.appendChild(select2Script);
+        }
+        
+        // Função fallback para carregar jQuery Mask
+        function loadMaskFallback() {
+            var maskScript = document.createElement('script');
+            maskScript.src = 'https://cdnjs.cloudflare.com/ajax/libs/jquery.mask/1.14.16/jquery.mask.min.js';
+            maskScript.onload = function() {
+                window.maskLoaded = true;
+                console.log('jQuery Mask carregado via fallback');
+            };
+            maskScript.onerror = function() {
+                console.error('Falha ao carregar jQuery Mask da CDN');
+            };
+            document.head.appendChild(maskScript);
+        }
+    </script>
     <style>
         /* Estilo para os menus de conversas com efeito WhatsApp */
         .RLfQR {
@@ -1402,10 +1457,14 @@ function safe_session($key1, $key2 = null, $default = '') {
             // FIM Carregamento das Modais //
 
             // Habilita o sistema de Abas //
-                $("#tabs").tabs();
-                $("#tabs2").tabs();
-                $("#tabs3").tabs();
-                $("#tabs4").tabs();
+                if (typeof $.fn.tabs === 'function') {
+                    $("#tabs").tabs();
+                    $("#tabs2").tabs();
+                    $("#tabs3").tabs();
+                    $("#tabs4").tabs();
+                } else {
+                    console.warn('jQuery UI Tabs não está disponível');
+                }
             // FIM Habilita o sistema de Abas //
 
             console.log("�🔴🔴 INICIANDO CONFIGURAÇÃO DO TOGGLE 🔴🔴🔴");
