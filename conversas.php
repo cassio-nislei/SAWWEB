@@ -1642,6 +1642,8 @@ function safe_session($key1, $key2 = null, $default = '') {
   // ===== FIM Carregar foto do usuário =====
 </script>
 
+<!-- DEBUG CLICK EVENTS -->
+<script src="js/debug-click.js"></script>
 
 </body>
 </html>
