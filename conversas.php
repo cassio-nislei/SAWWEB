@@ -297,23 +297,10 @@ function safe_session($key1, $key2 = null, $default = '') {
         // Função para aplicar estilos corretos aos ícones
         function forceIconStyles() {
             // Ícones gerais
-            var icons = document.querySelectorAll('.itemIcon, .user-options i, .btNovaConversa i, .action-btn i, .action-btn .bi, #panel-edit-profile i, #panel-edit-profile svg');
+            var icons = document.querySelectorAll('.itemIcon, .user-options i, .btNovaConversa i, .action-btn i, .action-btn .bi, #panel-edit-profile i, #panel-edit-profile svg, i.fa, i.fas, i.far, i.fal, i.fab');
             icons.forEach(function(icon) {
                 var parent = icon.parentElement;
-                var color = '#128c7e'; // cor padrão
-                
-                // Se o botão pai é um btn-delete, usar cor vermelha
-                if (parent && parent.classList.contains('btn-delete')) {
-                    color = '#dc3545';
-                }
-                // Se o botão pai é um btn-edit, usar cor azul
-                else if (parent && parent.classList.contains('btn-edit')) {
-                    color = '#667eea';
-                }
-                // Se o ícone é um SVG, aplicar fill em vez de color
-                else if (parent && parent.classList.contains('btn-save')) {
-                    color = '#075e54';
-                }
+                var color = '#333333'; // Cinza escuro - PADRÃO PARA TODOS
                 
                 // Aplicar cor
                 if (icon.tagName === 'SVG') {
@@ -327,24 +314,16 @@ function safe_session($key1, $key2 = null, $default = '') {
                 } else {
                     icon.style.color = color + ' !important';
                     icon.style.pointerEvents = 'auto';
-                    icon.style.display = 'flex';
+                    icon.style.display = 'inline-flex !important';
                     icon.style.alignItems = 'center';
                     icon.style.justifyContent = 'center';
                 }
             });
             
             // Forçar cores também para os botões
-            var actionBtns = document.querySelectorAll('.action-btn, #btn-save-panel-edit-profile, .btn-save, #btn-close-panel-edit-profile');
+            var actionBtns = document.querySelectorAll('.action-btn, #btn-save-panel-edit-profile, .btn-save, #btn-close-panel-edit-profile, #iModalRelatorio, i[class*="fa-"]');
             actionBtns.forEach(function(btn) {
-                if (btn.classList.contains('btn-delete')) {
-                    btn.style.color = '#dc3545 !important';
-                } else if (btn.classList.contains('btn-edit')) {
-                    btn.style.color = '#667eea !important';
-                } else if (btn.classList.contains('btn-save') || btn.id === 'btn-save-panel-edit-profile') {
-                    btn.style.color = '#075e54 !important';
-                } else if (btn.id === 'btn-close-panel-edit-profile') {
-                    btn.style.color = '#fff !important';
-                }
+                btn.style.color = '#333333 !important'; // Todos cinza escuro
             });
         }
         
@@ -358,7 +337,7 @@ function safe_session($key1, $key2 = null, $default = '') {
         // Reaplica estilos periodicamente em caso de mudanças dinâmicas
         setInterval(forceIconStyles, 500);
         
-        console.log('✅ Icon styles enforcer ativado (incluindo painel de perfil)');
+        console.log('✅ Icon styles enforcer ativado (TODOS os ícones em cinza escuro #333333)');
     </script>
     
     <!-- Script para verificar se plugins estão carregados -->

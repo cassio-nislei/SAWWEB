@@ -3,9 +3,9 @@
    Garante que ícones não fiquem invisíveis em divs brancas
    ======================================== */
 
-/* Bootstrap Icons (class .bi) - Verde WhatsApp padrão */
+/* Bootstrap Icons (class .bi) - Cinza escuro */
 .bi {
-  color: #128c7e !important;
+  color: #333333 !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
@@ -18,52 +18,122 @@
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
+  color: #333333 !important;
 }
 
-/* Edit button - Azul */
+/* Edit button - Cinza escuro */
 .action-btn.btn-edit .bi,
 .action-btn.btn-edit i,
 .btn-edit .bi {
-  color: #667eea !important;
+  color: #333333 !important;
 }
 
-/* Delete button - Vermelho */
+/* Delete button - Cinza escuro */
 .action-btn.btn-delete .bi,
 .action-btn.btn-delete i,
 .btn-delete .bi {
-  color: #dc3545 !important;
+  color: #333333 !important;
 }
 
-/* Font Awesome Icons */
+/* Font Awesome Icons - TODOS os ícones */
 i.fa,
 i.fas,
 i.far,
 i.fal,
 i.fab {
-  color: #128c7e !important;
+  color: #333333 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Font Awesome - Ícones específicos - TODOS cinza escuro */
+i.fa-history,
+i.fas.fa-history {
+  color: #333333 !important; /* Cinza escuro */
+}
+
+i.fa-edit,
+i.fas.fa-edit,
+i.fa-pencil,
+i.fas.fa-pencil {
+  color: #333333 !important; /* Cinza escuro */
+}
+
+i.fa-trash,
+i.fas.fa-trash,
+i.fa-trash-alt,
+i.fas.fa-trash-alt {
+  color: #333333 !important; /* Cinza escuro */
+}
+
+i.fa-check,
+i.fas.fa-check,
+i.fa-save,
+i.fas.fa-save {
+  color: #333333 !important; /* Cinza escuro */
+}
+
+i.fa-times,
+i.fas.fa-times,
+i.fa-close,
+i.fas.fa-close {
+  color: #333333 !important; /* Cinza escuro */
+}
+
+i.fa-arrow-left,
+i.fas.fa-arrow-left {
+  color: #333333 !important; /* Cinza escuro */
+}
+
+i.fa-share,
+i.fas.fa-share {
+  color: #333333 !important;
+}
+
+i.fa-cog,
+i.fas.fa-cog,
+i.fa-settings,
+i.fas.fa-settings {
+  color: #333333 !important;
+}
+
+i.fa-user,
+i.fas.fa-user {
+  color: #333333 !important;
+}
+
+i.fa-envelope,
+i.fas.fa-envelope {
+  color: #333333 !important;
+}
+
+i.fa-phone,
+i.fas.fa-phone {
+  color: #333333 !important;
 }
 
 /* Icons em tooltip */
 .tooltip i,
 li.tooltip .itemIcon {
-  color: #128c7e !important;
+  color: #333333 !important;
 }
 
 /* Icons em botões de opções */
 .user-options i,
 .user-options .itemIcon {
-  color: #128c7e !important;
+  color: #333333 !important;
 }
 
 /* Icons em botões de nova conversa */
 .btNovaConversa i,
 .btNovaConversa .itemIcon {
-  color: #128c7e !important;
+  color: #333333 !important;
 }
 
 /* Icons genéricas */
 .itemIcon {
-  color: #128c7e !important;
+  color: #333333 !important;
 }
 
 /* Icons em divs brancas específicas */
@@ -76,32 +146,32 @@ li.tooltip .itemIcon {
 
 /* Garantir que icons não herdam branco */
 .bi-pencil {
-  color: #667eea !important;
+  color: #333333 !important;
 }
 
 .bi-trash,
 .bi-trash-fill {
-  color: #dc3545 !important;
+  color: #333333 !important;
 }
 
 .bi-chat,
 .bi-chat-left {
-  color: #128c7e !important;
+  color: #333333 !important;
 }
 
 .bi-lock-fill {
-  color: #128c7e !important;
+  color: #333333 !important;
 }
 
 /* Override para garantir que nada seja sobrescrito */
 i[style*="white"],
 i[style*="rgb(255, 255, 255)"] {
-  color: #128c7e !important;
+  color: #333333 !important;
 }
 
 .bi[style*="white"],
 .bi[style*="rgb(255, 255, 255)"] {
-  color: #128c7e !important;
+  color: #333333 !important;
 }
 
 /* Hover effects */
