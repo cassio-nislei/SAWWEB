@@ -157,10 +157,16 @@
 
 
 // Aqui são os tratamentos para a escolha da TAG
+    var select2InitAttempts = 0;
     function initializeSelect2Tags() {
+        select2InitAttempts++;
         if (typeof $.fn.select2 !== 'function') {
-            console.warn('Select2 ainda não está disponível. Tentando novamente em 500ms...');
-            setTimeout(initializeSelect2Tags, 500);
+            if (select2InitAttempts < 20) {  // Máximo 20 tentativas (10 segundos)
+                console.warn('Select2 ainda não está disponível. Tentando novamente em 500ms... [' + select2InitAttempts + '/20]');
+                setTimeout(initializeSelect2Tags, 500);
+            } else {
+                console.error('❌ Select2 não carregou após múltiplas tentativas');
+            }
             return;
         }
         

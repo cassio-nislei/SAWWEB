@@ -69,14 +69,14 @@ function safe_session($key1, $key2 = null, $default = '') {
         // Verificação inicial
         checkPluginsAvailable();
         
-        // Verificar rapidamente se tudo carregou (máximo 3 segundos)
+        // Verificar rapidamente se tudo carregou (máximo 5 segundos = 10 tentativas)
         var pluginCheckAttempts = 0;
         var pluginCheckInterval = setInterval(function() {
             pluginCheckAttempts++;
             checkPluginsAvailable();
             
-            // Parar após 6 tentativas (3 segundos total)
-            if (pluginCheckAttempts >= 6) {
+            // Parar após 10 tentativas (5 segundos total)
+            if (pluginCheckAttempts >= 10) {
                 clearInterval(pluginCheckInterval);
                 console.log('✅ Verificação de plugins concluída. Status:', window.pluginsReady);
                 
@@ -1449,10 +1449,16 @@ function safe_session($key1, $key2 = null, $default = '') {
             // FIM Carregamento das Modais //
 
             // Habilita o sistema de Abas //
+                var tabsInitAttempts = 0;
                 function initializeTabs() {
+                    tabsInitAttempts++;
                     if (typeof $.fn.tabs !== 'function') {
-                        console.warn('jQuery UI Tabs não disponível ainda. Tentando novamente...');
-                        setTimeout(initializeTabs, 500);
+                        if (tabsInitAttempts < 20) {  // Máximo 20 tentativas (10 segundos)
+                            console.warn('jQuery UI Tabs não disponível ainda. Tentando novamente... [' + tabsInitAttempts + '/20]');
+                            setTimeout(initializeTabs, 500);
+                        } else {
+                            console.error('❌ jQuery UI Tabs não carregou após múltiplas tentativas');
+                        }
                         return;
                     }
                     try {
