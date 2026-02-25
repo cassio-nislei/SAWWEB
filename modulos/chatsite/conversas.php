@@ -403,6 +403,48 @@ require_once($_SERVER['DOCUMENT_ROOT'] . "/includes/padrao.inc.php");
             filter: brightness(0) invert(1);
         }
 
+        /* ===== BOTÃO ENVIAR ===== */
+        .modal-footer {
+            display: flex !important;
+            visibility: visible !important;
+            opacity: 1 !important;
+        }
+
+        .modal-footer > div {
+            display: flex !important;
+            width: 100% !important;
+            gap: 0.5rem !important;
+            align-items: flex-end !important;
+            visibility: visible !important;
+        }
+
+        .modal-footer > div > div {
+            display: flex !important;
+            width: 100% !important;
+            gap: 0.5rem !important;
+            align-items: center !important;
+            flex-wrap: nowrap !important;
+            visibility: visible !important;
+        }
+
+        #btnEnviarResposta {
+            flex-shrink: 0 !important;
+            white-space: nowrap !important;
+            padding: 0.5rem 1rem !important;
+            min-width: 60px !important;
+            height: 38px !important;
+            display: none !important;
+            visibility: hidden !important;
+            opacity: 0 !important;
+            z-index: 999 !important;
+        }
+
+        #respostaMsg {
+            flex: 1 !important;
+            resize: none !important;
+            min-height: 38px !important;
+        }
+
         /* ===== RESPONSIVE ===== */
         @media (max-width: 576px) {
             .chat-header h1 {
@@ -498,7 +540,7 @@ require_once($_SERVER['DOCUMENT_ROOT'] . "/includes/padrao.inc.php");
                     <div style="width: 100%;">
                         <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
                             <textarea id="respostaMsg" placeholder="Digite sua resposta..." class="form-control" rows="2" style="resize: none; border-radius: 8px;"></textarea>
-                            <button type="button" class="btn btn-primary" id="btnEnviarResposta" style="align-self: flex-end;">
+                            <button type="button" class="btn btn-primary" id="btnEnviarResposta">
                                 <i class="bi bi-send"></i>
                             </button>
                         </div>
@@ -697,19 +739,38 @@ require_once($_SERVER['DOCUMENT_ROOT'] . "/includes/padrao.inc.php");
             });
         }
 
-        // Enviar resposta
-        document.getElementById('btnEnviarResposta').addEventListener('click', function() {
+        // Função para enviar resposta (reutilizável)
+        function enviarResposta() {
             const msg = $('#respostaMsg').val().trim();
             if (!msg) return;
             
-            $(this).prop('disabled', true).html('<i class="bi bi-hourglass-split spin"></i>');
+            const btn = document.getElementById('btnEnviarResposta');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="bi bi-hourglass-split spin"></i>';
             
             // Aqui você implementaria o envio da resposta
             // Por enquanto, apenas limpa
             setTimeout(() => {
                 $('#respostaMsg').val('');
-                $(this).prop('disabled', false).html('<i class="bi bi-send"></i>');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="bi bi-send"></i>';
             }, 500);
+        }
+
+        // Enviar resposta ao clicar no botão (mantém compatibilidade)
+        document.getElementById('btnEnviarResposta').addEventListener('click', function() {
+            enviarResposta();
+        });
+
+        // Enviar resposta ao pressionar Enter no textarea
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                const respostaMsg = document.getElementById('respostaMsg');
+                if (respostaMsg && document.activeElement === respostaMsg) {
+                    e.preventDefault();
+                    enviarResposta();
+                }
+            }
         });
 
         // Filtros

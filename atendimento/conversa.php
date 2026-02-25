@@ -27,10 +27,51 @@
 </select>
 <!-- FIM Corpo das Mensagens -->
 
+<style>
+    .hidden-audio .microfone,
+    .hidden-audio .gravando {
+        display: none !important;
+    }
+    .hidden-audio #btnEnviar {
+        display: block !important;
+        margin-top: 5px !important;
+    }
+    #btnEnviar .adjustIconsTalk {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+        width: 100% !important;
+        height: 100% !important;
+        padding: 0 !important;
+        margin: 0 !important;
+        margin-top: 15px !important;
+    }
+    #btnEnviar svg {
+        width: 100% !important;
+        height: 100% !important;
+    }
+</style>
+
 <script src="js/WebAudioRecorder.min.js"></script>
 <script src="js/WebAudioRecorderMp3.min.js"></script>
 <script>
     $(document).ready(function() {
+        // Observar mudanças no painel de visualização de imagem
+        var observer = new MutationObserver(function(mutations) {
+            if ($(".panel-upImage").hasClass("open")) {
+                $("#divAudio").addClass("hidden-audio"); // Esconde tudo quando painel está aberto
+                $("#btnEnviar").show(); // Mostra botão enviar no lugar
+            } else {
+                $("#divAudio").removeClass("hidden-audio"); // Mostra tudo quando painel está fechado
+                $("#btnEnviar").hide(); // Esconde botão enviar
+            }
+        });
+
+        observer.observe($(".panel-upImage")[0], {
+            attributes: true,
+            attributeFilter: ["class"]
+        });
+
         // Cancela o envio de Imagem via Área  de Transferência //
             $(document).keyup(function(event) { 
                 if( event.keyCode === 27 ){ //Iniciar Gravação
@@ -40,6 +81,7 @@
         // FIM Cancela o envio de Imagem via Área  de Transferência //
 
         var ehaudio = false;
+        var audioConfirmado = false;  // FLAG: áudio foi confirmado e está pronto para enviar
         var imageClipboard = false;
         var imageCamera = false;
         var ehupload = false;
@@ -97,16 +139,6 @@
                     var eventCodes = ",8,9,13,16,17,18,20,27,32,33,34,35,36,37,38,39,40,45,46,91,93,112,113,114,115,116,117,118,119,120,121,122,123,144,173,174,175,";
                     var padrao = ","+event.keyCode+",";
                     var regex = new RegExp(padrao);
-
-                    if( strMensagem.length === 0 && !regex.test(eventCodes) ){
-                        $("#btnEnviar").attr("style", "display: block");
-                        $("#divAudio").attr("style", "display: none");
-                    }
-                    else if( ( strMensagem.length === 1 && event.key === "Backspace" )
-                        || strMensagem === "" ){
-                        $("#btnEnviar").attr("style", "display: none");
-                        $("#divAudio").attr("style", "display: block");
-                    }
                     
                     // Permitir quando pressionar <Shift> e <Enter>	//
                         if( event.keyCode == 13 && event.shiftKey ){
@@ -248,6 +280,7 @@
                     $("#btnEnviar").attr("style", "display: none");
                     $("#divAudio").attr("style", "display: block");
                     $("#msg").focus();
+                    audioConfirmado = false;  // Reset flag após envio bem-sucedido
                 }
             });
         });
@@ -435,6 +468,7 @@
                 $(".microfone").slideDown(200);
                 $("#time").text("00:00");
                 $("#msg").prop( "disabled", false );
+                audioConfirmado = false;  // Áudio foi cancelado
             });
             // Reaparecer microfone ao clicar em Send
             $(".bt-send").click(function(){
@@ -446,6 +480,8 @@
                 $(".microfone").slideDown(200);
                 $("#time").text("00:00");
                 $("#msg").prop( "disabled", false );
+                $("#btnEnviar").attr("style", "display: block");
+                audioConfirmado = true;  // Áudio foi confirmado - pronto para enviar ao pressionar Enter
             });
         // FIM Scripts referentes à Gravação de Áudio //
 

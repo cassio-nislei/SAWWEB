@@ -272,20 +272,18 @@
             <div class="microfone">
                 <button id="btnFotografar" class="bt-fotografar" title="Iniciar Camera"><i class="fas fa-camera"></i></button>
                 <button id="btnRecorder" class="bt-recorder" title="Iniciar Gravação"  style="margin-left:2px;"><i class="fas fa-microphone"></i></button>
-            </div>            
-                </div>
+                <!-- Button Enviar dentro do divAudio -->
+                <button class="_2lkdt" id="btnEnviar" style="margin-left:2px; display:none;">
+                    <span data-icon="send" class="adjustIconsTalk">
+                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
+                            <path fill="#263238" fill-opacity=".45" d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path>
+                        </svg>
+                    </span>
+                </button>
+            </div>
             </div>
         </div>
         <!-- FIM Digitar Mensagem -->
-
-        <!-- Button Enviar -->
-        <button class="_2lkdt" id="btnEnviar" style="display: none;">
-            <span data-icon="send" class="adjustIconsTalk">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="24" height="24">
-                    <path fill="#263238" fill-opacity=".45" d="M1.101 21.757L23.8 12.028 1.101 2.3l.011 7.912 13.623 1.816-13.623 1.817-.011 7.912z"></path>
-                </svg>
-            </span>
-        </button>
     </div>
     <div id="transferirParaMim" class="_3oju3" style="display:flex; display: none;">
         <button id="btnTransferirAtendimentoTriagem" class="btn btn-primary">Transferir Atendimento para mim</button>
