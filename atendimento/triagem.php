@@ -1,6 +1,6 @@
 <?php
 	// Requires //
-	require_once("../includes/padrao.inc.php");
+	require_once(__DIR__ . "/../includes/padrao.inc.php");
 
 	// Definições de Variáveis //
 		$ultHora = null;

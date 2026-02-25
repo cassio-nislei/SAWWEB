@@ -1980,7 +1980,7 @@ function safe_session($key1, $key2 = null, $default = '') {
    
                 
                 $("#btnMinimuiConversas2").css("display","flex");       
-                if ($('.._1Iexl').length) $('.._1Iexl').css("-webkit-flex","100%");                 
+                if ($('._1Iexl').length) $('._1Iexl').css("-webkit-flex","100%");                 
 
                 
             });
@@ -2001,7 +2001,7 @@ function safe_session($key1, $key2 = null, $default = '') {
                  
 
                 $("#btnMinimuiConversas2").css("display","none");  
-                if ($('.._1Iexl').length) $('.._1Iexl').css("-webkit-flex","100%");   
+                if ($('._1Iexl').length) $('._1Iexl').css("-webkit-flex","100%");   
                     
                 if ($("#btnVoltarResponsivo").length) $("#btnVoltarResponsivo").css("display","none");
              

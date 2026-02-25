@@ -1,5 +1,5 @@
 <?php
-require_once("../../includes/padrao.inc.php");
+require_once(__DIR__ . "/../../includes/padrao.inc.php");
 
 mysqli_next_result($conexao);
 
@@ -9,7 +9,7 @@ $condicao = ($id !== "") ? " AND tud.id_departamento = '$id'" : " GROUP BY tu.id
 // FIM Definições de Variáveis //
 
 // Query para buscar usuários inativos
-$strSQL = "SELECT tu.id, tu.nome, tu.datetime_online
+$strSQL = "SELECT tu.id, tu.nome, tu.datetime_online, tu.foto
             FROM tbusuario tu
             INNER JOIN tbusuariodepartamento tud ON tud.id_usuario = tu.id
             WHERE tu.situacao NOT IN('I')"
@@ -69,9 +69,12 @@ else{
           if($minutos > 0) $tempoInatividade .= $minutos . "m";
           if(empty($tempoInatividade)) $tempoInatividade = "Agora";
           
+          // Define a imagem: usa foto em base64 se existir, senão usa imagem padrão
+          $srcFoto = (!empty($ln["foto"])) ? $ln["foto"] : "../../img/ico-contact.svg";
+          
           echo '
           <div class="contact" style="opacity: 0.6;">
-            <img src="../../img/ico-contact.svg" alt="' . htmlspecialchars($ln["nome"]) . '">
+            <img src="' . htmlspecialchars($srcFoto) . '" alt="' . htmlspecialchars($ln["nome"]) . '" onerror="this.src=\'../../img/ico-contact.svg\'">
             <div style="flex-grow: 1;">
               <p>' . htmlspecialchars($ln["nome"]) . '</p>
               <p style="font-size: 12px; color: #999;">Inativo há ' . $tempoInatividade . '</p>

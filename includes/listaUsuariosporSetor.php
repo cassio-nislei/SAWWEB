@@ -9,7 +9,7 @@
 
    $usuarios = mysqli_query(
       $conexao
-      , "SELECT tu.id, tu.nome, tu.datetime_online
+      , "SELECT tu.id, tu.nome, tu.datetime_online, tu.foto
           FROM tbusuario tu
              INNER JOIN tbusuariodepartamento tud ON tud.id_usuario = tu.id
              WHERE tu.situacao NOT IN('I')"
@@ -27,6 +27,10 @@
       while($ln = mysqli_fetch_assoc($usuarios)){
          if( userOnline($ln["datetime_online"], $arrParametros["minutos_offline"])
             || ( isset($_SESSION["parametros"]["transferencia_offline"]) && intval($_SESSION["parametros"]["transferencia_offline"]) === 1 ) ){
+            
+            // Define a imagem: usa foto em base64 se existir, senão usa imagem padrão
+            $srcFoto = (!empty($ln["foto"])) ? $ln["foto"] : "img/ico-contact.svg";
+            
             echo '<a id="u'.$ln['id'].'" href="javascript:;" onclick="return false;" class="uk-flex-middle uk-grid-small uk-grid lnkOperador" style="padding:0">
                      <div class="uk-width-3-4">
                         <input type="hidden" id="oper'.$ln['id'].'" value="'.$ln["nome"].'" />
@@ -34,7 +38,7 @@
                         <!--<p class="uk-margin-remove-top uk-text-small uk-text-muted" id=""><span style="color:green; font-size:12px">Está online</span></p>-->
                      </div>
                      <div class="uk-width-1-5 uk-flex-first uk-first-column">
-                        <img src="img/ico-contact.svg" alt="Image" class="uk-border-circle" width="40">
+                        <img src="' . htmlspecialchars($srcFoto) . '" alt="Image" class="uk-border-circle" width="40" onerror="this.src=\'img/ico-contact.svg\'">
                      </div>
                </a>';
          }

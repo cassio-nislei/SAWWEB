@@ -1,6 +1,6 @@
 <?php
     // Requires //
-    require_once("../includes/padrao.inc.php");
+    require_once(__DIR__ . "/../includes/padrao.inc.php");
 
     // Definições de Variáveis //
         $idAtendimento = isset($_REQUEST["id"]) ? $_REQUEST["id"] : "";
@@ -21,7 +21,7 @@
 ?>
 
 <!-- Corpo das Mensagens -->
-<?php require_once("htmlConversa.php"); ?>
+<?php require_once(__DIR__ . "/htmlConversa.php"); ?>
 <select id="encodingTypeSelect" style="display:none">
     <option value="mp3" style="display:none">MP3</option>
 </select>

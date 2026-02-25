@@ -26,7 +26,8 @@
 		$sql = "SELECT 
 					u.id,
 					u.nome,
-					u.email
+					u.email,
+					u.foto
 				FROM tbusuario u
 				WHERE u.id != '" . intval($_SESSION["usuariosaw"]["id"]) . "' AND u.id > 1";
 
@@ -56,7 +57,8 @@
 			$operadores[] = [
 				'id' => intval($row['id']),
 				'nome' => $row['nome'],
-				'email' => $row['email']
+				'email' => $row['email'],
+				'foto' => !empty($row['foto']) ? $row['foto'] : NULL
 			];
 		}
 

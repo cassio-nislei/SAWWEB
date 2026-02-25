@@ -1,5 +1,5 @@
 <?php
-  require_once("../../includes/padrao.inc.php");
+  require_once(__DIR__ . "/../../includes/padrao.inc.php");
 
   mysqli_next_result($conexao);
   
@@ -9,7 +9,7 @@
   // FIM Definições de Variáveis //
 
   // Query para buscar usuários online
-  $strSQL = "SELECT tu.id, tu.nome, tu.datetime_online
+  $strSQL = "SELECT tu.id, tu.nome, tu.datetime_online, tu.foto
               FROM tbusuario tu
               INNER JOIN tbusuariodepartamento tud ON tud.id_usuario = tu.id
               WHERE tu.situacao NOT IN('I')"
@@ -57,9 +57,13 @@
           // Se a última atividade foi dentro do tempo permitido, está online
           if($minutosTotais < $minutos_offline){
             $encontrouOnline = true;
+            
+            // Define a imagem: usa foto em base64 se existir, senão usa imagem padrão
+            $srcFoto = (!empty($ln["foto"])) ? $ln["foto"] : "../../img/ico-contact.svg";
+            
             echo '
             <div class="contact">
-              <img src="../../img/ico-contact.svg" alt="' . htmlspecialchars($ln["nome"]) . '">
+              <img src="' . htmlspecialchars($srcFoto) . '" alt="' . htmlspecialchars($ln["nome"]) . '" onerror="this.src=\'../../img/ico-contact.svg\'">
               <p>' . htmlspecialchars($ln["nome"]) . '</p>
             </div>';
           }

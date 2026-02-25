@@ -1,6 +1,6 @@
 <?php
   // Requires //
-  require_once("../includes/padrao.inc.php");
+  require_once(__DIR__ . "/../includes/padrao.inc.php");
 
   // Definições de Variáveis //
     $idAtendimento = $_GET["id"];
@@ -18,7 +18,7 @@
 ?>
 
 <!-- Corpo das Mensagens -->
-<?php require_once("htmlConversa.php"); ?>
+<?php require_once(__DIR__ . "/htmlConversa.php"); ?>
 <!-- FIM Corpo das Mensagens -->
 
 <script>
