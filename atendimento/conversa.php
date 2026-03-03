@@ -822,10 +822,14 @@
             btnScreenshot.addEventListener("click", function () {
                 let img = document.createElement("img");  
                 img.setAttribute("class", "imgView"); 
-                canvas.width = video.videoWidth;
-                canvas.height = video.videoHeight;
-                canvas.getContext("2d").drawImage(video, 0, 0);
-                img.src = canvas.toDataURL("image/png");
+                
+                // Redimensiona canvas para melhor compressão
+                canvas.width = Math.min(video.videoWidth, 1280);
+                canvas.height = Math.min(video.videoHeight, 720);
+                
+                canvas.getContext("2d").drawImage(video, 0, 0, canvas.width, canvas.height);
+                // Converte para JPEG com compressão 0.8 (80% qualidade - reduz tamanho mantendo qualidade)
+                img.src = canvas.toDataURL("image/jpeg", 0.8);
 
                 
     
@@ -835,30 +839,18 @@
                 $("#divAudio").attr("style", "display: none");
 
                 imageCamera = true;
-                 //Converto a Imagem para Blob
-                 // Defina o base64
-                let base64 = img.src;
-                // Remova o cabeçalho do tipo de arquivo do base64
-                let byteString = atob(base64.split(",")[1]);
-                // Crie um ArrayBuffer
-                let buffer = new ArrayBuffer(byteString.length);
-                // Crie uma exibição de byte do ArrayBuffer
-                let view = new Uint8Array(buffer);
-                // Preencha a exibição de byte com os dados do byteString
-                for (let i = 0; i < byteString.length; i++) {
-                view[i] = byteString.charCodeAt(i);
-                }
-                let blob = new Blob([buffer], { type: "image/png" });  
-                //Fim da Conversão da Imagem para BLOBO               
-          
-                  
-                // Tratamento dos Paineis //
-                $("#dragDropImage").attr("style", "display:none");
-                $(".panel-upImage").addClass("open");
-                form.delete("upload"); //Adicionei esse delete para caso já exista um upload no form deletar                
-                form.append("upload", blob ,"imagem_camera.png"); 
                 
-                $("#dragDropImage").attr("style", "display:none");               
+                // Obtém a base64 diretamente
+                let base64String = img.src;
+                
+                // Limpa o form anterior
+                form.delete("upload");
+                form.delete("imageBase64");
+                
+                // Adiciona a imagem em base64 como string
+                form.append("imageBase64", base64String);
+                
+                $(".panel-upImage").addClass("open");               
                 document.getElementById("panel-upload-image").appendChild(img);				
                 stopVideoStream();
 

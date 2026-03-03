@@ -153,29 +153,52 @@
 		}
 		elseif ($objConversa->tipo_arquivo=='STICKER'){
 			$mensagem = '<a class="youtube cboxElement" href="atendimento/anexo.php?id='.$objConversa->id.'&numero='.$objConversa->numero.'&seq='.$objConversa->seq.'"><img src="atendimento/anexo.php?id='.$objConversa->id.'&numero='.$objConversa->numero.'&seq='.$objConversa->seq.'" width="100" height="100"></a>';
-		} 
+		}
+		// Imagem da Câmera (base64 comprimida)
+		elseif ($objConversa->tipo_arquivo=='IMG'){
+			$strAnexos = "SELECT arquivo FROM tbanexos WHERE id = '".$objConversa->id."' AND numero = '".$objConversa->numero."' AND seq = '".$objConversa->seq."' LIMIT 1";
+			$qryAnexos = mysqli_query($conexao, $strAnexos);
+			$objAnexos = mysqli_fetch_object($qryAnexos);
+			
+			// Exibe a imagem direto do base64 sem salvar em arquivo
+			if ($objAnexos && !empty($objAnexos->arquivo)) {
+				// Se já tiver o cabeçalho data:image, usa direto
+				if (strpos($objAnexos->arquivo, 'data:image') === 0) {
+					$base64_img = $objAnexos->arquivo;
+				} else {
+					// Caso contrário, adiciona o cabeçalho
+					$base64_img = 'data:image/jpeg;base64,' . $objAnexos->arquivo;
+				}
+				
+				$mensagem = '<a href="'.$base64_img.'" data-lightbox-title="">
+								<img style="border: 1px solid #ccc; border-radius: 5px; max-width: 300px; max-height: 300px;" src="'.$base64_img.'" />
+							</a>';
+				
+				if (strlen($objConversa->msg) > 0) {
+					$mensagem = $mensagem . '<br>' . $objConversa->msg;
+				}
+			}
+		}
 		elseif ($objConversa->tipo_arquivo=='IMAGE'){
 			$strAnexos = "SELECT arquivo, nome_arquivo, tipo_arquivo, nome_contato FROM tbanexos WHERE id = '".$objConversa->id."' AND numero = '".$objConversa->numero."' AND seq = '".$objConversa->seq."'";
 			$qryAnexos = mysqli_query($conexao, $strAnexos);
 			$objAnexos = mysqli_fetch_object($qryAnexos);
-			$extensao = explode(".", $objAnexos->nome_arquivo)[1];
-			$fileName = "images/conversas/" . $objConversa->id.'_'.$objConversa->numero.'_'.$objConversa->seq.'.'.$extensao;
-			$fileRootImage = "../" . $fileName;
-
-			// Cria o arquivo se ele ainda não existir //
-				if( !file_exists($fileRootImage) ){
-					// GAMBI, POG PLUS+ //
-					// if( strlen(($objAnexos->nome_contato)) === 0 ){ $img = imagecreatefromstring( $objAnexos->arquivo ); }
-					// else{ $img = imagecreatefromstring( base64_decode($objAnexos->arquivo) ); }
-					
-					$img = imagecreatefromstring( $objAnexos->arquivo );
-					imagejpeg( $img, $fileRootImage );
-				}
-			// FIM Cria o arquivo se ele ainda não existir //
-
+			
+			// Verifica se é base64 ou binário
+			if (strpos($objAnexos->arquivo, 'data:image') === 0) {
+				// Já é base64
+				$base64_img = $objAnexos->arquivo;
+			} elseif (isset($objAnexos->nome_contato) && strlen($objAnexos->nome_contato) > 0) {
+				// É base64 decodificado
+				$base64_img = 'data:image/jpeg;base64,' . base64_encode($objAnexos->arquivo);
+			} else {
+				// É binário puro - converter para base64
+				$base64_img = 'data:image/jpeg;base64,' . base64_encode($objAnexos->arquivo);
+			}
+			
 			// Montando a Mensagem //
-				$mensagem = '<a href="'.$fileName.'" data-lightbox-title="">
-								<img style="border: 1px solid #ccc; border-radius: 5px;" width="100px" src="'.$fileName.'" />
+				$mensagem = '<a href="'.$base64_img.'" data-lightbox-title="">
+								<img style="border: 1px solid #ccc; border-radius: 5px; max-width: 300px; max-height: 300px;" src="'.$base64_img.'" />
 							</a>';
 				
 				if (strlen($objConversa->msg)>0){

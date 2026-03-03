@@ -11,8 +11,7 @@
 		$nomeDepartamento = $_SESSION["usuariosaw"]["nomeDepartamento"];
 		$binario = '';
 		$nomeArquivo = '';
-		$anexomsgRapida = $_POST["anexomsgRapida"];
-		$tipo = '';
+		$anexomsgRapida = $_POST["anexomsgRapida"];		$imageBase64 = isset($_POST["imageBase64"]) ? $_POST["imageBase64"] : '';		$tipo = '';
 		//$situacao    = ( strpos($strMensagem, 'BEGIN:VCARD') !== false ) ? ((intval($idCanal) > 1 ? "E" : "N" ) ) : "E"; // O Marcelino precisa disso! Pois no Delphi ainda não funciona o envio de Contato!
 		$situacao    = 'E'; 
 		$intUserId   = $_SESSION["usuariosaw"]["id"];
@@ -29,6 +28,36 @@
         $strMensagem = quebraDeLinha("*".$nomeDepartamento."* <br>". $strMensagem ) ;
 	}
 	else{ $strMensagem = quebraDeLinha($strMensagem); }
+
+	// Se houver imagem em base64 da câmera
+	if (!empty($imageBase64)){
+		$newSequence = newSequence($conexao, $idAtendimento, $strNumero, $idCanal); // Gera a sequencia da mensagem
+		
+		// Remove o cabeçalho data:image/...;base64, se existir
+		if (strpos($imageBase64, 'data:image') === 0) {
+			$imageBase64 = substr($imageBase64, strpos($imageBase64, ',') + 1);
+		}
+		
+		$binario = $imageBase64;
+		$tipo = 'IMG';
+		$nomeArquivo = "imagem_" . $idAtendimento . "_" . $newSequence . ".jpg";
+		
+		// Grava o Anexo (imagem em base64) no Banco de dados
+		$sqlInsertTbAnexo = "INSERT INTO tbanexos(id,seq,numero,arquivo,nome_arquivo,nome_original,tipo_arquivo,canal,enviado)
+							VALUES ('".$idAtendimento."','".$newSequence."','".$strNumero."','".$binario."','".$nomeArquivo."',
+								'".$nomeArquivo."','".$tipo."','".$idCanal."',1)";
+		
+		$insereAnexo = mysqli_query($conexao, $sqlInsertTbAnexo) or die(mysqli_error($conexao));
+		
+		$situacao = 'N';
+		
+		$inseremsg = mysqli_query(
+			$conexao, 
+			"INSERT INTO tbmsgatendimento(id,seq,numero,msg, resp_msg, nome_chat,situacao, dt_msg,hr_msg,id_atend,canal, chatid_resposta)
+				VALUES('".$idAtendimento."','".$newSequence."' ,'".$strNumero."', (CONCAT_WS(REPLACE('\\\ n', ' ', ''), ".$strMensagem."), '".$strResposta."',
+						'".$strUserNome."' ,'".$situacao."',NOW(),CURTIME(),'".$intUserId."','".$idCanal."', '".$idResposta."')"
+		);
+	}
 
 	// faz o insert apenas da Imagem, sem atendente
 	// Insere o Anexo se houver
