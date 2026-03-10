@@ -5,7 +5,7 @@ if (session_status() === PHP_SESSION_NONE) {
 }
 
 // Headers //
-        if( intval(strpos($_SERVER["REQUEST_URI"], "controller.php")) > 0 ){
+        if( intval(stripos($_SERVER["REQUEST_URI"], "controller.php")) > 0 ){
             header('Content-type: application/json');
             header("Access-Control-Allow-Origin: *");
             header("Access-Control-Allow-Headers: *");
@@ -117,7 +117,7 @@ if (session_status() === PHP_SESSION_NONE) {
     }
     
     function SomenteNumero($str){ 
-      return preg_replace("/[^0-9]/", "", $str);
+      return preg_replace("/[^0-9]/", "", $str ?? "");
     }
     
     function extrairContatoWhats($card){

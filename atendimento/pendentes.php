@@ -99,7 +99,7 @@
 		while( $registrosEtiqueta = mysqli_fetch_object($qryEtiquetas) ){
 
 		if ($registrosEtiqueta->cor != ''){
-			$etiqueta .= '<i class="fas fa-tag" style="color:'.e($registrosEtiqueta->cor).'" alt="'.e($registrosEtiqueta->etiqueta).'" title="'.e($registrosEtiqueta->etiqueta).'"></i>';
+			$etiqueta .= '<i class="fas fa-tag" style="--tag-color:'.e($registrosEtiqueta->cor).'" alt="'.e($registrosEtiqueta->etiqueta).'" title="'.e($registrosEtiqueta->etiqueta).'"></i>';
 		}
 
 	}

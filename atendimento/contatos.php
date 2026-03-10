@@ -31,7 +31,7 @@
 		$params = [];
 		$types = '';
 
-        $Consulta = "SELECT tbc.*, tbe.cor, tbe.descricao as etiqueta  FROM tbcontatos tbc 
+        $Consulta = "SELECT tbc.*, MAX(tbe.cor) AS cor, MAX(tbe.descricao) AS etiqueta  FROM tbcontatos tbc 
 			   left join tbetiquetascontatos tec on tec.numero = tbc.numero
                left join tbetiquetas tbe on tbe.id = tec.id_etiqueta ";
 			   if ($tipo_pesquisa==1){	//Pesquisa por Telefone		
@@ -123,7 +123,7 @@
 		while( $registrosEtiqueta = mysqli_fetch_object($qryEtiquetas) ){
 
 		if ($registrosEtiqueta->cor != ''){
-			$etiqueta .= '<i class="fas fa-tag" style="color:'.e($registrosEtiqueta->cor).'" alt="'.e($registrosEtiqueta->etiqueta).'" title="'.e($registrosEtiqueta->etiqueta).'"></i>';
+			$etiqueta .= '<i class="fas fa-tag" style="--tag-color:'.e($registrosEtiqueta->cor).'" alt="'.e($registrosEtiqueta->etiqueta).'" title="'.e($registrosEtiqueta->etiqueta).'"></i>';
 		}
 
 	}

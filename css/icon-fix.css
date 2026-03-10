@@ -35,12 +35,12 @@
   color: #333333 !important;
 }
 
-/* Font Awesome Icons - TODOS os ícones */
-i.fa,
-i.fas,
-i.far,
-i.fal,
-i.fab {
+/* Font Awesome Icons - TODOS os ícones (exceto fa-tag e fa-square que usam cor inline) */
+i.fa:not(.fa-tag):not(.fa-square),
+i.fas:not(.fa-tag):not(.fa-square),
+i.far:not(.fa-tag):not(.fa-square),
+i.fal:not(.fa-tag):not(.fa-square),
+i.fab:not(.fa-tag):not(.fa-square) {
   color: #333333 !important;
   display: inline-flex !important;
   align-items: center !important;
@@ -122,6 +122,11 @@ li.tooltip .itemIcon {
 /* Conexão: permitir cor dinâmica via JS */
 #btnConexaoColor {
   color: inherit !important;
+}
+
+/* Etiquetas: fa-tag usa variável CSS --tag-color para contornar o !important */
+i.fas.fa-tag[style] {
+  color: var(--tag-color) !important;
 }
 
 /* Icons em botões de opções */

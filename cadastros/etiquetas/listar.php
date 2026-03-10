@@ -18,7 +18,7 @@
     while ($registros = mysqli_fetch_object($query)){
         echo '<tr id="linha'.$l.'" class="etiqueta-row">
 				<td><input type="hidden" name="IdEtiqueta" class="IdEtiqueta" value="'.$registros->id.'" />
-                <i style="color:'.$registros->cor.'; font-size: 1.5rem;" class="fas fa-square"></i></td>
+                <span style="display:inline-block; width:1.2rem; height:1.2rem; background-color:'.htmlspecialchars($registros->cor, ENT_QUOTES, 'UTF-8').'; border-radius:3px; vertical-align:middle;"></span></td>
 				<td>'. $registros->descricao.'</td>
 				<td> 
 				    <button class="btn btn-sm btn-danger ConfirmaExclusaoEtiqueta" title="Excluir"><i class="fas fa-trash"></i></button>

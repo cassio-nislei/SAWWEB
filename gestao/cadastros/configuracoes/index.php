@@ -60,7 +60,7 @@
 		$iniciar_conversa		= $msg["iniciar_conversa"];
 		$env_resprapida_aut		= $msg["enviar_resprapida_aut"];
 		$enviar_audio_aut		= $msg["enviar_audio_aut"];
-		$enviar_foto_aut		= $msg["enviar_foto_aut"];
+		$enviar_foto_aut		= $msg["enviar_foto_aut"] ?? '';
 		$qrcode					= $msg["qrcode"];
 		$op_naoenv_ultmsg		= $msg["op_naoenv_ultmsg"];
 		$exibe_foto_perfil  	= $msg["exibe_foto_perfil"];

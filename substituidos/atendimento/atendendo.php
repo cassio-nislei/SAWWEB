@@ -95,7 +95,7 @@
         //Mostro a etiqueta de acordo com a selecionada no
 		$etiqueta = '';
 		if ($registros->cor != ''){
-			$etiqueta = '<i class="fas fa-tag" style="margin-left:6px;color:'.$registros->cor.'" alt="'.$registros->etiqueta.'" title="'.$registros->etiqueta.'"></i>';
+			$etiqueta = '<i class="fas fa-tag" style="margin-left:6px;--tag-color:'.$registros->cor.'" alt="'.$registros->etiqueta.'" title="'.$registros->etiqueta.'"></i>';
 		}
 
 		//MOstro o relógio indicando a qtd de minutos sem atendimento

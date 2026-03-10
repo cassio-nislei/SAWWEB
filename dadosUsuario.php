@@ -94,15 +94,12 @@ if (isset($conexao)) {
             <div class="_idKB">
                 <span class="Cpiae"><input type="checkbox" name="horario_almoco" id="horario_almoco">Em horario de almoço.</span><br>
                 <span id="spanHorarioAlmoco">
-                    <textarea id="msgAlmocoAtendente" name="msgAlmocoAtendente" style="width: 100%; height: 100px;"></textarea>
+                    <textarea id="msgAlmocoAtendente" name="msgAlmocoAtendente" style="width: 100%; height: 100px;" placeholder="Estou em horário de almoço, em breve estarei de volta. Obrigado pela compreensão!"></textarea>
                 </span>
             </div>
         </div>
     </div>
 </div>
-
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
 <style>
 /* Seção Nome no Chat - Estilo */
@@ -209,23 +206,24 @@ $(document).ready(function() {
 
     
 function listarAlmocoAtendente(){
+     
         $.post("gravarHorarioAlmoco.php", function(retorno){
             var dadosalomoco = JSON.parse(retorno);    
 
               //Verifico se o Checkbox está marcado para mostrar ou oculta o campo da mensagem de almoço             
                  if( dadosalomoco.em_almoco==1 ){                    
                     $('#horario_almoco').prop('checked', true);                   
-                    new bootstrap.Modal(document.getElementById('mdlAlmocando')).show();         
+                    $("#mdlAlmocando").modal("show");         
                       
                 } else{ 
 
                     $('#horario_almoco').prop('checked', false);   
-                    $('#mdlAlmocando').modal('hide');
-                    $("#spanHorarioAlmoco").hide();
+                    $("#mdlAlmocando").modal("hide");                 
                 }
-            $('#msgAlmocoAtendente').val(dadosalomoco.msg_almoco);
+            var msgPadrao = 'Estou em horário de almoço, em breve estarei de volta. Obrigado pela compreensão!';
+            $('#msgAlmocoAtendente').val(dadosalomoco.msg_almoco || msgPadrao);
         })
-    }
+     }
 
      listarAlmocoAtendente();
 
@@ -233,14 +231,10 @@ function listarAlmocoAtendente(){
 
      function gravaAlmocoAtendente(){
         var em_almoco = $("#horario_almoco").prop("checked");
-        var msgAlmoco  = $("#msgAlmocoAtendente").val();
-        console.log('Gravando: em_almoco=' + em_almoco + ', msgAlmoco=' + msgAlmoco);
+            msgAlmoco  = $("#msgAlmocoAtendente").val();
        
         $.post("gravarHorarioAlmoco.php",{em_almoco:em_almoco, msgAlmoco:msgAlmoco}, function(retorno){
-            console.log('Resposta do servidor:', retorno);
             listarAlmocoAtendente();
-        }).fail(function(error) {
-            console.error('Erro ao gravar:', error);
         })
      }
      $(document).on('change', '#horario_almoco', function(){
@@ -262,28 +256,9 @@ function listarAlmocoAtendente(){
     });
 
     $(document).on('click', '#btnVoltardoAlmoco', function() {
-        console.log('Botão de retorno ao trabalho clicado');
-        
-        // Fechar o modal usando jQuery
-        $('#mdlAlmocando').modal('hide');
-        console.log('Modal fechado com jQuery');
-        
-        // Ocultar a mensagem de almoço imediatamente
-        $("#spanHorarioAlmoco").hide();
-        console.log('Mensagem de almoço ocultada');
-        
-        // Desmarcar checkbox
         $('#horario_almoco').prop('checked', false);
-        console.log('Checkbox desmarcado');
-        
-        // Salvar os dados
         gravaAlmocoAtendente();
-        
-        // Recarregar estado após um delay
-        setTimeout(function() {
-            listarAlmocoAtendente();
-            console.log('Funções executadas');
-        }, 500);
+        listarAlmocoAtendente();
     });
 
     $(document).on('click', '#btn-save-panel-edit-profile', function() {

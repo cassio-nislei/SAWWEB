@@ -1,11 +1,13 @@
 <?php 
-// Este arquivo é incluído de gestao/index.php que já carrega padrao.inc.php
+// Este arquivo pode ser carregado via AJAX diretamente, precisa do padrao.inc.php
+require_once(__DIR__ . "/../../includes/padrao.inc.php");
 ?>
 
 <div class="box-modal">
     <h2 class="title" id="titleCadastroContato">Adicionar Novo Contato</h2>
     <form method="post" id="gravaContato" name="gravaContato" action="/cadastros/contatos/ContatoController.php">
     <?php echo csrfField(); ?>
+        <input type="hidden" name="id" id="idContato" />
         <input type="hidden" value="1" name="acao" id="acaoContato" />
 
         <div class="form-group">
@@ -81,48 +83,30 @@ if (typeof $.fn.ajaxForm !== 'undefined') {
 <script>
 $(document).ready(function() {
   if (typeof $.fn.select2 === 'function') {
+    // Formatar opção no dropdown com cor
+    function formatTagOption(option) {
+      if (!option.id) return option.text;
+      var color = $(option.element).data('color') || '#ccc';
+      return $('<span><span style="display:inline-block;width:12px;height:12px;border-radius:50%;margin-right:6px;background-color:' + color + ';"></span>' + option.text + '</span>');
+    }
+
+    // Formatar tag selecionada com cor de fundo
+    function formatTagSelection(option) {
+      if (!option.id) return option.text;
+      var color = $(option.element).data('color') || '#ccc';
+      return $('<span style="background-color:' + color + ';color:#fff;padding:2px 8px;border-radius:4px;">' + option.text + '</span>');
+    }
+
     $('.pesqEtiquetas').select2({
       placeholder: 'TAGS',
       maximumSelectionLength: 10,
-      "language": "pt-BR"
+      language: "pt-BR",
+      templateResult: formatTagOption,
+      templateSelection: formatTagSelection
     });
   } else {
     console.warn('Select2 não está disponível');
   }
-
-  function ajustarCoresSelect2() {
-    
-  var selectedColors = {};
-
-    $('.pesqEtiquetas').on('select2:select', function(e) {
-    var selectedOption = e.params.data.element;
-    var selectedColor = $(selectedOption).attr('data-color');
-    var selectedId = $(selectedOption).val();
-    var selectedTag = $(this).next().find('.select2-selection__choice[title="' + e.params.data.text + '"]');
-    selectedColors[selectedId] = selectedColor;
-    for (var id in selectedColors) {
-      var selectedOption = $(this).find('option[value="' + id + '"]');
-      selectedOption.css('background-color', selectedColors[id]);
-      var selectedTag = $(this).next().find('.select2-selection__choice[title="' + selectedOption.text() + '"]');
-      selectedTag.css('background-color', selectedColors[id]);
-    }
-    selectedTag.css('background-color', selectedColor);
-  });
-}
-
-$('#id_etiqueta2').on('select2:open', function() {
-  ajustarCoresSelect2();
-});
-
-
-  $('.pesqEtiquetas').on('select2:unselect', function(e) {
-    var unselectedOption = e.params.data.element;
-    var unselectedId = $(unselectedOption).val();
-    delete selectedColors[unselectedId];
-    $(this).find('option[value="' + unselectedId + '"]').css('background-color', '');
-    var selectedTag = $(this).next().find('.select2-selection__choice[title="' + e.params.data.text + '"]');
-    selectedTag.css('background-color', '');
-  });
 
   // Fechar a Janela //
   $('.fechar').on("click", function() {

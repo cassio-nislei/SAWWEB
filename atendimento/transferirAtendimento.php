@@ -124,11 +124,10 @@ if( trim($strMensagem) !== "" ){
    $qryaux = mysqli_query($conexao, $sqlUpdate)
    or die($sqlUpdate ."<br/>".mysqli_error($conexao));
 
-   //Busco o Numero de protocolo do Atendimento anterior para manter o mesmo e o Lid
-   	$qryprotocolo = mysqli_query($conexao, "select  protocolo, Lid from tbatendimento WHERE id = '$s_id_atendimento' AND numero = '$s_celular_atendimento' AND canal = '$idCanal'");
+   //Busco o Numero de protocolo do Atendimento anterior para manter o mesmo
+   	$qryprotocolo = mysqli_query($conexao, "select  protocolo from tbatendimento WHERE id = '$s_id_atendimento' AND numero = '$s_celular_atendimento' AND canal = '$idCanal'");
 	$objprotocolo = mysqli_fetch_object($qryprotocolo);
 	$protocolo = $objprotocolo->protocolo;
-	$Lid = $objprotocolo->Lid;
 
 // Gera um novo atendimento pendente de Atendimento no departamento selecionado
 $qryaux = mysqli_query(
@@ -157,8 +156,8 @@ if( $id_usuario == 0 ){ $atendimento = 'P'; }
 else{ $atendimento = 'A'; }
 
 
-$sqlInsertTbAtendimento = "INSERT INTO tbatendimento(id, situacao,numero,dt_atend,hr_atend,id_atend,nome,setor,canal,protocolo, Lid)
-							VALUES('$newId','$atendimento','$s_celular_atendimento',CURDATE(),CURTIME(),'$id_usuario','$s_nome','$id_departamento','$idCanal', '$protocolo', '$Lid')";
+$sqlInsertTbAtendimento = "INSERT INTO tbatendimento(id, situacao,numero,dt_atend,hr_atend,id_atend,nome,setor,canal,protocolo)
+							VALUES('$newId','$atendimento','$s_celular_atendimento',CURDATE(),CURTIME(),'$id_usuario','$s_nome','$id_departamento','$idCanal', '$protocolo')";
   $qryaux = mysqli_query($conexao, $sqlInsertTbAtendimento)
   or die($sqlInsertTbAtendimento ."<br/>".mysqli_error($conexao));
 

@@ -1,5 +1,8 @@
 
-
+<?php 
+// Este arquivo pode ser carregado via AJAX diretamente, precisa do padrao.inc.php
+require_once(__DIR__ . "/../../includes/padrao.inc.php");
+?>
 
 <div class="box-modal" id="FormEtiquetas" style="display: none;">    
     <h2 class="title" id="titleCadastroUser">Adicionar Etiquetas de Marcação</h2>

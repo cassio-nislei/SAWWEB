@@ -60,18 +60,14 @@ if (!isset($_SESSION["usuariosaw"])){
           return;
         }
         
-        // Select2 - defina forçadamente, sobrescrevendo qualquer coisa que existisse
-        jQuery.fn.select2 = function(options) {
-          console.log('📌 $.fn.select2 foi chamado');
-          options = options || {};
-          return this.each(function() {
-            const $el = jQuery(this);
-            $el.addClass('select2-hidden-accessible').data('select2', true);
-            if (options.placeholder && !$el.find('option[value=""]').length) {
-              $el.prepend('<option value="">' + options.placeholder + '</option>');
-            }
-          });
-        };
+        // Select2 - será carregado via CDN real (não usar stub)
+        // Placeholder enquanto CDN não carrega
+        if (typeof jQuery.fn.select2 !== 'function') {
+          jQuery.fn.select2 = function(options) {
+            console.log('⏳ Select2 CDN ainda não carregou, aguardando...');
+            return this;
+          };
+        }
         
         // jQuery UI Tabs - defina forçadamente
         jQuery.fn.tabs = function(options) {
@@ -304,8 +300,8 @@ if (!isset($_SESSION["usuariosaw"])){
       })();
     </script>
     <script src="js/notification.js"></script>
-    <link href="css/select2-local.min.css" rel="stylesheet" />
-    <!-- REMOVIDO: select2-local.min.js - já definido sincronamente acima -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     <!-- Bootstrap 5 para WebChat -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css" rel="stylesheet">
@@ -318,6 +314,10 @@ if (!isset($_SESSION["usuariosaw"])){
             // Ícones gerais
             var icons = document.querySelectorAll('.itemIcon, .user-options i, .btNovaConversa i, .action-btn i, .action-btn .bi, #panel-edit-profile i, #panel-edit-profile svg, i.fa, i.fas, i.far, i.fal, i.fab');
             icons.forEach(function(icon) {
+                // Pular fa-tag (etiquetas) - a cor vem do banco de dados
+                if (icon.classList && icon.classList.contains('fa-tag')) return;
+                // Pular indicador de conexão - a cor é controlada pelo status
+                if (icon.id === 'btnConexaoColor') return;
                 var parent = icon.parentElement;
                 var color = '#333333'; // Cinza escuro - PADRÃO PARA TODOS
                 
@@ -342,6 +342,10 @@ if (!isset($_SESSION["usuariosaw"])){
             // Forçar cores também para os botões
             var actionBtns = document.querySelectorAll('.action-btn, #btn-save-panel-edit-profile, .btn-save, #btn-close-panel-edit-profile, #iModalRelatorio, i[class*="fa-"]');
             actionBtns.forEach(function(btn) {
+                // Pular fa-tag (etiquetas)
+                if (btn.classList && btn.classList.contains('fa-tag')) return;
+                // Pular indicador de conexão
+                if (btn.id === 'btnConexaoColor') return;
                 btn.style.color = '#333333 !important'; // Todos cinza escuro
             });
         }
@@ -389,6 +393,10 @@ if (!isset($_SESSION["usuariosaw"])){
                 allIcons = Array.from(new Set(allIcons));
                 
                 allIcons.forEach(function(icon) {
+                    // Pular fa-tag (etiquetas) - a cor vem do banco de dados
+                    if (icon.classList && icon.classList.contains('fa-tag')) return;
+                    // Pular indicador de conexão - a cor é controlada pelo status
+                    if (icon.id === 'btnConexaoColor') return;
                     // Forçar cor cinza escuro em TUDO
                     icon.style.setProperty('color', '#333333', 'important');
                     
