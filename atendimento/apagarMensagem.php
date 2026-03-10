@@ -2,16 +2,16 @@
 	require_once("../includes/padrao.inc.php");
 	
 	// Declaração de Variáveis //
-	$id =  $_POST["id"];
-	$strNumero = $_POST["numero"];
-	$idAtendimento = $_POST["id_atendimento"];
+	$id = isset($_POST["id"]) ? $_POST["id"] : "";
+	$strNumero = isset($_POST["numero"]) ? $_POST["numero"] : "";
+	$idAtendimento = isset($_POST["id_atendimento"]) ? intval($_POST["id_atendimento"]) : 0;
 	$idCanal = isset($_POST["id_canal"]) ? $_POST["id_canal"] : "";
-    $seq =$_POST["seq"];
+    $seq = isset($_POST["seq"]) ? intval($_POST["seq"]) : 0;
 
-	$removemsg = mysqli_query(
-		$conexao, 
-		"update tbmsgatendimento set msg='🚫Mensagem Apagada', apagada=1, situacao='N' where id = '$idAtendimento' and seq = '$seq' and numero = '$strNumero'"
-	);	
+	$stmtRemove = mysqli_prepare($conexao, "UPDATE tbmsgatendimento SET msg='🚫Mensagem Apagada', apagada=1, situacao='N' WHERE id = ? AND seq = ? AND numero = ?");
+	mysqli_stmt_bind_param($stmtRemove, "iis", $idAtendimento, $seq, $strNumero);
+	$removemsg = mysqli_stmt_execute($stmtRemove);
+	mysqli_stmt_close($stmtRemove);	
 	//0=Não Apagada 1=Solicita exclusao 2=Apagada
 	
 //Não solicito para apagar pelo ID Unico, porque ele pode ainda não existir

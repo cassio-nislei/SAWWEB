@@ -5,6 +5,7 @@
     <h2 class="title" id="titleCadastroUser">Adicionar Etiquetas de Marcação</h2>
     <div class="">
         <form method="post" id="gravaEtiqueta" name="gravaEtiqueta" action="/cadastros/etiquetas/salvar.php">
+            <?php echo csrfField(); ?>
             <input type="hidden" value="0" name="acaoEtiqueta" id="acaoEtiqueta" />
 			<input type="hidden" value="0" name="id_Etiqueta" id="id_Etiqueta" />
 			

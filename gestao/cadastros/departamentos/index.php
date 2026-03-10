@@ -20,6 +20,7 @@ function (e) {
 </script>
 
 <form method="post" action="cadastros/departamentos/salvar.php" name="gravaDepartamento" id="gravaDepartamento">	
+<?php echo csrfField(); ?>
 <input type="hidden" value="0" name="acao" id="acao" />
 <input type="hidden" name="id" id="id" value="0">
 <div class="container" id="FormDepartamentos">

@@ -145,34 +145,74 @@
 				
 				// Lemos o  conteudo do arquivo usando afunção do PHP file_get_contents //
 				$binario = file_get_contents($file_tmp);
+			
+			// Converter para base64
+			$binarioBase64 = base64_encode($binario);
+			
+			// Criar data URI com base64
+			$base64_data_uri = 'data:' . $fileType . ';base64,' . $binarioBase64;
+			
+			// Escapar strings para MySQL
+			$binarioBase64Escaped = mysqli_real_escape_string($conexao, $binarioBase64);
+			$base64DataUriEscaped = mysqli_real_escape_string($conexao, $base64_data_uri);
 
-				// evitamos erro de sintaxe do MySQL
-				$binario = mysqli_real_escape_string($conexao,$binario);
-
-
-               //Grava o Anexo no Banco de dados
-			   $sqlInsertTbAnexo = "INSERT INTO tbanexos(id,seq,numero,arquivo,nome_arquivo,nome_original,tipo_arquivo,canal,enviado)
-								VALUES ('".$idAtendimento."','".$newSequence."','".$strNumero."','".$binario."','".$nomeArquivo."',
-									'".$nomeArquivo."','".$tipo."','".$idCanal."',1)";
-
-				$insereAnexo = mysqli_query($conexao, $sqlInsertTbAnexo)
-					or die($sqlInsertTbAnexo."<br/>".mysqli_error($conexao));
-
-				$situacao = 'N'; //Mudo a Situação para N para não enviar duas vezes a mensagem no ANEXO
-			  //Gravo uma mensagem vinculada ao Anexo caso o Anexo tenha realmene sido inserido
-			  $inseremsg = mysqli_query(
-				$conexao, 
-				"INSERT INTO tbmsgatendimento(id,seq,numero,msg, resp_msg, nome_chat,situacao, dt_msg,hr_msg,id_atend,canal, chatid_resposta)
-					VALUES('".$idAtendimento."','".$newSequence."' ,'".$strNumero."', (CONCAT_WS(REPLACE('\\\ n', ' ', ''), ".$strMensagem."), '".$strResposta."',
-							'".$strUserNome."' ,'".$situacao."',NOW(),CURTIME(),'".$intUserId."','".$idCanal."', '".$idResposta."')"
-			);
-
-
-			} //Fim da tentativa Frustada de Gravar multiplos Anexos
+               //Grava o Anexo no Banco de dados com base64
+			   $sqlInsertTbAnexo = "INSERT INTO tbanexos(id,seq,numero,arquivo,base64,nome_arquivo,nome_original,tipo_arquivo,canal,enviado) VALUES ('".$idAtendimento."','".$newSequence."','".$strNumero."','" . $binarioBase64Escaped . "','" . $base64DataUriEscaped . "','".$nomeArquivo."','".$nomeArquivo."','".$tipo."','".$idCanal."',1)";
+			
+			error_log("===== DEBUG TBANEXOS (atendimento) =====");
+			error_log("newSequence: " . $newSequence);
+			error_log("strNumero: " . $strNumero);
+			error_log("nomeArquivo: " . $nomeArquivo);
+			error_log("tipo: " . $tipo);
+			error_log("idCanal: " . $idCanal);
+			error_log("Tamanho binarioBase64Escaped: " . strlen($binarioBase64Escaped) . " bytes");
+			error_log("Tamanho base64DataUriEscaped: " . strlen($base64DataUriEscaped) . " bytes");
 		
+		$insereAnexo = mysqli_query($conexao, $sqlInsertTbAnexo);
+		
+		if (!$insereAnexo) {
+			error_log("ERRO ao inserir em tbanexos: " . mysqli_error($conexao));
+			error_log("Errno: " . mysqli_errno($conexao));
+			die("ERRO: " . mysqli_error($conexao));
 		}
-	// FIM Verifica se existe um Upload //
-	else{
+		
+		// Verificar linhas afetadas
+		$affectedRows = mysqli_affected_rows($conexao);
+		error_log("OK: Linhas inseridas: " . $affectedRows);
+		
+		// Obter o ID do anexo inserido
+		$idAnexo = mysqli_insert_id($conexao);
+		error_log("OK: Anexo inserido com ID: " . $idAnexo);
+		
+		if ($idAnexo <= 0) {
+			error_log("PROBLEMA: ID do anexo eh zero ou negativo!");
+		}
+
+		$situacao = 'N'; //Mudo a Situacao para N para nao enviar duas vezes a mensagem no ANEXO
+		
+		error_log("===== DEBUG TBMSGATENDIMENTO (atendimento) =====");
+		error_log("ID Atendimento: " . $idAtendimento);
+		error_log("Seq: " . $newSequence);
+		error_log("Numero: " . $strNumero);
+		error_log("ID Anexo: " . $idAnexo);
+		
+		  //Gravo uma mensagem vinculada ao Anexo caso o Anexo tenha realmene sido inserido
+		  $inseremsg = mysqli_query(
+			$conexao, 
+			"INSERT INTO tbmsgatendimento(id,seq,numero,id_anexo,msg,resp_msg,nome_chat,situacao,dt_msg,hr_msg,id_atend,canal,chatid_resposta)
+			VALUES('".$idAtendimento."','".$newSequence."','".$strNumero."','".$idAnexo."','" . mysqli_real_escape_string($conexao, nl2br($strMensagem)) . "','" . mysqli_real_escape_string($conexao, $strResposta) . "','".$strUserNome."','".$situacao."',NOW(),CURTIME(),'".$intUserId."','".$idCanal."','".$idResposta."')"
+		  );
+		  
+		  if (!$inseremsg) {
+		  	error_log("ERRO ao inserir em tbmsgatendimento: " . mysqli_error($conexao));
+		  } else {
+		  	error_log("OK: Mensagem com anexo inserida com sucesso");
+		  	$msgAffected = mysqli_affected_rows($conexao);
+		  	error_log("OK: Linhas inseridas em tbmsgatendimento: " . $msgAffected);
+		} //Fim da tentativa Frustada de Gravar multiplos Anexos
+		
+		} //fecha o for
+	} else {
 	//Se for apenas Mensagem Grava a mensagem
 	$newSequence = newSequence($conexao, $idAtendimento, $strNumero, $idCanal); // Gera a sequencia da mensagem
 	$inseremsg = mysqli_query(

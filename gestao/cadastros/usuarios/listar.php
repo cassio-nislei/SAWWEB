@@ -70,10 +70,10 @@
         else{ $perfil = 'OP.'; }
 
 		echo '<tr class="accordion-toggle" id="linha'.$l.'">
-				<td><input type="hidden" name="IdUsuario" id="IdUsuario" value="'.$ListaUsuarios["id"].'" />
+				<td><input type="hidden" name="IdUsuario" id="IdUsuario" value="'.intval($ListaUsuarios["id"]).'" />
 				<input type="hidden" name="idLinha" id="idLinha" value="'.$l.'" />
-                <a id="UsuarioExpandir'.$l.'" data-toggle="collapse" data-target="#detail'.$l.'" style="cursor:pointer"><label style="margin-top:-7px;cursor:pointer">'. $ListaUsuarios["nome"].'</label></a></td>
-				<td>'.$ListaUsuarios["login"].'</td>
+                <a id="UsuarioExpandir'.$l.'" data-toggle="collapse" data-target="#detail'.$l.'" style="cursor:pointer"><label style="margin-top:-7px;cursor:pointer">'. e($ListaUsuarios["nome"]).'</label></a></td>
+				<td>'.e($ListaUsuarios["login"]).'</td>
 				<td>'.$ativo.'</td>
 				<td>'.$perfil.'</td>
 				<td>'.$options.'
@@ -87,7 +87,7 @@
 			//Após Mostrar os Usuários, mostra os Departamentos Vinculados
        				$departamentos = mysqli_query($conexao, "select d.id, d.departamento from tbusuariodepartamento ud
                     INNER JOIN tbdepartamentos d on d.id = ud.id_departamento
-                    where ud.id_usuario = '".$ListaUsuarios["id"]."'");
+                    where ud.id_usuario = '".intval($ListaUsuarios["id"])."'");
 		
 				if (mysqli_num_rows($departamentos)==0){
 					echo'

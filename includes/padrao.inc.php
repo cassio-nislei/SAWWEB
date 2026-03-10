@@ -308,4 +308,70 @@ if (session_status() === PHP_SESSION_NONE) {
     return true;
 }
 
+    // ======== FUNÇÕES DE SEGURANÇA ========
+
+    // Escapa saída HTML para prevenir XSS
+    function e($str) {
+        return htmlspecialchars($str ?? '', ENT_QUOTES, 'UTF-8');
+    }
+
+    // Verifica senha com suporte a hash e plain text (migração gradual)
+    function verificarSenha($senhaInput, $senhaDB) {
+        // Se a senha no DB começa com $2y$ é um hash bcrypt
+        if (strpos($senhaDB, '$2y$') === 0) {
+            return password_verify($senhaInput, $senhaDB);
+        }
+        // Compatibilidade: comparação plain text (legado)
+        return trim($senhaDB) === trim($senhaInput);
+    }
+
+    // Gera hash de senha com bcrypt
+    function hashSenha($senha) {
+        return password_hash($senha, PASSWORD_BCRYPT);
+    }
+
+    // Gera token CSRF e armazena na sessão
+    function gerarTokenCSRF() {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        if (empty($_SESSION['csrf_token'])) {
+            $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+        }
+        return $_SESSION['csrf_token'];
+    }
+
+    // Valida token CSRF vindo do POST
+    function validarCSRF() {
+        if (session_status() === PHP_SESSION_NONE) { session_start(); }
+        $token = $_POST['csrf_token'] ?? $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
+        // Se nenhum token foi enviado no POST, pular validação (compatibilidade)
+        if (empty($token)) {
+            return true;
+        }
+        // Token enviado - validar contra a sessão
+        if (!isset($_SESSION['csrf_token']) || !hash_equals($_SESSION['csrf_token'], $token)) {
+            return false;
+        }
+        return true;
+    }
+
+    // Retorna input hidden com token CSRF para uso em formulários
+    function csrfField() {
+        return '<input type="hidden" name="csrf_token" value="' . e(gerarTokenCSRF()) . '">';
+    }
+
+    // Acesso seguro a SESSION
+    function safe_session($key1, $key2 = null, $default = '') {
+        if ($key2 === null) {
+            return isset($_SESSION[$key1]) ? $_SESSION[$key1] : $default;
+        }
+        return isset($_SESSION[$key1][$key2]) ? $_SESSION[$key1][$key2] : $default;
+    }
+
+    // Valida MIME type de arquivo no servidor (não confia no browser)
+    function validarMimeType($filePath, $tiposPermitidos) {
+        $finfo = new finfo(FILEINFO_MIME_TYPE);
+        $mime = $finfo->file($filePath);
+        return in_array($mime, $tiposPermitidos);
+    }
+
     

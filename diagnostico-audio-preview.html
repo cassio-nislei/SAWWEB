@@ -1,0 +1,376 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Diagnóstico - Gravação de Áudio e Preview</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            max-width: 800px;
+            margin: 0 auto;
+        }
+        h2 {
+            color: #333;
+            border-bottom: 2px solid #009688;
+            padding-bottom: 10px;
+        }
+        .test-item {
+            margin: 20px 0;
+            padding: 15px;
+            background: #f9f9f9;
+            border-left: 4px solid #009688;
+            border-radius: 4px;
+        }
+        .test-item h3 {
+            margin: 0 0 10px 0;
+            color: #009688;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 4px;
+            font-weight: bold;
+        }
+        .status.ok {
+            background: #c8e6c9;
+            color: #2e7d32;
+        }
+        .status.error {
+            background: #ffcdd2;
+            color: #c62828;
+        }
+        .status.warning {
+            background: #fff9c4;
+            color: #f57f17;
+        }
+        .preview-test {
+            width: 100%;
+            height: 300px;
+            background: #333;
+            border: 2px solid #009688;
+            border-radius: 4px;
+            overflow: hidden;
+            position: relative;
+        }
+        #previewContent {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 18px;
+        }
+        button {
+            background: #009688;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #00796b;
+        }
+        button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        code {
+            background: #f0f0f0;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+        .console {
+            background: #1e1e1e;
+            color: #00ff00;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 300px;
+            overflow-y: auto;
+            margin: 10px 0;
+        }
+        .console-line {
+            margin: 3px 0;
+        }
+        .console-line.error {
+            color: #ff0000;
+        }
+        .console-line.warn {
+            color: #ffff00;
+        }
+        .console-line.success {
+            color: #00ff00;
+        }
+        .css-rules {
+            background: #f5f5f5;
+            padding: 10px;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 12px;
+            margin: 10px 0;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🔧 Diagnóstico - Gravação de Áudio e Preview Panel</h1>
+        
+        <!-- TEST 1: CSS Preview Size -->
+        <div class="test-item">
+            <h3>1️⃣ Teste de Tamanho do Preview (CSS)</h3>
+            <p>Verificando se a altura de 24.675rem está sendo aplicada corretamente.</p>
+            <button onclick="testCSSSize()">Testar Tamanho CSS</button>
+            <div id="cssStatus"></div>
+            <div class="preview-test" id="previewTest">
+                <div id="previewContent">
+                    Preview Panel (24.675rem = 394.8px)
+                </div>
+            </div>
+            <div id="cssDetails"></div>
+        </div>
+
+        <!-- TEST 2: getUserMedia Permission -->
+        <div class="test-item">
+            <h3>2️⃣ Teste de Permissão de Microfone</h3>
+            <p>Verificando se o navegador pode acessar o microfone.</p>
+            <button onclick="testGetUserMedia()">Testar Permissão de Microfone</button>
+            <div id="microphoneStatus"></div>
+        </div>
+
+        <!-- TEST 3: Audio Context -->
+        <div class="test-item">
+            <h3>3️⃣ Teste de Audio Context</h3>
+            <p>Verificando se o navegador suporta Web Audio API.</p>
+            <button onclick="testAudioContext()">Testar Audio Context</button>
+            <div id="audioContextStatus"></div>
+        </div>
+
+        <!-- TEST 4: File Load -->
+        <div class="test-item">
+            <h3>4️⃣ Teste de Carregamento de Arquivos</h3>
+            <p>Verificando se os arquivos JavaScript de gravação estão carregados.</p>
+            <button onclick="testFileLoad()">Verificar Arquivos</button>
+            <div id="fileLoadStatus"></div>
+        </div>
+
+        <!-- Console Output -->
+        <div class="test-item">
+            <h3>📋 Console de Saída</h3>
+            <div class="console" id="console"></div>
+            <button onclick="clearConsole()">Limpar Console</button>
+        </div>
+
+        <!-- CSS Rules Applied -->
+        <div class="test-item">
+            <h3>📝 Regras CSS Aplicadas</h3>
+            <div id="cssRules"></div>
+            <button onclick="inspectCSSRules()">Inspecionar CSS do icon-fix.css</button>
+        </div>
+    </div>
+
+    <script>
+        function log(message, type = 'info') {
+            const consoleDiv = document.getElementById('console');
+            const line = document.createElement('div');
+            line.className = `console-line ${type}`;
+            line.textContent = `[${new Date().toLocaleTimeString()}] ${message}`;
+            consoleDiv.appendChild(line);
+            consoleDiv.scrollTop = consoleDiv.scrollHeight;
+        }
+
+        function clearConsole() {
+            document.getElementById('console').innerHTML = '';
+        }
+
+        function testCSSSize() {
+            log('🔍 Testando tamanho CSS do preview...', 'info');
+            
+            // Criar div de teste
+            const testDiv = document.createElement('div');
+            testDiv.className = 'panel-upImage open';
+            testDiv.style.position = 'absolute';
+            testDiv.style.top = '-9999px';
+            testDiv.style.left = '-9999px';
+            document.body.appendChild(testDiv);
+            
+            // Obter tamanho computado
+            const computed = window.getComputedStyle(testDiv);
+            const height = computed.height;
+            const expectedHeight = '394.8px'; // 24.675rem (assumindo 16px de base)
+            
+            const statusDiv = document.getElementById('cssStatus');
+            
+            // O altura esperada em pixels
+            const heightValue = parseFloat(height);
+            const expectedValue = parseFloat(expectedHeight);
+            const tolerance = 5; // 5px de tolerância
+            
+            let html = `<div class="status `;
+            
+            if (Math.abs(heightValue - expectedValue) <= tolerance) {
+                html += `ok">✓ CSS APLICADO CORRETAMENTE</div>`;
+                html += `<p>Altura atual: <code>${height}</code></p>`;
+                html += `<p>Altura esperada: <code>${expectedHeight}</code></p>`;
+                log('✓ CSS está sendo aplicado corretamente', 'success');
+            } else {
+                html += `error">✗ CSS NÃO ESTÁ SENDO APLICADO</div>`;
+                html += `<p>Altura atual: <code>${height}</code></p>`;
+                html += `<p>Altura esperada: <code>${expectedHeight}</code></p>`;
+                log(`✗ Altura incorreta! Atual: ${height}, Esperado: ${expectedHeight}`, 'error');
+            }
+            
+            statusDiv.innerHTML = html;
+            document.body.removeChild(testDiv);
+            
+            // Também verificar a div visual
+            const previewTest = document.getElementById('previewTest');
+            previewTest.style.height = '24.675rem';
+            previewTest.style.transition = 'height 0.3s ease';
+        }
+
+        function testGetUserMedia() {
+            log('🎤 Testando permissão de microfone...', 'info');
+            
+            const statusDiv = document.getElementById('microphoneStatus');
+            const constraints = { audio: true, video: false };
+            
+            navigator.mediaDevices.getUserMedia(constraints)
+                .then(stream => {
+                    log('✓ Microfone acessado com sucesso!', 'success');
+                    stream.getTracks().forEach(track => track.stop());
+                    statusDiv.innerHTML = `
+                        <div class="status ok">✓ MICROFONE ACESSÍVEL</div>
+                        <p>O navegador tem permissão para acessar o microfone.</p>
+                    `;
+                })
+                .catch(err => {
+                    log(`✗ Erro ao acessar microfone: ${err.name} - ${err.message}`, 'error');
+                    statusDiv.innerHTML = `
+                        <div class="status error">✗ ERRO AO ACESSAR MICROFONE</div>
+                        <p><strong>Erro:</strong> ${err.name}</p>
+                        <p><strong>Mensagem:</strong> ${err.message}</p>
+                        <p><strong>Solução:</strong> Verifique se o navegador tem permissão para usar o microfone.</p>
+                    `;
+                });
+        }
+
+        function testAudioContext() {
+            log('🔊 Testando Audio Context...', 'info');
+            
+            const statusDiv = document.getElementById('audioContextStatus');
+            
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (!AudioContext) {
+                    throw new Error('AudioContext não suportado');
+                }
+                
+                const ctx = new AudioContext();
+                log('✓ Audio Context criado com sucesso!', 'success');
+                
+                statusDiv.innerHTML = `
+                    <div class="status ok">✓ AUDIO CONTEXT SUPORTADO</div>
+                    <p>Sample Rate: <code>${ctx.sampleRate} Hz</code></p>
+                    <p>State: <code>${ctx.state}</code></p>
+                `;
+                ctx.close();
+            } catch (err) {
+                log(`✗ Erro ao criar Audio Context: ${err.message}`, 'error');
+                statusDiv.innerHTML = `
+                    <div class="status error">✗ AUDIO CONTEXT NÃO SUPORTADO</div>
+                    <p><strong>Erro:</strong> ${err.message}</p>
+                `;
+            }
+        }
+
+        function testFileLoad() {
+            log('📦 Verificando arquivos carregados...', 'info');
+            
+            const statusDiv = document.getElementById('fileLoadStatus');
+            const files = {
+                'WebAudioRecorder': window.WebAudioRecorder,
+                'Mp3LameEncoder': window.Mp3LameEncoder,
+                'AudioContext': window.AudioContext || window.webkitAudioContext
+            };
+            
+            let html = '';
+            let allLoaded = true;
+            
+            for (const [name, obj] of Object.entries(files)) {
+                if (obj) {
+                    log(`✓ ${name} carregado`, 'success');
+                    html += `<p>✓ <code>${name}</code></p>`;
+                } else {
+                    log(`✗ ${name} NÃO carregado`, 'error');
+                    html += `<p>✗ <code>${name}</code></p>`;
+                    allLoaded = false;
+                }
+            }
+            
+            const status = allLoaded ? 'ok' : 'error';
+            const message = allLoaded ? 
+                '✓ TODOS OS ARQUIVOS CARREGADOS' : 
+                '✗ ALGUNS ARQUIVOS NÃO ESTÃO CARREGADOS';
+            
+            statusDiv.innerHTML = `<div class="status ${status}">${message}</div>${html}`;
+        }
+
+        function inspectCSSRules() {
+            log('🔍 Inspecionando regras CSS...', 'info');
+            
+            const statusDiv = document.getElementById('cssRules');
+            let html = '<div class="css-rules">';
+            
+            // Procurar por regras de .panel-upImage.open
+            let foundRule = false;
+            
+            for (let i = 0; i < document.styleSheets.length; i++) {
+                try {
+                    const sheet = document.styleSheets[i];
+                    if (sheet.href && !sheet.href.includes('icon-fix.css')) continue;
+                    
+                    for (let j = 0; j < sheet.cssRules.length; j++) {
+                        const rule = sheet.cssRules[j];
+                        if (rule.selectorText && rule.selectorText.includes('panel-upImage')) {
+                            html += `<div><strong>${rule.selectorText}</strong><br>`;
+                            html += `${rule.style.cssText}</div><hr>`;
+                            log(`✓ Encontrada regra: ${rule.selectorText}`, 'success');
+                            foundRule = true;
+                        }
+                    }
+                } catch (e) {
+                    // CORS ou acesso negado
+                }
+            }
+            
+            if (!foundRule) {
+                html += '<p>⚠️ Nenhuma regra específica found para .panel-upImage</p>';
+                log('⚠️ Nenhuma regra CSS específica para .panel-upImage encontrada', 'warn');
+            }
+            
+            html += '</div>';
+            statusDiv.innerHTML = html;
+        }
+
+        // Run tests on load
+        window.addEventListener('load', () => {
+            log('🚀 Página de diagnóstico carregada', 'success');
+            log('Clique nos botões para executar testes', 'info');
+        });
+    </script>
+</body>
+</html>

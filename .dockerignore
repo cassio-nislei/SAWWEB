@@ -1,0 +1,40 @@
+# Arquivos de debug/teste - NÃO devem ir para produção
+debug_*.php
+debug-*.php
+check_*.php
+check-*.php
+add_column_*.php
+adicionar_coluna_*.php
+execute-migrations.php
+setup_*.php
+clean_*.php
+fix_*.php
+local-test.php
+teste_*.php
+describe_table.php
+diagnostico-audio-preview.html
+CLEANUP_ARQUIVOS_DEBUG.md
+
+# Documentação de desenvolvimento
+*.md
+!README.md
+
+# Arquivos de ambiente
+.env
+.env.example
+
+# Docker
+docker-compose.yml
+Dockerfile
+docker-manage.sh
+restart-docker.bat
+restart-docker.sh
+
+# Postman
+*.postman_collection.json
+*.postman_environment.json
+SAW_API_Postman.json
+
+# Git
+.git
+.gitignore

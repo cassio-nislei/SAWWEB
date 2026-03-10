@@ -2,8 +2,9 @@
  session_start();
   if (isset($_SESSION["usuariosaw"])){
     header("Location: conversas.php");
+    exit;
   }
-
+  session_write_close(); // Libera session lock o mais cedo possível
 ?>
 <html class="" dir="ltr" loc="pt-BR" lang="pt-BR">
 
@@ -36,6 +37,14 @@
 				<img src="img/uptalk-logo.png">
 				<h2>Login</h2>
 				<form id="FormLogin" method="post">
+					<?php 
+						session_start();
+						if (!isset($_SESSION['csrf_token'])) {
+							$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+						}
+						echo '<input type="hidden" name="csrf_token" value="'.htmlspecialchars($_SESSION['csrf_token']).'">';
+						session_write_close(); // Libera lock antes de conexão DB
+					?>
 					<label>Usuário</label>
 					<input type="text" name="usuario" id="usuario" placeholder="Digite seu usuário" class="form-control">
 					<label>Senha</label>
@@ -49,13 +58,13 @@
 				  //Verifico se possui parametros Cadastrado
 				  $parametros = mysqli_query($conexao, "select * from tbparametros limit 1" ) or die (mysqli_error($conexao));
 				  if (mysqli_num_rows( $parametros)<1){ //Se não possuir algum usuário
-					$insereParametro = mysqli_query($conexao, "INSERT INTO tbparametros (id, msg_inicio_atendimento, msg_aguardando_atendimento, msg_inicio_atendente, msg_fim_atendimento, msg_sem_expediente, msg_desc_inatividade, imagem_perfil, title, minutos_offline, color, nome_atendente, chat_operadores, atend_triagem, historico_conversas, iniciar_conversa, enviar_resprapida_aut, enviar_audio_aut, qrcode, op_naoenv_ultmsg, exibe_foto_perfil, alerta_sonoro, mostra_todos_chats, transferencia_offline, id_atendente_triagem) VALUES
+					$insereParametro = mysqli_query($conexao, "INSERT INTO tbparametros (id, msg_inicio_atendimento, msg_aguardando_atendimento, msg_inicio_atendente, msg_fim_atendimento, msg_sem_expediente, msg_desc_inatividade, imagem_perfil, title, minutos_offline, color, nome_atendente, chat_operadores, atend_triagem, historico_conversas, iniciar_conversa, enviar_resprapida_aut, enviar_audio_aut, qrcode, op_naoenv_ultmsg, exibe_foto_perfil, alerta_sonoro, mostra_todos_chats, transferencia_offline, id_atendente_triagem, enviar_foto_aut) VALUES
 					(1, 'Olá,seja bem-vindo(a) ao *Auto atendimento* 😄 _Selecione uma das opções a baixo para continuar o atendimento_ 😉', 
 					'Seu atendimento foi transferido para *<<setor>>*.', 
 					'Olá você está no setor *<<setor>>*, me chamo *<<atendente>>* em que posso lhe ajudar?*.', 
 					'O seu atendimento foi finalizado, agradecemos pelo seu contato, tenha um ótimo dia 😉*', 					
 					'Nosso horario de funcionamento é de segunda a sexta das 07:30 às 18:00 e aos sábados das 08:00 às 12:00, responderemos seu chamado assim que possivel!', '', 
-					'', 'Sistema de Atendimento', '5', '#ff9214', 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0);")or die (mysqli_error($conexao)); 
+					'', 'Sistema de Atendimento', '5', '#ff9214', 0, 1, 1, 1, 0, 0, 0, 1, 0, 0, 1, 0, 1, 0, 0);")or die (mysqli_error($conexao)); 
 					 echo "<font color='red'>Parametros padrões configurados</font><br>";
 				  }
 
@@ -76,8 +85,11 @@
 				  //Verifico se possui algum usuário, se não possuir, crio um novo usuário
 				  $usuarios = mysqli_query($conexao, "select * from tbusuario limit 2" ) or die (mysqli_error($conexao));
                      if (mysqli_num_rows($usuarios)<1){ //Se não possuir algum usuário
-                       $insereUsuario = mysqli_query($conexao, "insert into tbusuario VALUES 
-                                            (0, 'Administrador','admin', '123456', 'A', null, 'Administrador', 0, now(), 0, '', 'administrador@saw.com.br')")or die (mysqli_error($conexao)); 
+                       $senhaAdmin = password_hash('123456', PASSWORD_BCRYPT);
+                       $stmtAdmin = mysqli_prepare($conexao, "INSERT INTO tbusuario VALUES (0, 'Administrador','admin', ?, 'A', null, 'Administrador', 0, now(), 0, '', 'administrador@saw.com.br')");
+                       mysqli_stmt_bind_param($stmtAdmin, 's', $senhaAdmin);
+                       $insereUsuario = mysqli_stmt_execute($stmtAdmin);
+                       mysqli_stmt_close($stmtAdmin); 
                         echo "<font color='red'>Usuário padrão:admin Senha: 123456 </font>";
                      }
                      if (mysqli_num_rows($usuarios)==1){

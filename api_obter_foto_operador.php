@@ -22,8 +22,13 @@ try {
         exit;
     }
     
-    // Obter ID do usuário
-    $idUsuario = isset($_GET['id']) ? intval($_GET['id']) : $_SESSION["usuariosaw"]['id'];
+    // Obter ID do usuário - restringir a próprio usuário (exceto admins)
+    $idUsuario = isset($_GET['id']) ? intval($_GET['id']) : intval($_SESSION["usuariosaw"]['id']);
+    
+    // Permitir ver foto de outros apenas se for admin (perfil 0) ou coordenador (perfil 2)
+    if ($idUsuario != intval($_SESSION["usuariosaw"]['id']) && intval($_SESSION["usuariosaw"]["perfil"]) > 0) {
+        $idUsuario = intval($_SESSION["usuariosaw"]['id']); // Forçar próprio ID
+    }
     
     if (!$idUsuario) {
         http_response_code(400);

@@ -17,22 +17,30 @@
 class BancoDadosController
 {
     /**
+     * Verifica autenticação JWT - requerido em todos os endpoints
+     * Retorna o payload decodificado ou envia resposta de erro e retorna false
+     */
+    private static function requireAuth()
+    {
+        if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            Response::unauthorized("Token obrigatório");
+            return false;
+        }
+        $token = str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']);
+        $payload = JWT::decode($token);
+        if (!$payload) {
+            Response::unauthorized("Token inválido ou expirado");
+            return false;
+        }
+        return $payload;
+    }
+
+    /**
      * GET - Lista todas as tabelas do banco de dados
-     * 
-     * Response:
-     * {
-     *   "success": true,
-     *   "data": [
-     *     "tbmsgatendimento",
-     *     "tbusuarios",
-     *     "tbcontatos",
-     *     ...
-     *   ],
-     *   "count": 15
-     * }
      */
     public static function listarTabelas()
     {
+        if (!self::requireAuth()) return;
         try {
             $sql = "SHOW TABLES";
             
@@ -82,6 +90,7 @@ class BancoDadosController
      */
     public static function tabelaExiste()
     {
+        if (!self::requireAuth()) return;
         try {
             $nomeTabela = $_GET['tabela'] ?? '';
             
@@ -152,6 +161,7 @@ class BancoDadosController
      */
     public static function campoExiste()
     {
+        if (!self::requireAuth()) return;
         try {
             $nomeTabela = $_GET['tabela'] ?? '';
             $nomeCampo = $_GET['campo'] ?? '';
@@ -244,6 +254,7 @@ class BancoDadosController
      */
     public static function estruturaTabela()
     {
+        if (!self::requireAuth()) return;
         try {
             $nomeTabela = $_GET['tabela'] ?? '';
             
@@ -334,12 +345,8 @@ class BancoDadosController
      */
     public static function criarTabela()
     {
+        if (!self::requireAuth()) return;
         try {
-            // Verificar permissão de admin
-            if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
-                Response::unauthorized("Token obrigatório");
-                return;
-            }
             
             $input = json_decode(file_get_contents('php://input'), true);
             
@@ -418,12 +425,8 @@ class BancoDadosController
      */
     public static function adicionarCampo()
     {
+        if (!self::requireAuth()) return;
         try {
-            // Verificar permissão de admin
-            if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
-                Response::unauthorized("Token obrigatório");
-                return;
-            }
             
             $input = json_decode(file_get_contents('php://input'), true);
             

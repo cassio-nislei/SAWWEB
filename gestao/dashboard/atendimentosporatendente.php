@@ -3,14 +3,27 @@
 
                        mysqli_next_result($conexao);
 
-                      $usuarios = mysqli_query(
-                          $conexao
-                          , "select count(ta.id) as atendimentos, tu.nome from tbatendimento ta
-                          inner join tbusuario tu on tu.id = ta.id_atend
-                          where ta.id_atend > 0 and ta.dt_atend between DATE_FORMAT(NOW(), '%Y-%m-01') and  LAST_DAY(NOW())
-                          group by tu.nome order by atendimentos desc "
-                                    
-                      );
+                      $ano = isset($_POST['ano']) ? intval($_POST['ano']) : intval(date('Y'));
+                      $mes = isset($_POST['mes']) ? intval($_POST['mes']) : intval(date('m'));
+
+                      if ($mes > 0) {
+                          $dtInicio = sprintf('%04d-%02d-01', $ano, $mes);
+                          $stmt = mysqli_prepare($conexao, "SELECT count(ta.id) as atendimentos, tu.nome FROM tbatendimento ta
+                              INNER JOIN tbusuario tu ON tu.id = ta.id_atend
+                              WHERE ta.id_atend > 0 AND ta.dt_atend BETWEEN ? AND LAST_DAY(?)
+                              GROUP BY tu.nome ORDER BY atendimentos DESC");
+                          mysqli_stmt_bind_param($stmt, 'ss', $dtInicio, $dtInicio);
+                      } else {
+                          $dtInicio = sprintf('%04d-01-01', $ano);
+                          $dtFim = sprintf('%04d-12-31', $ano);
+                          $stmt = mysqli_prepare($conexao, "SELECT count(ta.id) as atendimentos, tu.nome FROM tbatendimento ta
+                              INNER JOIN tbusuario tu ON tu.id = ta.id_atend
+                              WHERE ta.id_atend > 0 AND ta.dt_atend BETWEEN ? AND ?
+                              GROUP BY tu.nome ORDER BY atendimentos DESC");
+                          mysqli_stmt_bind_param($stmt, 'ss', $dtInicio, $dtFim);
+                      }
+                      mysqli_stmt_execute($stmt);
+                      $usuarios = mysqli_stmt_get_result($stmt);
 
                       
        

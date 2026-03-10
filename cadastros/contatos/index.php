@@ -5,7 +5,7 @@
 <div class="box-modal">
     <h2 class="title" id="titleCadastroContato">Adicionar Novo Contato</h2>
     <form method="post" id="gravaContato" name="gravaContato" action="/cadastros/contatos/ContatoController.php">
-        <input type="hidden" name="id" id="idContato" />
+    <?php echo csrfField(); ?>
         <input type="hidden" value="1" name="acao" id="acaoContato" />
 
         <div class="form-group">

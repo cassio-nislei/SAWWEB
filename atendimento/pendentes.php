@@ -8,20 +8,26 @@
 		$ultMsg = null;
 	// FIM Definições de Variáveis //
 							
+	$id_usuario_safe = intval($id_usuario);
 	$qryAtendPend = mysqli_query(
-		$conexao                                                                                                                                                                                                                     //Add Marcelo Nome Empresa
-		, "SELECT taa.id, taa.numero, ta.nome, CASE WHEN  tc.nome IS NULL then ta.nome when tc.nome = '' then ta.nome else tc.nome END  AS nomeContato, ta.canal, td.id AS idDepartamento, td.departamento, /*tfp.foto AS foto_perfil ,*/ coalesce(ta.nome_empresa, '') as nome_empresa  
-		   , tbe.cor, tbe.descricao as etiqueta
+		$conexao
+		, "SELECT taa.id, taa.numero, ta.nome, CASE WHEN tc.nome IS NULL then ta.nome when tc.nome = '' then ta.nome else tc.nome END AS nomeContato, ta.canal, td.id AS idDepartamento, td.departamento, coalesce(ta.nome_empresa, '') as nome_empresa  
+		   , tbe.cor, tbe.descricao as etiqueta,
+		   /* Subqueries para evitar N+1 */
+		   (SELECT count(m2.id) FROM tbmsgatendimento m2 WHERE m2.numero = taa.numero AND m2.id = taa.id AND m2.id_atend = 0 AND m2.visualizada = false) AS qtd_novas,
+		   (SELECT m3.msg FROM tbmsgatendimento m3 WHERE m3.numero = taa.numero AND m3.id = taa.id ORDER BY m3.seq DESC LIMIT 1) AS ult_msg,
+		   (SELECT DATE_FORMAT(m4.hr_msg, '%H:%i') FROM tbmsgatendimento m4 WHERE m4.numero = taa.numero AND m4.id = taa.id ORDER BY m4.seq DESC LIMIT 1) AS ult_hora,
+		   (SELECT TIMESTAMPDIFF(MINUTE, m5.dt_msg, NOW()) FROM tbmsgatendimento m5 WHERE m5.numero = taa.numero AND m5.id = taa.id ORDER BY m5.seq DESC LIMIT 1) AS minutos_msg,
+		   (SELECT DATE_FORMAT(m6.hr_msg, '%H:%i') FROM tbmsgatendimento m6 WHERE m6.numero = taa.numero AND m6.id = taa.id AND m6.id_atend = 0 ORDER BY m6.seq DESC LIMIT 1) AS ult_hora_cliente
 			FROM tbatendimentoaberto taa
 				INNER JOIN tbatendimento ta ON taa.id = ta.id and taa.numero = ta.numero
 				INNER JOIN tbdepartamentos td ON td.id = ta.setor
 				LEFT JOIN tbcontatos tc ON taa.numero = tc.numero
-				/*LEFT JOIN tbfotoperfil tfp ON tfp.numero = taa.numero*/
 				LEFT JOIN tbetiquetas tbe on tbe.id = tc.idetiqueta
 					WHERE situacao = 'P' AND ta.setor IN(
 						SELECT id_departamento 
 							FROM tbusuariodepartamento 
-								WHERE id_usuario = '".$id_usuario."'
+								WHERE id_usuario = '".$id_usuario_safe."'
 					) 
 						ORDER BY ta.dt_atend, ta.hr_atend"
 	);
@@ -36,19 +42,11 @@
 	while( $registros = mysqli_fetch_object($qryAtendPend) ){
 		
 		
-		// Busco a QTD de mensagens novas //
-		$qtdNovas = mysqli_query(
-			$conexao
-			, "SELECT count(id) AS qtd_novas 
-				FROM tbmsgatendimento 
-					WHERE numero = '".$registros->numero."' AND id = '".$registros->id."' AND id_atend = 0 AND visualizada = false"
-		);
-		
-		$not = mysqli_fetch_array($qtdNovas);
+		// Usando dados das subqueries (evita N+1) //
+		$qtdNovasVal = intval($registros->qtd_novas);
 
-		if( $not["qtd_novas"] > 0){
-		//	$notificacoes = $not["qtd_novas"];
-			$notificacoes = '<span class="OUeyt messages-count-new">'.$not["qtd_novas"].'</span>';
+		if( $qtdNovasVal > 0){
+			$notificacoes = '<span class="OUeyt messages-count-new">'.$qtdNovasVal.'</span>';
 
 			// Dispara o Alerta Sonoro - Se definido no Painel de Configurações //
 			if( $_SESSION["parametros"]["alerta_sonoro"] ){
@@ -58,43 +56,17 @@
 		else{ $notificacoes = ""; }
 		// Fim da NOtificação Sonora
 
-		// Verificando a última Mensagem //
-			$qryUltMsg = mysqli_query(
-				$conexao
-				, "SELECT msg, DATE_FORMAT(hr_msg, '%H:%i') AS hora,
-				    TIMESTAMPDIFF(MINUTE, dt_msg,
-							NOW()) AS MINUTOS_MSG
-				  FROM tbmsgatendimento 
-					WHERE numero = '".$registros->numero."' AND id = '".$registros->id."'
-						ORDER BY seq DESC
-							LIMIT 1"
-			);
+		// Verificando a última Mensagem (das subqueries) //
+			$ultHora = $registros->ult_hora;
+			$ultMsg = $registros->ult_msg;
+			$minutosMsg = $registros->minutos_msg;
 
-			// Verifica se Existe Resultado //
-			if( mysqli_num_rows($qryUltMsg) > 0 ){
-				$arrUltMsg = mysqli_fetch_array($qryUltMsg);
-				$ultHora = $arrUltMsg['hora'];
-				$ultMsg	= $arrUltMsg['msg'];
-
-
-
-				 //Trato a hora da Última mensagem de acordo com o Parametro
-				//Verifico se é para Exibir o tempo da Última mensagem apenas quando for enviada pelos Clientes
+			if ($ultMsg !== null) {
+				//Trato a hora da Última mensagem de acordo com o Parametro
 				if( $_SESSION["parametros"]["contar_tempo_espera_so_dos_clientes"] ){
-					$qryHoraUltMsg = mysqli_query(
-						$conexao
-						, "SELECT DATE_FORMAT(hr_msg, '%H:%i') AS hora,
-								TIMESTAMPDIFF(MINUTE, dt_msg,
-									NOW()) AS MINUTOS_MSG
-						
-						FROM tbmsgatendimento 
-							WHERE numero = '".$registros->numero."' AND id = '".$registros->id."' and id_atend = '0'
-								ORDER BY seq DESC
-									LIMIT 1"
-					);	//Passo o ID_ATEND Zero para pegar a hora da mensagem enviada pelo Cliente
-					
-					$arrUltHoraCliente = mysqli_fetch_array($qryHoraUltMsg);
-					$ultHora = $arrUltHoraCliente['hora'];
+					if ($registros->ult_hora_cliente !== null) {
+						$ultHora = $registros->ult_hora_cliente;
+					}
 				}
 
                 $regrex = '/\*(.*?)\*/';
@@ -103,8 +75,7 @@
 				if( strlen($ultMsg) > 40 ){ 
 					$ultMsg = substr($ultMsg, 0, 40) . "..."; 
 					// Usa o REGEX Negrito:
-					$ultMsg = preg_replace($regrex, '<b>$1</b>', $ultMsg); //Substituindo todos utilizando a expressão regular. By Marcelo 24/04/2023					
-
+					$ultMsg = preg_replace($regrex, '<b>$1</b>', $ultMsg);
 				}
 			}
 		// FIM Verificando a última Mensagem //
@@ -115,23 +86,27 @@
 			}
 		// FIM Tratamento do Nome //
 
-        //Mostro a etiqueta de acordo com a selecionada no
+        //Mostro a etiqueta de acordo com a selecionada
 		$etiqueta = '';
-		//BUsco as etiquetas vinculadas ao numero
-		$qryEtiquetas = mysqli_query($conexao,"select te.cor, te.descricao as etiqueta from tbetiquetascontatos tec
-		inner join tbetiquetas te on te.id = tec.id_etiqueta
-		where tec.numero = '$registros->numero'");
+		//Busco as etiquetas vinculadas ao numero com prepared statement
+		$stmtEtiq = mysqli_prepare($conexao, "SELECT te.cor, te.descricao as etiqueta FROM tbetiquetascontatos tec
+		INNER JOIN tbetiquetas te ON te.id = tec.id_etiqueta
+		WHERE tec.numero = ?");
+		mysqli_stmt_bind_param($stmtEtiq, "s", $registros->numero);
+		mysqli_stmt_execute($stmtEtiq);
+		$qryEtiquetas = mysqli_stmt_get_result($stmtEtiq);
 
 		while( $registrosEtiqueta = mysqli_fetch_object($qryEtiquetas) ){
 
 		if ($registrosEtiqueta->cor != ''){
-			$etiqueta .= '<i class="fas fa-tag" style="color:'.$registrosEtiqueta->cor.'" alt="'.$registrosEtiqueta->etiqueta.'" title="'.$registrosEtiqueta->etiqueta.'"></i>';
+			$etiqueta .= '<i class="fas fa-tag" style="color:'.e($registrosEtiqueta->cor).'" alt="'.e($registrosEtiqueta->etiqueta).'" title="'.e($registrosEtiqueta->etiqueta).'"></i>';
 		}
 
 	}
+		mysqli_stmt_close($stmtEtiq);
 
-		//MOstro o relógio indicando a qtd de minutos sem atendimento
-		@$msgtempoEspera = trataTempoOciosodoAtendente($arrUltMsg['MINUTOS_MSG']);
+		//Mostro o relógio indicando a qtd de minutos sem atendimento
+		$msgtempoEspera = trataTempoOciosodoAtendente($minutosMsg ?? 0);
 		@$tempoOcioso = '<i class="fas fa-solid fa-clock  fa-1x" alt="'.$msgtempoEspera[0].'"  title="'.$msgtempoEspera[0].'" style="margin-left:1px;'.$msgtempoEspera[1].'"></i>';
 
 

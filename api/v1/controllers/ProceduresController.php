@@ -19,10 +19,29 @@
 class ProceduresController
 {
     /**
+     * Verifica autenticação JWT - requerido em todos os endpoints
+     */
+    private static function requireAuth()
+    {
+        if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            Response::unauthorized("Token obrigatório");
+            return false;
+        }
+        $token = str_replace('Bearer ', '', $_SERVER['HTTP_AUTHORIZATION']);
+        $payload = JWT::decode($token);
+        if (!$payload) {
+            Response::unauthorized("Token inválido ou expirado");
+            return false;
+        }
+        return $payload;
+    }
+
+    /**
      * GET - Listar todas as procedures
      */
     public static function listar()
     {
+        if (!self::requireAuth()) return;
         try {
             $sql = "
                 SELECT ROUTINE_NAME, ROUTINE_TYPE, CREATED, LAST_ALTERED
@@ -51,6 +70,7 @@ class ProceduresController
      */
     public static function existe()
     {
+        if (!self::requireAuth()) return;
         try {
             $nome = $_GET['nome'] ?? '';
             
@@ -103,6 +123,7 @@ class ProceduresController
      */
     public static function executar()
     {
+        if (!self::requireAuth()) return;
         try {
             $input = json_decode(file_get_contents('php://input'), true);
             
@@ -157,12 +178,8 @@ class ProceduresController
      */
     public static function criar()
     {
+        if (!self::requireAuth()) return;
         try {
-            // Verificar permissão de admin
-            if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
-                Response::unauthorized("Token obrigatório");
-                return;
-            }
             
             $input = json_decode(file_get_contents('php://input'), true);
             
@@ -197,12 +214,8 @@ class ProceduresController
      */
     public static function droppar()
     {
+        if (!self::requireAuth()) return;
         try {
-            // Verificar permissão de admin
-            if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
-                Response::unauthorized("Token obrigatório");
-                return;
-            }
             
             $input = json_decode(file_get_contents('php://input'), true);
             $nome = $input['nome'] ?? '';
@@ -231,41 +244,12 @@ class ProceduresController
     }
 
     /**
-     * POST - Executar SQL arbitrário (ADMIN ONLY)
-     * CUIDADO: Usar com cautela!
+     * POST - Executar SQL arbitrário - DESABILITADO por segurança
      */
     public static function executarSQL()
     {
-        try {
-            // Verificar permissão de admin
-            if (!isset($_SERVER['HTTP_AUTHORIZATION'])) {
-                Response::unauthorized("Token obrigatório");
-                return;
-            }
-            
-            $input = json_decode(file_get_contents('php://input'), true);
-            $sql = $input['sql'] ?? '';
-            
-            if (empty($sql)) {
-                Response::badRequest("SQL é obrigatório");
-                return;
-            }
-            
-            // Segurança: Bloquear DROP de tabelas sensíveis
-            if (preg_match('/DROP\s+TABLE\s+(tbusuario|tbatendimento|tbmsgatendimento)/i', $sql)) {
-                Response::forbidden("Operação não permitida em tabelas sensíveis");
-                return;
-            }
-            
-            $db = Database::connect();
-            $db->exec($sql);
-            
-            Response::success([
-                'sql_executado' => true
-            ], "SQL executado com sucesso");
-        } catch (Exception $e) {
-            Response::internalError("Erro ao executar SQL: " . $e->getMessage());
-        }
+        Response::forbidden("Endpoint desabilitado por segurança. Use endpoints específicos.");
+        return;
     }
 
     /**
@@ -287,6 +271,7 @@ class ProceduresController
      */
     public static function sincronizarEstrutura()
     {
+        if (!self::requireAuth()) return;
         try {
             $input = json_decode(file_get_contents('php://input'), true);
             

@@ -27,11 +27,16 @@
 						COALESCE(tbc.eh_privada, 0) AS eh_privada,
 						COALESCE(tbc.id_destinatario, 0) AS id_destinatario,
 						COALESCE(tbc.visualizado, 0) AS visualizado,
-						COALESCE(tuu.nome, '') AS nome_destinatario
+						COALESCE(tuu.nome, '') AS nome_destinatario,
+						COALESCE(tbc.id_anexo, 0) AS id_anexo,
+						COALESCE(ta.base64, '') AS anexo_base64,
+						COALESCE(ta.tipo_arquivo, '') AS tipo_arquivo,
+						COALESCE(ta.nome_arquivo, '') AS nome_arquivo
 					FROM tbchatoperadores tbc
 					INNER JOIN tbusuario tbu ON(tbu.id=tbc.id_usuario)
 					LEFT JOIN tbdepartamentos tbd ON(tbd.id=tbc.id_departamento)
 					LEFT JOIN tbusuario tuu ON(tuu.id=tbc.id_destinatario)
+					LEFT JOIN tbanexos ta ON(ta.id=tbc.id_anexo)
 					WHERE DATE(tbc.data_hora) = CURDATE()";
 
 	// Filtro por Departamento
@@ -130,6 +135,46 @@
 		}
 		
 		echo '<div class="message-header">' . htmlspecialchars($arrMensagens["nome"]) . $destinoInfo . '</div>';
+		
+		// Renderizar anexo se existir
+		if (!empty($arrMensagens["anexo_base64"])) {
+			$anexoBase64 = $arrMensagens["anexo_base64"];
+			$tipoArquivo = $arrMensagens["tipo_arquivo"];
+			$nomeArquivo = !empty($arrMensagens["nome_arquivo"]) ? htmlspecialchars($arrMensagens["nome_arquivo"]) : "arquivo";
+			
+			// Usar tipo_arquivo da tabela tbanexos para renderização
+			if ($tipoArquivo === 'IMAGE') {
+				// É uma imagem
+				echo '<div style="margin: 8px 0; border-radius: 8px; overflow: hidden;">';
+				echo '<img src="' . htmlspecialchars($anexoBase64) . '" style="max-width: 100%; max-height: 400px; display: block; cursor: pointer;" onclick="abrirImagemGrande(this.src)" alt="' . $nomeArquivo . '" />';
+				echo '</div>';
+			} else if ($tipoArquivo === 'AUDIO') {
+				// É um áudio
+				$tipoAudio = 'audio/mpeg'; // padrão
+				if (preg_match('/^data:([^;]+);/', $anexoBase64, $matches)) {
+					$tipoAudio = $matches[1];
+				}
+				echo '<div style="margin: 8px 0;">';
+				echo '<audio controls style="width: 100%; border-radius: 8px;">';
+				echo '<source src="' . htmlspecialchars($anexoBase64) . '" type="' . htmlspecialchars($tipoAudio) . '">';
+				echo 'Seu navegador não suporta reprodução de áudio.';
+				echo '</audio>';
+				echo '</div>';
+			} else if ($tipoArquivo === 'PDF') {
+				// É um PDF
+				echo '<div class="anexo-container">';
+				echo '<i class="bi bi-file-pdf"></i>';
+				echo '<a href="' . htmlspecialchars($anexoBase64) . '" download="' . $nomeArquivo . '">📄 ' . $nomeArquivo . '</a>';
+				echo '<i class="bi bi-download"></i>';
+				echo '</div>';
+			} else {
+				// Arquivo genérico
+				echo '<div class="anexo-container" style="border-left-color: #ffc107;">';
+				echo '<i class="bi bi-file-earmark" style="color: #ffc107;"></i>';
+				echo '<a href="' . htmlspecialchars($anexoBase64) . '" download="' . $nomeArquivo . '">' . $nomeArquivo . '</a>';
+				echo '</div>';
+			}
+		}
 		
 		// Texto da mensagem
 		echo '<div class="message-text" data-original="' . htmlspecialchars($arrMensagens["mensagem"]) . '">' . nl2br(htmlspecialchars($arrMensagens["mensagem"])) . '</div>';

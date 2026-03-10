@@ -60,6 +60,7 @@
 		$iniciar_conversa		= $msg["iniciar_conversa"];
 		$env_resprapida_aut		= $msg["enviar_resprapida_aut"];
 		$enviar_audio_aut		= $msg["enviar_audio_aut"];
+		$enviar_foto_aut		= $msg["enviar_foto_aut"];
 		$qrcode					= $msg["qrcode"];
 		$op_naoenv_ultmsg		= $msg["op_naoenv_ultmsg"];
 		$exibe_foto_perfil  	= $msg["exibe_foto_perfil"];
@@ -114,6 +115,9 @@
 
 		// Enviar 'Áudio' Automaticamente ao finalizar a Gravação //
 		if( $enviar_audio_aut === "1" ){ $isCkdEnvAudioAut = "checked"; }
+
+		// Enviar 'Foto' Automaticamente ao finalizar a Captura //
+		if( $enviar_foto_aut === "1" ){ $isCkdEnvFotoAut = "checked"; }
 
 		// Permitir a Leitura do 'QRCode' via WEB //
 		if( $qrcode === "1" ){ $isCkdQRCode = "checked"; }
@@ -194,6 +198,7 @@
 	<div class="panel-heading"><b>Configurações</b></div>
     <div class="panel-body">
 		<form method="post" id="gravaConfiguracoes" name="grava" action="cadastros/configuracoes/salvar.php">
+		<?php echo csrfField(); ?>
 	     <ul class="nav nav-tabs" id="myTab" role="tablist">
          <li class="nav-item" role="presentation">
            <button class="nav-link active" id="home-tab" data-bs-toggle="tab" data-bs-target="#home-tab-pane" type="button" role="tab" aria-controls="home-tab-pane" aria-selected="true">Descrições</button>
@@ -295,6 +300,12 @@
 				<div class="uk-width-1-1@m">
 					<div class="uk-form-label">
 						<input class="uk-checkbox" type="checkbox" id="enviar_audio_aut" name="enviar_audio_aut" value="1" <?php echo $isCkdEnvAudioAut; ?> /> Enviar 'Áudio' Automaticamente após finalizar a Gravação
+					</div>
+				</div>
+
+				<div class="uk-width-1-1@m">
+					<div class="uk-form-label">
+						<input class="uk-checkbox" type="checkbox" id="enviar_foto_aut" name="enviar_foto_aut" value="1" <?php echo $isCkdEnvFotoAut; ?> /> Enviar 'Foto' Automaticamente após capturar da Câmera
 					</div>
 				</div>
 

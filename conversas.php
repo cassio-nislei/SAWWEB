@@ -3,14 +3,6 @@ require_once("includes/padrao.inc.php");
 if (!isset($_SESSION["usuariosaw"])){
     header("Location: index.php");
   }
-
-// Helper function para acesso seguro a SESSION
-function safe_session($key1, $key2 = null, $default = '') {
-    if ($key2 === null) {
-        return isset($_SESSION[$key1]) ? $_SESSION[$key1] : $default;
-    }
-    return isset($_SESSION[$key1][$key2]) ? $_SESSION[$key1][$key2] : $default;
-}
 //echo 'Protocolo '.safe_session("parametros", "usar_protocolo");
 ?>
 <html class="js adownload cssanimations csstransitions webp webp-alpha webp-animation webp-lossless wf-roboto-n4-active wf-opensans-n4-active wf-opensans-n6-active wf-roboto-n3-active wf-roboto-n5-active wf-active" dir="ltr" loc="pt-BR" lang="pt-BR">
@@ -1418,6 +1410,7 @@ function safe_session($key1, $key2 = null, $default = '') {
         <input type="hidden" id="parametrosIniciarConversa" name="parametrosIniciarConversa" value="<?php echo safe_session("parametros", "iniciar_conversa", "0"); ?>" />
         <input type="hidden" id="parametrosRespRapidaAut" name="parametrosRespRapidaAut" value="<?php echo safe_session("parametros", "enviar_resprapida_aut", "0"); ?>" />
         <input type="hidden" id="parametrosEnvioAudioAut" name="parametrosEnvioAudioAut" value="<?php echo safe_session("parametros", "enviar_audio_aut", "0"); ?>" />
+        <input type="hidden" id="parametrosEnvioFotoAuto" name="parametrosEnvioFotoAuto" value="<?php echo safe_session("parametros", "enviar_foto_aut", "0"); ?>" />
         <input type="hidden" id="parametrosQRCode" name="parametrosQRCode" value="<?php echo safe_session("parametros", "qrcode", "0"); ?>" />
         <input type="hidden" id="parametrosOpNaoEnvUltMensagem" name="parametrosOpNaoEnvUltMensagem" value="<?php echo safe_session("parametros", "op_naoenv_ultmsg", "0"); ?>" />
         <input type="hidden" id="parametrosMostraTodosChats" name="parametrosMostraTodosChats" value="<?php echo safe_session("parametros", "mostra_todos_chats", "0"); ?>" />
@@ -1750,7 +1743,7 @@ function safe_session($key1, $key2 = null, $default = '') {
                         }
 
                         // Envia Dados para o HTML //
-                        $("#btnConexaoColor").attr('style', 'color: ' + color);
+                        document.getElementById('btnConexaoColor').style.setProperty('color', color, 'important');
                         $("#spanConectado").text(label);
                     });
                 }
@@ -1792,7 +1785,7 @@ function safe_session($key1, $key2 = null, $default = '') {
                             }
                             else{
                                 // Envia Dados para o HTML //
-                                $("#btnConexaoColor").attr('style', 'color: green');
+                                document.getElementById('btnConexaoColor').style.setProperty('color', 'green', 'important');
                                 $("#spanConectado").text("Conectado");
 
                                 // Fecha a Janela //
@@ -2079,8 +2072,301 @@ function safe_session($key1, $key2 = null, $default = '') {
     }, 30000);
     
     console.log("✓ Sistema de foto do usuário carregado");
+
+    // ===== Handlers para Editar/Deletar Mensagens =====
+    // Variáveis globais para guardar referências dos modais
+    let currentEditMsgId = null;
+    let currentDeleteMsgId = null;
+    let editModalInstance = null;
+    let deleteModalInstance = null;
+
+    // Inicializar modais quando a página estiver pronta
+    function initModals() {
+        const editModalEl = document.getElementById('editMessageModal');
+        const deleteModalEl = document.getElementById('deleteConfirmModal');
+        
+        if (editModalEl && typeof bootstrap !== 'undefined') {
+            // Manter backdrop static para evitar fechar ao clicar fora
+            editModalInstance = new bootstrap.Modal(editModalEl, {backdrop: 'static', keyboard: false});
+            
+            // Usar jQuery para garantir que o listener funciona
+            $(editModalEl).on('hidden.bs.modal', function() {
+                console.log('🔄 Modal edit fechado, resetando estado');
+                $('#btnSaveEdit').off('click.btnSaveEdit').prop('disabled', false).html('<i class="bi bi-check-circle"></i> Salvar');
+                $('#editMessageText').val('');
+                currentEditMsgId = null;
+            });
+        }
+        if (deleteModalEl && typeof bootstrap !== 'undefined') {
+            // Manter backdrop static para evitar fechar ao clicar fora
+            deleteModalInstance = new bootstrap.Modal(deleteModalEl, {backdrop: 'static', keyboard: false});
+            
+            // Usar jQuery para garantir que o listener funciona
+            $(deleteModalEl).on('hidden.bs.modal', function() {
+                console.log('🔄 Modal delete fechado, resetando estado');
+                $('#btnConfirmDelete').off('click.btnConfirmDelete').prop('disabled', false).html('<i class="bi bi-trash"></i> Deletar');
+                currentDeleteMsgId = null;
+            });
+        }
+    }
+    
+    // Inicializar modais assim que possível
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', initModals);
+    } else {
+        initModals();
+    }
+    
+    // Handler explícito para botão Cancelar do modal de edição
+    $(document).on('click', '#editMessageModal .btn-secondary[data-bs-dismiss="modal"]', function(e) {
+        e.preventDefault();
+        console.log('❌ Cancelar edit clicado');
+        if (editModalInstance) {
+            editModalInstance.hide();
+        }
+    });
+    
+    // Handler explícito para botão Cancelar do modal de deleção
+    $(document).on('click', '#deleteConfirmModal .btn-secondary[data-bs-dismiss="modal"]', function(e) {
+        e.preventDefault();
+        console.log('❌ Cancelar delete clicado');
+        if (deleteModalInstance) {
+            deleteModalInstance.hide();
+        }
+    });
+    
+    // Edit message handler
+    $(document).on('click', '.btn-edit', function(e) {
+        e.preventDefault();
+        currentEditMsgId = $(this).data('msg-id');
+        const messageText = $(this).closest('.message-item').find('.message-text').data('original');
+        
+        $('#editMessageText').val(messageText).focus();
+        if (editModalInstance) {
+            editModalInstance.show();
+        } else {
+            console.error('Modal editMessageModal não foi inicializado');
+        }
+    });
+
+    // Save edited message - usando namespace para evitar duplicatas
+    $(document).off('click.btnSaveEdit').on('click.btnSaveEdit', '#btnSaveEdit', function() {
+        const novaMensagem = $('#editMessageText').val().trim();
+        
+        if (!novaMensagem) {
+            alert('Mensagem não pode estar vazia!');
+            return;
+        }
+
+        if (!currentEditMsgId) {
+            alert('Erro: ID da mensagem não encontrado.');
+            return;
+        }
+
+        let $btn = $(this);
+        $btn.prop('disabled', true).html('<span class="loading-spinner"></span> Salvando...');
+
+        $.ajax({
+            url: '/webchat/editarMensagem.php',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                id: currentEditMsgId,
+                mensagem: novaMensagem
+            },
+            timeout: 10000,
+            success: function(response) {
+                if (response.success) {
+                    // Atualizar a mensagem no DOM sem recarregar
+                    const $messageItem = $(document).find('[data-msg-id="' + currentEditMsgId + '"]');
+                    if ($messageItem.length > 0) {
+                        const $messageText = $messageItem.find('.message-text');
+                        // Fade out, update, fade in
+                        $messageText.fadeOut(100, function() {
+                            // Helper to escape HTML
+                            const div = document.createElement('div');
+                            div.textContent = novaMensagem;
+                            const escaped = div.innerHTML;
+                            $(this).data('original', novaMensagem).html(escaped.replace(/\n/g, '<br>'));
+                            $(this).fadeIn(100);
+                        });
+                    }
+                    
+                    // Fechar o modal
+                    if (editModalInstance) {
+                        editModalInstance.hide();
+                    }
+                    
+                } else {
+                    alert('Erro ao editar: ' + (response.error || 'Tente novamente'));
+                    $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Salvar');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Erro:', error);
+                let mensagemErro = 'Erro ao editar mensagem.';
+                
+                if (status === 'timeout') {
+                    mensagemErro += ' Tempo limite excedido.';
+                } else if (xhr.responseJSON && xhr.responseJSON.error) {
+                    mensagemErro += ' ' + xhr.responseJSON.error;
+                }
+                
+                alert(mensagemErro);
+                $btn.prop('disabled', false).html('<i class="bi bi-check-circle"></i> Salvar');
+            }
+        });
+    });
+
+    // Delete message handler
+    $(document).on('click', '.btn-delete', function(e) {
+        e.preventDefault();
+        currentDeleteMsgId = $(this).data('msg-id');
+        if (deleteModalInstance) {
+            deleteModalInstance.show();
+        } else {
+            console.error('Modal deleteConfirmModal não foi inicializado');
+        }
+    });
+
+    // Confirm delete - usando namespace para evitar duplicatas
+    $(document).off('click.btnConfirmDelete').on('click.btnConfirmDelete', '#btnConfirmDelete', function() {
+        if (!currentDeleteMsgId) {
+            alert('Erro: ID da mensagem não encontrado.');
+            return;
+        }
+
+        let $btn = $(this);
+        $btn.prop('disabled', true).html('<span class="loading-spinner"></span> Deletando...');
+
+        $.ajax({
+            url: '/webchat/deletarMensagem.php',
+            type: 'POST',
+            dataType: 'json',
+            data: {
+                id: currentDeleteMsgId
+            },
+            timeout: 10000,
+            success: function(response) {
+                if (response.success) {
+                    // Remover a mensagem do DOM com animação
+                    const $messageItem = $(document).find('[data-msg-id="' + currentDeleteMsgId + '"]');
+                    if ($messageItem.length > 0) {
+                        $messageItem.fadeOut(200, function() {
+                            $(this).remove();
+                        });
+                    }
+                    
+                    // Fechar o modal
+                    if (deleteModalInstance) {
+                        deleteModalInstance.hide();
+                    }
+                    
+                } else {
+                    alert('Erro ao deletar: ' + (response.error || 'Tente novamente'));
+                    $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Deletar');
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Erro:', error);
+                let mensagemErro = 'Erro ao deletar mensagem.';
+                
+                if (status === 'timeout') {
+                    mensagemErro += ' Tempo limite excedido.';
+                } else if (xhr.responseJSON && xhr.responseJSON.error) {
+                    mensagemErro += ' ' + xhr.responseJSON.error;
+                }
+                
+                alert(mensagemErro);
+                $btn.prop('disabled', false).html('<i class="bi bi-trash"></i> Deletar');
+            }
+        });
+    });
+    // ===== FIM Handlers Editar/Deletar Mensagens =====
   });
   // ===== FIM Carregar foto do usuário =====
+</script>
+
+<!-- Modal Editar Mensagem -->
+<div class="modal fade" id="editMessageModal" tabindex="-1" role="dialog" aria-labelledby="editMessageModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editMessageModalLabel"><i class="bi bi-pencil"></i> Editar Mensagem</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <textarea id="editMessageText" class="form-control" rows="4" placeholder="Edite sua mensagem..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-primary" id="btnSaveEdit">
+                    <i class="bi bi-check-circle"></i> Salvar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Confirmar Exclusão -->
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteConfirmModalLabel"><i class="bi bi-exclamation-triangle"></i> Confirmar Exclusão</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja <strong>deletar</strong> esta mensagem?</p>
+                <p style="color: #999; font-size: 12px;">Esta ação não pode ser desfeita.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="button" class="btn btn-danger" id="btnConfirmDelete">
+                    <i class="bi bi-trash"></i> Deletar
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Script para visualizar imagens em grande -->
+<script>
+    // Função para abrir imagem em fullscreen lightbox
+    function abrirImagemGrande(src) {
+        // Criar overlay
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.9); z-index: 10000; display: flex; align-items: center; justify-content: center; cursor: pointer;';
+        
+        // Criar container da imagem
+        const container = document.createElement('div');
+        container.style.cssText = 'position: relative; max-width: 90vw; max-height: 90vh; display: flex; align-items: center; justify-content: center;';
+        
+        // Criar imagem
+        const img = document.createElement('img');
+        img.src = src;
+        img.style.cssText = 'max-width: 100%; max-height: 100%; object-fit: contain; border-radius: 8px;';
+        
+        // Criar botão fechar
+        const closeBtn = document.createElement('button');
+        closeBtn.innerHTML = '✕';
+        closeBtn.style.cssText = 'position: absolute; top: 20px; right: 20px; background: white; border: none; width: 40px; height: 40px; border-radius: 50%; cursor: pointer; font-size: 24px; color: #333; z-index: 10001;';
+        closeBtn.onclick = function(e) {
+            e.stopPropagation();
+            overlay.remove();
+        };
+        
+        container.appendChild(img);
+        container.appendChild(closeBtn);
+        overlay.appendChild(container);
+        
+        // Fechar ao clicar no overlay
+        overlay.onclick = function() {
+            overlay.remove();
+        };
+        
+        document.body.appendChild(overlay);
+    }
 </script>
 
 </body>

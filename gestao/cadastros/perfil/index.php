@@ -26,6 +26,7 @@ function (e) {
 </script>
 
 <form method="post" id="grava" name="grava" action="cadastros/perfil/gravarPerfil.php" enctype="multipart/form-data">
+<?php echo csrfField(); ?>
 <h1>Perfil</h1>
 	<input type="hidden" id="id_usuarios" name="id_usuarios" value="0" />
     <input type="hidden" value="0" name="acaoUsuario" id="acaoUsuario" />

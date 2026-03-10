@@ -3,6 +3,12 @@
     
     // Envolver tudo em try-catch para garantir resposta
     try {
+        // Validar CSRF para POST
+        if ($_SERVER['REQUEST_METHOD'] === 'POST' && !validarCSRF()) {
+            echo json_encode(["status" => "erro", "msg" => "Token de segurança inválido."]);
+            exit;
+        }
+
         // Declaração de Variáveis //
             $_method = (isset($_POST) && !empty($_POST)) ? "_Post" : "_Get";
             $_id     = isset($_GET["id"]) ? mysqli_real_escape_string($conexao, $_GET["id"]) : (isset($_POST["id"]) ? mysqli_real_escape_string($conexao, $_POST["id"]) : null);

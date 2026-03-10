@@ -1,6 +1,8 @@
 <?php
   require_once("../../../includes/padrao.inc.php");
 
+  if (!validarCSRF()) { echo "Token de segurança inválido."; exit; }
+
   //Domingo
   $hora_inicio_expediente_domingo     = $_POST['hora_inicio_expediente_domingo'];
   $hora_fim_expediente_domingo        = $_POST['hora_fim_expediente_domingo'];

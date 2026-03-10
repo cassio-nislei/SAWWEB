@@ -146,6 +146,11 @@ li.tooltip .itemIcon,
   justify-content: center !important;
 }
 
+/* Conexão: permitir cor dinâmica via JS */
+#btnConexaoColor {
+  color: inherit !important;
+}
+
 .user-options i:hover,
 .user-options .itemIcon:hover,
 .itemIcon:hover,

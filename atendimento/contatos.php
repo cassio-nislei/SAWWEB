@@ -24,40 +24,53 @@
 		}
 
 		if ($pesquisa==""){
-			$pesquisa=="%";
+			$pesquisa="%";
 		}
 
+		$pesquisaLike = '%' . $pesquisa . '%';
+		$params = [];
+		$types = '';
 
         $Consulta = "SELECT tbc.*, tbe.cor, tbe.descricao as etiqueta  FROM tbcontatos tbc 
 			   left join tbetiquetascontatos tec on tec.numero = tbc.numero
                left join tbetiquetas tbe on tbe.id = tec.id_etiqueta ";
 			   if ($tipo_pesquisa==1){	//Pesquisa por Telefone		
-		      	   $Consulta = $Consulta ." WHERE (tbc.numero LIKE '%".$pesquisa."%')";
+		      	   $Consulta .= " WHERE (tbc.numero LIKE ?)";
+				   $types .= 's'; $params[] = $pesquisaLike;
 				   if ($etiqueta != '0'){
-					$Consulta = $Consulta ." AND  tbe.cor = '$etiqueta'";  
+					$Consulta .= " AND tbe.cor = ?";
+					$types .= 's'; $params[] = $etiqueta;
 				   }
-				   $Consulta = $Consulta . "group by tbc.numero ";
+				   $Consulta .= " group by tbc.numero ";
 				}else if ($tipo_pesquisa==2){ //CPF ou CNPJ
-				  $Consulta = $Consulta ." WHERE (cpf_cnpj LIKE '%".$pesquisa."%')";
+				  $Consulta .= " WHERE (cpf_cnpj LIKE ?)";
+				  $types .= 's'; $params[] = $pesquisaLike;
 				  if ($etiqueta != '0'){
-					$Consulta = $Consulta ." AND  tbe.cor = '$etiqueta'";  
+					$Consulta .= " AND tbe.cor = ?";
+					$types .= 's'; $params[] = $etiqueta;
 				   }
-				   $Consulta = $Consulta . "group by tbc.numero ";
+				   $Consulta .= " group by tbc.numero ";
 			}else{ //Aqui a Consulta por nome
-				$Consulta = $Consulta ." WHERE (upper(nome) LIKE upper('%".$pesquisa."%')) ";
+				$Consulta .= " WHERE (upper(nome) LIKE upper(?)) ";
+				$types .= 's'; $params[] = $pesquisaLike;
 				if ($etiqueta != '0'){
-					$Consulta = $Consulta ." AND  tbe.cor = '$etiqueta'";  
+					$Consulta .= " AND tbe.cor = ?";
+					$types .= 's'; $params[] = $etiqueta;
 				   }
-				$Consulta = $Consulta . "group by tbc.numero ";
-				$Consulta = $Consulta . "  ORDER BY POSITION(upper('$pesquisa') IN upper(nome) ), upper(nome)";
+				$Consulta .= " group by tbc.numero ";
+				$Consulta .= "  ORDER BY POSITION(upper(?) IN upper(nome) ), upper(nome)";
+				$types .= 's'; $params[] = $pesquisa;
 			}
 			
 			
-			$Consulta = $Consulta . "LIMIT 30";
-	
-	//	echo $Consulta;
+			$Consulta .= " LIMIT 30";
 
-	$qryContatos = mysqli_query($conexao, $Consulta);
+	$stmtContatos = mysqli_prepare($conexao, $Consulta);
+	if ($types) {
+		mysqli_stmt_bind_param($stmtContatos, $types, ...$params);
+	}
+	mysqli_stmt_execute($stmtContatos);
+	$qryContatos = mysqli_stmt_get_result($stmtContatos);
 
 
 	
@@ -99,21 +112,26 @@
 		}
 
 		$etiqueta = '';
-		//BUco as etiquetas vinculadas ao numero
-		$qryEtiquetas = mysqli_query($conexao,"select te.cor, te.descricao as etiqueta from tbetiquetascontatos tec
-		inner join tbetiquetas te on te.id = tec.id_etiqueta
-		where tec.numero = '$registros->numero'");
+		//Busco as etiquetas vinculadas ao numero
+		$stmtEtiq = mysqli_prepare($conexao, "SELECT te.cor, te.descricao as etiqueta FROM tbetiquetascontatos tec
+		INNER JOIN tbetiquetas te ON te.id = tec.id_etiqueta
+		WHERE tec.numero = ?");
+		mysqli_stmt_bind_param($stmtEtiq, "s", $registros->numero);
+		mysqli_stmt_execute($stmtEtiq);
+		$qryEtiquetas = mysqli_stmt_get_result($stmtEtiq);
 
 		while( $registrosEtiqueta = mysqli_fetch_object($qryEtiquetas) ){
 
 		if ($registrosEtiqueta->cor != ''){
-			$etiqueta .= '<i class="fas fa-tag" style="color:'.$registrosEtiqueta->cor.'" alt="'.$registrosEtiqueta->etiqueta.'" title="'.$registrosEtiqueta->etiqueta.'"></i>';
+			$etiqueta .= '<i class="fas fa-tag" style="color:'.e($registrosEtiqueta->cor).'" alt="'.e($registrosEtiqueta->etiqueta).'" title="'.e($registrosEtiqueta->etiqueta).'"></i>';
 		}
 
 	}
+		mysqli_stmt_close($stmtEtiq);
 		
-		
-		echo '<div class="contact-item" data-numero="'.$registros->numero.'" data-nome="'.$registros->nome.'">
+		$nomeEsc = e($registros->nome);
+		$numEsc = e($registros->numero);
+		echo '<div class="contact-item" data-numero="'.$numEsc.'" data-nome="'.$nomeEsc.'">
 				<div class="dIyEr lnkDivContato">
 					<div class="_1WliW" style="height: 49px; width: 49px;">
 						<img src="#" class="Qgzj8 gqwaM photo" style="display:none;">
@@ -127,7 +145,7 @@
 				<div class="_3j7s9 lnkDivContato" style="border:0">
 					<div class="_2FBdJ">
 						<div class="_25Ooe">
-							<span dir="auto" title="'.$registros->nome.'" class="_1wjpf">'.$registros->nome.'</span>
+							<span dir="auto" title="'.$nomeEsc.'" class="_1wjpf">'.$nomeEsc.'</span>
 						</div>
 					</div>
 					<div class="_1AwDx">

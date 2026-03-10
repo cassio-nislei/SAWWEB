@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Teste de Gravação de Áudio</title>
+    <style>
+        body { font-family: Arial; padding: 20px; }
+        .test-section { margin: 20px 0; padding: 10px; border: 1px solid #ccc; }
+        button { padding: 10px; margin: 5px; cursor: pointer; }
+        #log { border: 1px solid black; padding: 10px; height: 300px; overflow-y: auto; background: #f0f0f0; }
+        .success { color: green; }
+        .error { color: red; }
+        .info { color: blue; }
+    </style>
+</head>
+<body>
+
+<h1>Teste de Gravação de Áudio - SAWWeb</h1>
+
+<div class="test-section">
+    <h2>1. Verificação de Suporte</h2>
+    <button onclick="testSupport()">Testar Suporte</button>
+</div>
+
+<div class="test-section">
+    <h2>2. Acesso ao Microfone</h2>
+    <button onclick="testMicrophone()">Testar Microfone</button>
+</div>
+
+<div class="test-section">
+    <h2>3. Gravação de Áudio</h2>
+    <button onclick="startRecord()">Iniciar Gravação</button>
+    <button onclick="stopRecord()">Parar Gravação</button>
+    <button onclick="playAudio()">Reproduzir Gravação</button>
+    <div id="audioPlayer"></div>
+</div>
+
+<div class="test-section">
+    <h2>Log de Execução:</h2>
+    <div id="log"></div>
+    <button onclick="clearLog()">Limpar Log</button>
+</div>
+
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<script src="js/WebAudioRecorder.min.js"></script>
+
+<script>
+var gumStream = null;
+var recorder = null;
+var input = null;
+var audioContext = null;
+var encodingType = 'mp3';
+var recordedBlob = null;
+var recordedBase64 = null;
+
+function log(message, type = 'info') {
+    const timestamp = new Date().toLocaleTimeString();
+    const prefix = type === 'error' ? '✗' : type === 'success' ? '✓' : 'ℹ';
+    const className = type;
+    const logDiv = document.getElementById('log');
+    const entry = document.createElement('div');
+    entry.className = className;
+    entry.innerHTML = `[${timestamp}] ${prefix} ${message}`;
+    logDiv.appendChild(entry);
+    logDiv.scrollTop = logDiv.scrollHeight;
+    console.log(`[${type}] ${message}`);
+}
+
+function clearLog() {
+    document.getElementById('log').innerHTML = '';
+}
+
+function testSupport() {
+    log('=== TESTE DE SUPORTE ===', 'info');
+    
+    if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        log('✓ navigator.mediaDevices.getUserMedia está disponível', 'success');
+    } else {
+        log('✗ navigator.mediaDevices.getUserMedia NÃO está disponível', 'error');
+    }
+    
+    const AudioContext = window.AudioContext || window.webkitAudioContext;
+    if (AudioContext) {
+        log('✓ AudioContext está disponível', 'success');
+    } else {
+        log('✗ AudioContext NÃO está disponível', 'error');
+    }
+    
+    if (typeof WebAudioRecorder !== 'undefined') {
+        log('✓ WebAudioRecorder está disponível', 'success');
+    } else {
+        log('✗ WebAudioRecorder NÃO está disponível', 'error');
+    }
+}
+
+function testMicrophone() {
+    log('=== TESTE DE MICROFONE ===', 'info');
+    log('Solicitando acesso ao microfone...', 'info');
+    
+    const constraints = { audio: true, video: false };
+    
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then(function(stream) {
+            log('✓ Acesso ao microfone concedido!', 'success');
+            log('Stream obtido: ' + stream.id, 'success');
+            
+            // Parar o stream imediatamente
+            stream.getTracks().forEach(track => track.stop());
+            log('✓ Stream finalizado', 'success');
+        })
+        .catch(function(err) {
+            log('✗ Erro ao acessar microfone: ' + err.name, 'error');
+            log('Detalhes: ' + err.message, 'error');
+        });
+}
+
+function startRecord() {
+    log('=== INICIANDO GRAVAÇÃO ===', 'info');
+    
+    if (recorder && recorder.isRecording && recorder.isRecording()) {
+        log('✗ Já existe uma gravação em andamento', 'error');
+        return;
+    }
+    
+    const constraints = { audio: true, video: false };
+    
+    navigator.mediaDevices.getUserMedia(constraints)
+        .then(function(stream) {
+            log('✓ Microfone acessado', 'success');
+            
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (!audioContext) {
+                audioContext = new AudioContext();
+            }
+            
+            gumStream = stream;
+            input = audioContext.createMediaStreamSource(stream);
+            
+            log('✓ MediaStreamAudioSourceNode criado', 'success');
+            
+            recorder = new WebAudioRecorder(input, {
+                workerDir: "js/",
+                encoding: encodingType,
+                numChannels: 2,
+                onEncoderLoading: function(r, e) {
+                    log('Carregando encoder: ' + e, 'info');
+                },
+                onEncoderLoaded: function(r, e) {
+                    log('✓ Encoder carregado: ' + e, 'success');
+                }
+            });
+            
+            recorder.onComplete = function(r, blob) {
+                log('✓ Gravação finalizada! Tamanho: ' + blob.size + ' bytes', 'success');
+                recordedBlob = blob;
+                
+                // Converter para Base64
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    recordedBase64 = e.target.result;
+                    log('✓ Convertido para Base64: ' + recordedBase64.length + ' caracteres', 'success');
+                };
+                reader.readAsDataURL(blob);
+            };
+            
+            recorder.onError = function(r, msg) {
+                log('✗ Erro no recorder: ' + msg, 'error');
+            };
+            
+            recorder.setOptions({
+                timeLimit: 120,
+                encodeAfterRecord: true,
+                ogg: { quality: 0.5 },
+                mp3: { bitRate: 64 }
+            });
+            
+            recorder.startRecording();
+            log('✓ Gravação iniciada!', 'success');
+        })
+        .catch(function(err) {
+            log('✗ Erro ao acessar microfone: ' + err.name, 'error');
+            log('Detalhes: ' + err.message, 'error');
+        });
+}
+
+function stopRecord() {
+    log('=== PARANDO GRAVAÇÃO ===', 'info');
+    
+    if (!recorder) {
+        log('✗ Nenhuma gravação ativa', 'error');
+        return;
+    }
+    
+    if (gumStream) {
+        gumStream.getTracks().forEach(track => track.stop());
+        log('✓ Microfone desligado', 'success');
+    }
+    
+    recorder.finishRecording();
+    log('✓ Comando finishRecording() enviado', 'success');
+}
+
+function playAudio() {
+    log('=== REPRODUZINDO ÁUDIO ===', 'info');
+    
+    if (!recordedBase64) {
+        log('✗ Nenhum áudio gravado', 'error');
+        return;
+    }
+    
+    const playerDiv = document.getElementById('audioPlayer');
+    playerDiv.innerHTML = '<audio controls style="width: 100%;" src="' + recordedBase64 + '"></audio>';
+    log('✓ Áudio pronto para reprodução', 'success');
+    log('Base64 (primeiros 100 caracteres): ' + recordedBase64.substring(0, 100), 'info');
+}
+</script>
+
+</body>
+</html>

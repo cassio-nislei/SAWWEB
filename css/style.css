@@ -17906,22 +17906,71 @@ html[dir="rtl"] ._2ICcy:after {
   transform: translateY(0px);
 }
 .panel-upImage {
-  transform: translateY(800px);
+  transform: translateY(100vh);
   -webkit-transition: 0.3s ease-in-out;
   -moz-transition: 0.3s ease-in-out;
   -o-transition: 0.3s ease-in-out;
   transition: 0.3s ease-in-out;
+  position: fixed !important;
+  left: 50% !important;
+  top: 50% !important;
+  width: 90% !important;
+  max-width: 600px;
+  transform: translateX(-50%) translateY(100vh);
+  margin-left: 0 !important;
+  z-index: 10000 !important;
+  visibility: hidden;
+  pointer-events: none;
+  border-left: none !important;
+  border-right: none !important;
+  box-sizing: border-box;
 }
 #panel-upload-image {
   text-align: center;
   padding: 3rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+  position: relative;
+  z-index: 10001 !important;
+}
+
+#panel-upload-image img,
+#panel-upload-image audio {
+  max-width: 90%;
+  margin: 0 auto;
+  display: block;
+  pointer-events: auto !important;
+  z-index: 10001 !important;
+}
+
+#panel-upload-image audio {
+  width: 90%;
+  margin-top: 1rem;
+  opacity: 1 !important;
+  cursor: pointer !important;
 }
 .panel-upImage.open {
-  display: block;
-  transform: translateY(2em);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  transform: translateX(-50%) translateY(-50%) !important;
   padding: 3rem;
   background: #333;
-  height: 49.35rem;
+  max-height: 80vh;
+  overflow-y: auto;
+  left: 50% !important;
+  top: 50% !important;
+  margin-left: 0 !important;
+  width: 90% !important;
+  max-width: 600px;
+  visibility: visible;
+  pointer-events: auto;
+  border-radius: 8px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.5);
 }
 .panel-Respostas.open {
   display: block;
@@ -19116,19 +19165,18 @@ html[dir="rtl"] ._2ICcy:after {
   border: 2px dashed #91b0b3;
   color: #92b0b3;
   position: relative;
-  height: 78%;
-  margin-top: 0px;
+  min-height: 200px;
+  width: 100%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 .dropzone-desc {
-  position: absolute;
-  margin: 33% 0 33% 0;
-  left: 0;
-  right: 0;
   text-align: center;
   width: 100%;
-  top: 0px;
   font-size: 16px;
-  text-align: center;
+  pointer-events: none;
 }
 .dropzone,
 .dropzone:focus {
@@ -19138,7 +19186,9 @@ html[dir="rtl"] ._2ICcy:after {
   height: 100%;
   cursor: pointer;
   opacity: 0;
-  margin-left: -438px;
+  left: 0;
+  top: 0;
+  z-index: 10;
 }
 .dropzone-wrapper:hover,
 .dropzone-wrapper.dragover {

@@ -59,11 +59,18 @@
         // Observar mudanças no painel de visualização de imagem
         var observer = new MutationObserver(function(mutations) {
             if ($(".panel-upImage").hasClass("open")) {
-                $("#divAudio").addClass("hidden-audio"); // Esconde tudo quando painel está aberto
-                $("#btnEnviar").show(); // Mostra botão enviar no lugar
+                // Quando painel está aberto, mostrar botão enviar
+                $("#divAudio").removeClass("hidden-audio").css("display", "flex");
+                $("#btnEnviar").addClass("enviar-visible");
+                $("#btnEnviar")[0].style.setProperty("display", "block", "important");
+                $("#btnEnviar")[0].style.setProperty("visibility", "visible", "important");
+                $("#btnEnviar")[0].style.setProperty("pointer-events", "auto", "important");
             } else {
-                $("#divAudio").removeClass("hidden-audio"); // Mostra tudo quando painel está fechado
-                $("#btnEnviar").hide(); // Esconde botão enviar
+                // Quando painel fecha, ocultar botão enviar
+                $("#divAudio").removeClass("hidden-audio").css("display", "flex");
+                $("#btnEnviar").removeClass("enviar-visible");
+                $("#btnEnviar")[0].style.setProperty("display", "none", "important");
+                $("#btnEnviar")[0].style.setProperty("visibility", "hidden", "important");
             }
         });
 
@@ -82,6 +89,8 @@
 
         var ehaudio = false;
         var audioConfirmado = false;  // FLAG: áudio foi confirmado e está pronto para enviar
+        var audioProcessado = false;  // FLAG: áudio foi completamente processado e convertido para Base64
+        var enviandoMensagem = false;  // FLAG: protege contra múltiplos envios simultâneos
         var imageClipboard = false;
         var imageCamera = false;
         var ehupload = false;
@@ -109,8 +118,23 @@
                 console.log('QTD Conversas'+retorno);
                 //Válida se é para Atualizar a conversa, só faz a atualização da tela se existirem novas mensagens
                 if (parseInt(retorno) > parseInt(qtdMensagens)) {
-                    $.ajax("atendimento/listaConversas.php?id=" + id + "&id_canal=" + id_canal + "&numero=" + numero + "&nome=" + nome).done(function(data) {
-                          $('#mensagens').html(data);
+                    $.ajax({
+                        url: "atendimento/listaConversas.php?id=" + id + "&id_canal=" + id_canal + "&numero=" + numero + "&nome=" + nome,
+                        timeout: 30000,  // 30 segundos para processar áudio grande
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.error("Erro ao carregar mensagens: " + textStatus);
+                            if (textStatus === 'timeout') {
+                                console.warn("⏱ Timeout ao carregar mensagens. Servidor pode estar processando áudio grande. Tentando novamente...");
+                                setTimeout(function() { carregaAtendimento(); }, 2000);
+                            }
+                        }
+                    }).done(function(data) {
+                          try {
+                              $('#mensagens').html(data);
+                          } catch(e) {
+                              console.error("Erro ao carregar mensagens HTML: " + e.message);
+                              console.error("Resposta do servidor tinha " + (data ? data.length : 0) + " caracteres");
+                          }
                     });
 
                     ajustaScroll(); //desço a barra de rolagem da conversa
@@ -120,14 +144,56 @@
         }
 
         // Atualiza a Lista de Atendimentos //
-            var intervalo = setInterval(function() { carregaAtendimento(); }, 5000);
+            var numero = $("#s_numero").val();
+            var nome = encodeURIComponent($("#s_nome").val());
+            var idCanal = $("#s_id_canal").val();
+            
+            var intervaloAtendimento = setInterval(function() { carregaAtendimento(); }, 5000);
             carregaAtendimento();
+            
+            // Pausar/Reanudar intervalo durante gravação de áudio
+            function pausarIntervalo() {
+                console.log("⏸ Pausando auto-refresh para gravação de áudio");
+                clearInterval(intervaloAtendimento);
+            }
+            
+            function reanudarIntervalo() {
+                console.log("▶ Reativando auto-refresh");
+                intervaloAtendimento = setInterval(function() { carregaAtendimento(); }, 5000);
+            }
         // FIM Atualiza a Lista de Atendimentos //
 
         // Selecionar o Imput File //
         $("#btnAnexar").click(function() {
+            // Abre o painel de preview e dispara o seletor de arquivos
             $(".panel-upImage").addClass("open");
             $("#dragDropImage").attr("style", "display:block");
+
+            // Adicionar backdrop overlay com mesmo tamanho do painel
+            if ($("#panel-upImage-backdrop").length === 0) {
+                var panel = $(".panel-upImage");
+                var pos = panel[0].getBoundingClientRect();
+                $("body").append('<div id="panel-upImage-backdrop"></div>');
+                $("#panel-upImage-backdrop").css({
+                    position: "fixed",
+                    top: pos.top + "px",
+                    left: pos.left + "px",
+                    width: pos.width + "px",
+                    height: pos.height + "px",
+                    background: "rgba(0,0,0,0.5)",
+                    "z-index": 9999,
+                    "border-radius": "8px"
+                });
+                $("#panel-upImage-backdrop").click(function() {
+                    cancelaUploadImageClipboard();
+                    $(this).remove();
+                });
+            }
+
+            // Limpar valor do input file para garantir que o evento change dispare mesmo ao selecionar o mesmo arquivo
+            document.getElementById('imgDragDrop').value = null;
+            // Dispara o seletor de arquivos diretamente
+            document.getElementById('imgDragDrop').click();
         });
 
         // Tratamento dos dados digitados no campo de Mensagem //
@@ -150,6 +216,14 @@
                             event.stopPropagation();
                         }
                         else if( event.keyCode == 13 ){
+                            // Se há áudio sendo processado, aguardar
+                            if (audioConfirmado && !audioProcessado) {
+                                console.warn("⏳ Áudio ainda está sendo processado. Aguarde...");
+                                alert("Aguarde... o áudio ainda está sendo processado (encoding em progresso)");
+                                event.preventDefault();
+                                return false;
+                            }
+                            
                             // Submita os Dados //	 
                             event.preventDefault();
                             $("#msg").focus();
@@ -187,6 +261,23 @@
 
         // Clique no Botão Enviar //
         $("#btnEnviar").click(function() {
+            // PROTEÇÃO: Evita múltiplos envios simultâneos
+            if (enviandoMensagem) {
+                console.warn("⚠️  Múltiplo click detectado! Ignorando. Aguarde o envio anterior terminar...");
+                return false;
+            }
+            
+            // Se há áudio sendo processado, não permitir envio
+            if (audioConfirmado && !audioProcessado) {
+                console.error("✗ Tentativa de envio enquanto áudio está sendo processado!");
+                alert("Aguarde... o áudio ainda está sendo processado (encoding em progresso)");
+                return false;
+            }
+            
+            // Marcando como enviando
+            enviandoMensagem = true;
+            console.log("📤 Iniciando envio de mensagem...");
+            
             // Desabilitando as opções de Envio //
                 $("#lnkRespostaRapida").removeAttr( "onclick");
                 $("#btnViewEmojs").prop( "disabled", true );
@@ -197,6 +288,7 @@
 
             // Fecha painel de Visualização da Imagem e Limpa a Div //
             $(".panel-upImage").removeClass('open');
+            $("#panel-upImage-backdrop").remove();
 
             // Declaração de Variáveis //
             var numero = $("#s_numero").val();
@@ -210,16 +302,67 @@
             var anexomsgRapida = $("#anexomsgRapida").val();
             var nomeanexomsgRapida = $("#nomeanexomsgRapida").val();
               
+            // PROTEÇÃO: Criar novo FormData a cada envio para evitar duplicação
+            var formEnvio = new FormData();
+            
             // Montando os Dados [Form] para Envio //
-            form.append('numero', numero);
-            form.append('id_atendimento', id_atendimento);
-            form.append('nome', nome);
-            form.append('id_canal', id_canal);
-            form.append('msg', msg);
-            form.append('Resposta', msg_resposta); //Adicionei a mensagem de Resposta
-            form.append('idResposta', idResposta); //Adicionei a mensagem de Resposta
-            form.append('anexomsgRapida', anexomsgRapida); //Adicionei a mensagem de Resposta
-            form.append('nomeanexomsgRapida', nomeanexomsgRapida); //Adicionei a mensagem de Resposta
+            formEnvio.append('numero', numero);
+            formEnvio.append('id_atendimento', id_atendimento);
+            formEnvio.append('nome', nome);
+            formEnvio.append('id_canal', id_canal);
+            formEnvio.append('msg', msg);
+            formEnvio.append('Resposta', msg_resposta); //Adicionei a mensagem de Resposta
+            formEnvio.append('idResposta', idResposta); //Adicionei a mensagem de Resposta
+            formEnvio.append('anexomsgRapida', anexomsgRapida); //Adicionei a mensagem de Resposta
+            formEnvio.append('nomeanexomsgRapida', nomeanexomsgRapida); //Adicionei a mensagem de Resposta
+            
+            // Se áudio foi gravado, copiar audioBase64 para o novo form
+            if (ehaudio) {
+                console.log("✓ Anexando audioBase64 ao FormData de envio");
+                // Procurar o audioBase64 no form global
+                var audioB64Found = false;
+                for (var pair of form.entries()) {
+                    if (pair[0] === 'audioBase64') {
+                        formEnvio.append('audioBase64', pair[1]);
+                        console.log("✓ audioBase64 encontrado e copiado: " + pair[1].substring(0, 50) + "...");
+                        audioB64Found = true;
+                        break;
+                    }
+                }
+                if (!audioB64Found) {
+                    console.warn("⚠️  audioBase64 NÃO encontrado no form! Algo deu errado na gravação.");
+                }
+            }
+            
+            // Se há arquivo de upload
+            if (ehupload) {
+                console.log("✓ Copiando arquivos para novo FormData");
+                for (var pair of form.entries()) {
+                    if (pair[0] === 'upload' || pair[0] === 'upload[]') {
+                        // Preservar o nome do arquivo ao copiar
+                        var fileName = pair[1].name || 'arquivo';
+                        formEnvio.append(pair[0], pair[1], fileName);
+                        console.log("✓ Arquivo copiado: " + fileName + " (" + pair[1].size + " bytes)");
+                    }
+                }
+            }
+
+            // Se há imagem da câmera, copiar imageBase64 para o novo form
+            if (imageCamera) {
+                console.log("✓ Anexando imageBase64 (câmera) ao FormData de envio");
+                var imgB64Found = false;
+                for (var pair of form.entries()) {
+                    if (pair[0] === 'imageBase64') {
+                        formEnvio.append('imageBase64', pair[1]);
+                        console.log("✓ imageBase64 encontrado e copiado: " + pair[1].substring(0, 50) + "...");
+                        imgB64Found = true;
+                        break;
+                    }
+                }
+                if (!imgB64Found) {
+                    console.warn("⚠️  imageBase64 NÃO encontrado no form! Foto da câmera pode não ter sido capturada.");
+                }
+            }
 
             // Se não for 'Áudio' e não for 'Imagem da Área de Transferência' //
 			if( (!ehaudio) && (!imageClipboard) && (!ehupload) && (!imageCamera) ) {
@@ -229,19 +372,41 @@
                      $("#btnRecorder").prop( "disabled", false );
                      $("#btnEnviar").prop( "disabled", false );
 					 $("#msg").focus();
+                     enviandoMensagem = false;
+                     console.warn("⚠️  Nenhuma mensagem, áudio ou imagem para enviar!");
                      return false;
+                }
+            }
+            
+            // PROTEÇÃO CRÍTICA: Se ehaudio é true mas formEnvio está vazio para áudio, algo deu errado
+            if (ehaudio) {
+                var temAudio = false;
+                for (var pair of formEnvio.entries()) {
+                    if (pair[0] === 'audioBase64') {
+                        temAudio = true;
+                        break;
+                    }
+                }
+                if (!temAudio) {
+                    console.error("✗ Crítico: ehaudio=true mas audioBase64 não está em formEnvio!");
+                    alert("Erro: Áudio marcado mas não foi encontrado. Tente gravar novamente.");
+                    enviandoMensagem = false;
+                    return false;
                 }
             }
 
             //Faz a Inicialização do atendimento
             $.ajax({
                 url: 'atendimento/gravarMensagem.php', // Url do lado server que vai receber o arquivo
-                data: form,
+                data: formEnvio,  // Usar formEnvio em vez de form
                 processData: false,
                 contentType: false,
                 type: 'POST',
                 resetForm: true,
                 success: function(retorno) {
+                    console.log("✓ Resposta do servidor: " + retorno);
+                    enviandoMensagem = false;  // Libera para próximo envio
+                    reanudarIntervalo(); // Retoma auto-refresh após envio bem-sucedido
                     carregaAtendimento();	
                     form = new FormData();
  //alert(retorno);
@@ -251,7 +416,9 @@
                     $("#RespostaSelecionada").html("");
                     $("#chatid_resposta").val(""); 
                     $("#upload").val("");
-                    $("#imgDragDrop").val("");                   
+                    // Limpar input file via DOM nativo para garantir que change event dispare na próxima seleção
+                    var imgInputReset = document.getElementById('imgDragDrop');
+                    if (imgInputReset) imgInputReset.value = null;
 					ehupload = false;
                     imageClipboard = false;
                     //Limpo as imagens tiradas pela Camera
@@ -281,6 +448,25 @@
                     $("#divAudio").attr("style", "display: block");
                     $("#msg").focus();
                     audioConfirmado = false;  // Reset flag após envio bem-sucedido
+                    audioProcessado = false;  // Reset audio processado flag
+                    ehaudio = false;  // Zerar flag de áudio para evitar duplo envio
+                },
+                error: function(jqXHR, textStatus, errorThrown) {
+                    enviandoMensagem = false;  // Libera para próximo envio mesmo em caso de erro
+                    reanudarIntervalo(); // Retoma auto-refresh em caso de erro
+                    console.error("Erro ao enviar mensagem:", textStatus, errorThrown);
+                    // Resetar form e flags em caso de erro para evitar duplo envio
+                    form = new FormData();
+                    ehaudio = false;
+                    audioConfirmado = false;
+                    audioProcessado = false;
+                    console.warn("🔄 Form e flags resetados após erro");
+                    // Re-habilitar botões em caso de erro
+                    $("#lnkRespostaRapida").attr( "onclick", "abrirModal('#modalRespostaRapida')" );
+                    $("#btnViewEmojs").prop( "disabled", false );
+                    $("#msg").prop( "disabled", false );
+                    $("#btnRecorder").prop( "disabled", false );
+                    $("#btnEnviar").prop( "disabled", false );
                 }
             });
         });
@@ -311,14 +497,111 @@
             $('#msg').focus();
         });
 
+        // Event Delegation para botões de mensagens carregadas dinamicamente //
+        // Auto-Scroll das mensagens //
+        $(document).on('DOMNodeInserted', '#mensagens', function() {
+            var rolagem = document.getElementById('mensagens');
+            if (rolagem) {
+                $('#mensagens').animate({ scrollTop: rolagem.scrollHeight }, 200);
+            }
+        });
+
+        // Responder mensagem //
+        $(document).on("click", ".btnResponderMSG", function() {
+            var msgRecuperada = $(this).parent().find("#msg_original").val();
+            var idResposta = $(this).parent().find("#chatID").val();
+            $(".panel-Respostas").fadeIn(500);
+            $("#chatid_resposta").val(idResposta);
+            $("#RespostaSelecionada").html(msgRecuperada);
+            $('#msg').focus();
+        });
+
+        // Fechar resposta //
+        $(document).on("click", "#fecharResposta", function() {
+            $(".panel-Respostas").fadeOut(500);
+            $("#RespostaSelecionada").html('');
+        });
+
+        // Reagir à mensagem //
+        var elementoreacao = "";
+        var idResposta = "";
+        $(document).on("click", ".btnReagirMSG", function() {
+            var msgRecuperada = $(this).parent().find("#msg_original").val();
+            idResposta = $(this).parent().find("#chatID").val();
+            elementoreacao = $(this).parents(".message").find(".ReacaoManifestada");
+            $('#ModalReacoes').modal('show');
+        });
+
+        // Reação emoji //
+        $(document).on("click", ".emojreacao", function() {
+            $(elementoreacao).fadeIn();
+            $(elementoreacao).html($(this).html());
+            var iconereact = $(this).val();
+            $.post("atendimento/reacaoMensagem.php", {id: idResposta, reacao: iconereact}, function(resultado) {});
+            $('#ModalReacoes').modal('hide');
+        });
+
+        // Fechar modal de reações //
+        $(document).on("click", "#ModalReacoes", function() {
+            $('#ModalReacoes').modal('hide');
+        });
+
+        // Apagar mensagem //
+        $(document).on("click", ".btnApagarMSG", function() {
+            var idUnico = $(this).parent().find("#chatID").val();
+            var elementoMensagem = $(this).parent().parent().parent().parent().find(".Tkt2p");
+            var numero = $("#s_numero").val();
+            var id_atendimento = $("#s_id_atendimento").val();
+            var id_canal = $("#s_id_canal").val();
+            var sequencia = $(this).parent().find("#seq_msg").val();
+
+            $.post("atendimento/apagarMensagem.php", {
+                id: idUnico,
+                numero: numero,
+                id_atendimento: id_atendimento,
+                seq: sequencia
+            }, function(resultado) {
+                elementoMensagem.html("🚫Mensagem Apagada!!!");
+            });
+        });
+
+        // Botão enviar mensagem rápida //
+        $(document).on("click", ".btn-message-send", function() {
+            var numero = $(this).data('numero');
+            var nome = $(this).data('nome');
+
+            $.post("cadastros/contatos/ContatoController.php", {
+                id: 0,
+                acao: 1,
+                numero_contato: numero,
+                nome_contato: nome
+            }, function(resultado) {});
+
+            $.post("atendimento/gerarAtendimento.php", {numero: numero, nome: nome}, function(idAtendimento) {
+                if (idAtendimento != "erro") {
+                    $('#not' + idAtendimento).text("");
+                    $('#AtendimentoAberto').html("<div class='spinner-border text-primary' role='status'><span class='sr-only'>Carregando ...</span></div>");
+                    $.ajax("atendimento/conversa.php?id=" + idAtendimento + "&id_canal=1&numero=" + encodeURIComponent(numero) + "&nome=" + encodeURIComponent(nome)).done(function(data) {
+                        $('#AtendimentoAberto').html(data);
+                        $.ajax("atendimento/atendendo.php").done(function(data) {
+                            $('#ListaEmAtendimento').html(data);
+                        });
+                    });
+                } else {
+                    mostraDialogo("Erro ao tentar Iniciar o Atendimento!", "danger", 2500);
+                }
+            });
+        });
+        // FIM Event Delegation //
+
         // Gravação de Áudio via MP3 //
 			//webkitURL is deprecated but nevertheless
             URL = window.URL || window.webkitURL;
 
-            var gumStream; 						//stream from getUserMedia()
-            var recorder; 						//WebAudioRecorder object
-            var input; 							//MediaStreamAudioSourceNode  we'll be recording
-            var encodingType; 					//holds selected encoding for resulting audio (file)
+            var gumStream = null; 						//stream from getUserMedia()
+            var recorder = null; 						//WebAudioRecorder object
+            var input = null; 							//MediaStreamAudioSourceNode  we'll be recording
+            var encodingType = null; 					//holds selected encoding for resulting audio (file)
             var encodeAfterRecord = true;       // when to encode
 
             // shim for AudioContext when it's not avb. 
@@ -332,6 +615,14 @@
                     Simple constraints object, for more advanced features see
                     https://addpipe.com/blog/audio-constraints-getusermedia/
                 */
+                
+                // PROTEÇÃO: Verificar se já existe gravação
+                if (recorder && recorder.isRecording && recorder.isRecording()) {
+                    console.error("✗ Já existe uma gravação em andamento!");
+                    alert("Já existe uma gravação em andamento. Finalize a gravação anterior.");
+                    return;
+                }
+                
                 var constraints = { audio: true, video:false }
 
                 /*
@@ -340,6 +631,9 @@
                 */
                 navigator.mediaDevices.getUserMedia(constraints).then
                 (function(stream) {
+                    console.log("✓ Microfone acessado com sucesso");
+                    console.log("🎤 Stream recebido:", stream);
+                    
                     /*
                         create an audio context after getUserMedia is called
                         sampleRate might change after getUserMedia is called, like it does on macOS when recording through AirPods
@@ -350,6 +644,7 @@
 
                     //assign to gumStream for later use
                     gumStream = stream;
+                    console.log("✓ gumStream atribuído:", gumStream);
                     
                     /* use the stream */
                     input = audioContext.createMediaStreamSource(stream);
@@ -364,80 +659,290 @@
                         workerDir: "js/", // must end with slash
                         encoding: encodingType,
                         numChannels:2, //2 is the default, mp3 encoding supports only 2
-                        onEncoderLoading: function(recorder, encoding) {},
-                        onEncoderLoaded: function(recorder, encoding) {}
+                        onEncoderLoading: function(recorder, encoding) {
+                            console.log("Carregando encoder...");
+                        },
+                        onEncoderLoaded: function(recorder, encoding) {
+                            console.log("✓ Encoder carregado: " + encoding);
+                        }
                     });
+                    
+                    console.log("✓ recorder criado:", recorder);
 
                     recorder.onComplete = function(recorder, blob) {
+                        console.log("✓ Gravação completa, tamanho: " + blob.size + " bytes");
                         createDownloadLink(blob,recorder.encoding);
+                        audioProcessado = true;  // Marca que o áudio foi completamente processado
+                        console.log("✓ audioProcessado = true (pronto para envio)");
                         encodingTypeSelect.disabled = false;
+                    }
+                    
+                    recorder.onError = function(recorder, message) {
+                        // Ignorar silenciosamente o erro "no recording is running" que ocorre quando finishRecording eh chamado apos recording ja estar completo
+                        if (message && message.indexOf("no recording is running") !== -1) {
+                            console.warn("AVISO: Tentativa de finalizar gravacao que ja foi finalizada. Ignorando...");
+                            return;
+                        }
+                        console.error("ERRO no gravador:", message);
+                        alert("Erro durante a gravacao: " + message);
                     }
 
                     recorder.setOptions({
                         timeLimit:120,
                         encodeAfterRecord:encodeAfterRecord,
                         ogg: {quality: 0.5},
-                        mp3: {bitRate: 160}
+                        mp3: {bitRate: 32}  // Otimizado para 32 kbps (voz clara, arquivo pequeno)
                     });
 
                     //start the recording process
+                    console.log("Iniciando gravação...");
                     recorder.startRecording();
+                    console.log("✓ Gravação iniciada");
                 })
-                .catch(function(err) {});
+                .catch(function(err) {
+                    console.error("✗ Erro ao acessar microfone:", err);
+                    console.error("Detalhes:", err.name, err.message);
+                    gumStream = null;
+                    recorder = null;
+                    alert("Erro ao acessar o microfone. Verifique as permissões e tente novamente.\n\nDetalhes: " + err.name + " - " + err.message);
+                });
             }
 
             function stopRecording() {
+                console.log("Parando gravacao...");
+                
+                // Verificar se gumStream foi inicializado
+                if (!gumStream) {
+                    console.error("ERRO: gumStream nao foi inicializado. Verifique se o microfone foi acessado corretamente.");
+                    alert("Erro: o microfone nao foi inicializado corretamente. Tente novamente.");
+                    return;
+                }
+                
+                // Verificar se recorder foi inicializado
+                if (!recorder) {
+                    console.error("ERRO: recorder nao foi inicializado. Verifique se o gravador foi criado corretamente.");
+                    alert("Erro: o gravador nao foi inicializado corretamente. Tente novamente.");
+                    return;
+                }
+                
+                // CRITICO: Verificar se a gravacao realmente esta em andamento
+                if (!recorder.isRecording || !recorder.isRecording()) {
+                    console.warn("AVISO: A gravacao nao esta em andamento! Pulando finishRecording()");
+                    return;
+                }
+                
                 //stop microphone access
-                gumStream.getAudioTracks()[0].stop();
+                try {
+                    if (gumStream && gumStream.getAudioTracks) {
+                        gumStream.getAudioTracks()[0].stop();
+                        console.log("OK: Microfone desligado");
+                    }
+                } catch(e) {
+                    console.error("Erro ao desligar microfone:", e);
+                }
 
                 //tell the recorder to finish the recording (stop recording + encode the recorded audio)
-                recorder.finishRecording();
+                try {
+                    if (recorder && recorder.finishRecording) {
+                        recorder.finishRecording();
+                        console.log("OK: Finalizando gravacao...");
+                    }
+                } catch(e) {
+                    console.error("Erro ao finalizar gravacao:", e);
+                    // Nao mostra alert aqui pois ja mostrou acima
+                }
             }
 
             function createDownloadLink(blob,encoding) {
-                var url = URL.createObjectURL(blob);
-                var audio = document.createElement('audio');
-                var li = document.createElement('li');
-                var link = document.createElement('a');
-
-                //add controls to the <audio> element
-                audio.controls = true;
-                audio.src = url;
-                audio.setAttribute("style", "margin-top: 300");
-                audio.setAttribute("id", "audioView");
-
-                //link the a element to the blob
-                link.href = url;
-                link.download = new Date().toISOString() + '.'+encoding;
-                link.innerHTML = link.download;
-
-                //add the new audio and a elements to the li element
-                li.appendChild(audio);
-                li.appendChild(link);
-
-                //add the li element to the ordered list
-                //coloco o Audio no formulário	
-                ehaudio = true;
-               // form.append("upload", blob, link.download);
-               form.append("upload", blob, 'audio_gravado.mp3');
-                
-                if( $('#parametrosEnvioAudioAut').val() === "1" ){
-                    $("#btnEnviar").click();
+                // Validar se o blob tem dados
+                if (!blob || blob.size === 0) {
+                    console.error("✗ Blob vazio:", blob);
+                    alert("Erro: nenhum áudio foi gravado. Tente novamente!");
+                    return;
                 }
-                else{
-                    // Habilitando o Envio da Imagem e Bloqueando as demais Opções //
-                        $("#btnEnviar").attr("style", "display: block");
-                        $("#divAudio").attr("style", "display: none");
+                
+                console.log("✓ Áudio gravado com sucesso: " + blob.size + " bytes");
+                console.log("✓ Tipo: " + blob.type);
+                console.log("✓ Blob:", blob);
+                
+                // Converter blob para Base64
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    var audioBase64 = e.target.result; // Inclui o prefixo data:audio/mpeg;base64,
+                    console.log("✓ Áudio convertido para Base64: " + audioBase64.length + " caracteres");
+                    console.log("✓ Primeiros 100 caracteres Base64:", audioBase64.substring(0, 100));
+                    
+                    // Verificar se audioBase64 tem conteúdo
+                    if (!audioBase64 || audioBase64.length === 0) {
+                        console.error("✗ AudioBase64 vazio após conversão!");
+                        alert("Erro: falha na conversão do áudio para Base64");
+                        audioProcessado = false;  // Reset flag
+                        return;
+                    }
+                    
+                    // Verificação defensiva: se ehaudio já é true, resetar form para evitar reutilização
+                    if (ehaudio) {
+                        console.warn("Aviso: ehaudio ja eh true! Limpando form para evitar duplicacao...");
+                        form = new FormData();
+                    }
+                    
+                    //coloco o Audio no formulário	
+                    ehaudio = true;
+                    audioProcessado = false;  // Ainda não processado completamente
+                    form.append("audioBase64", audioBase64);
+                    audioProcessado = true;  // AGORA marca como processado
+                    console.log("✓ Áudio em Base64 adicionado ao formulário");
+                    console.log("✓ audioProcessado = true");
+                    
+                    if( $('#parametrosEnvioAudioAut').val() === "1" ){
+                        console.log("Enviando áudio automaticamente...");
+                        
+                        // Criar novo FormData para auto-send (não reutilizar form)
+                        var formAutoSend = new FormData();
+                        
+                        // Adicionar campos de controle
+                        formAutoSend.append('numero', $("#s_numero").val());
+                        formAutoSend.append('id_atendimento', $("#s_id_atendimento").val());
+                        formAutoSend.append('nome', $("#s_nome").val());
+                        formAutoSend.append('id_canal', $("#s_id_canal").val());
+                        formAutoSend.append('msg', $("#msg").val());
+                        formAutoSend.append('Resposta', $("#RespostaSelecionada").html());
+                        formAutoSend.append('idResposta', $("#chatid_resposta").val());
+                        formAutoSend.append('anexomsgRapida', $("#anexomsgRapida").val());
+                        formAutoSend.append('nomeanexomsgRapida', $("#nomeanexomsgRapida").val());
+                        
+                        // Adicionar audioBase64 DIRETAMENTE (não do form)
+                        formAutoSend.append('audioBase64', audioBase64);
+                        
+                        console.log("📤 Enviando FormData com audioBase64...");
+                        console.log("audioBase64 tamanho: " + audioBase64.length);
+                        
+                        // Submit AJAX directly without jQuery click()
+                        $.ajax({
+                            url: 'atendimento/gravarMensagem.php',
+                            data: formAutoSend,  // Usar o novo form, não o global
+                            processData: false,
+                            contentType: false,
+                            type: 'POST',
+                            success: function(retorno) {
+                                console.log("✓ Áudio enviado com sucesso. Resposta do servidor:", retorno);
+                                
+                                // CRÍTICO: Resetar flags IMEDIATAMENTE antes de qualquer outra operação
+                                form = new FormData();
+                                ehaudio = false;
+                                audioConfirmado = false;
+                                audioProcessado = false;
+                                enviandoMensagem = false;
+                                imageClipboard = false;
+                                imageCamera = false;
+                                
+                                // Limpar campos do formulário
+                                $("#msg").val("");
+                                $("#anexomsgRapida").val("0");
+                                $("#RespostaSelecionada").html("");
+                                $("#chatid_resposta").val("");
+                                $("#upload").val("");
+                                $("#imgDragDrop").val("");
+                                
+                                // Limpar elementos de UI
+                                removeFile();
+                                cancelaUploadImageClipboard();
+                                
+                                console.log("✓ Flags resetados ANTES de reanudar intervalo");
+                                console.log("✓ ehaudio=false, audioConfirmado=false, audioProcessado=false, enviandoMensagem=false");
+                                
+                                $("#divAudio").attr("style", "display: block");
+                                $("#msg").focus();
+                                
+                                // Retomar intervalo DEPOIS de resetar tudo
+                                reanudarIntervalo();
+                                
+                                // Usar setTimeout para pedir atualização após um pequeno delay
+                                setTimeout(function() {
+                                    console.log("Atualizando mensagens...");
+                                    carregaAtendimento();
+                                }, 500);
+                            },
+                            error: function(jqXHR, textStatus, errorThrown) {
+                                console.error("✗ Erro ao enviar áudio:", textStatus, errorThrown);
+                                console.error("Resposta servidor:", jqXHR.responseText);
+                                
+                                // Resetar flags também em caso de erro
+                                enviandoMensagem = false;
+                                ehaudio = true;  // Manter como true para retry
+                                
+                                reanudarIntervalo(); // Retoma auto-refresh em caso de erro
+                                alert("Erro ao enviar áudio. Tente novamente.");
+                                $("#btnEnviar").prop("disabled", false);
+                            }
+                        });
+                    }
+                    else{
+                        // Pré-visualizzar áudio no painel (modo manual)
+                        var url = audioBase64;
+                        var audio = document.createElement('audio');
+                        audio.controls = true;
+                        audio.src = url;
+                        audio.setAttribute("style", "width: 100%; margin: 10px 0;");
+                        audio.setAttribute("id", "audioView");
+
+                        // Habilitando o Envio e Bloqueando as demais Opções //
+                        $("#btnEnviar")[0].style.setProperty("display", "block", "important");
+                        $("#btnEnviar")[0].style.setProperty("visibility", "visible", "important");
+                        $("#btnFotografar").hide();
+                        $("#btnRecorder").hide();
                         $("#lnkRespostaRapida").removeAttr( "onclick");
                         $("#btnViewEmojs").prop( "disabled", true );
                         $("#msg").prop( "disabled", true );
-                    // FIM Habilitando o Envio da Imagem e Bloqueando as demais Opções //
+                        // FIM Habilitando o Envio e Bloqueando as demais Opções //
 
-                    // Abrindo o Pré-visualizar //
-                    $(".panel-upImage").addClass("open");
-                    $("#dragDropImage").attr("style", "display:none");
-                    $("#panel-upload-image").append(audio);
-                }
+                        // CRÍTICO: Pausar auto-refresh enquanto painel de pré-visualização está aberto
+                        pausarIntervalo();
+                        console.log("⏸ Auto-refresh pausado para visualização de áudio");
+
+                        // Abrindo o Pré-visualizar //
+                        $(".panel-upImage").addClass("open");
+                        $("#dragDropImage").attr("style", "display:none");
+                        
+                        // CRÍTICO: Garantir que o botão Enviar fica acessível acima do overlay
+                        $("#btnEnviar").css({
+                            "position": "relative",
+                            "z-index": "11000",
+                            "pointer-events": "auto"
+                        });
+                        
+                        // Limpar conteúdo anterior
+                        $("#panel-upload-image").html("");
+                        
+                        // Adicionar novo áudio
+                        $("#panel-upload-image").append(audio);
+                        
+                        // Marcar como confirmado e pronto para enviar
+                        audioConfirmado = true;
+                        // audioProcessado já está true desde a leitura do FileReader
+                        console.log("✓ Áudio pré-visualizado e pronto para envio manual");
+                        console.log("✓ audioConfirmado = true, audioProcessado = true");
+                        console.log("✅ Painel de preview aberto - teste o áudio");
+                        console.log("ℹ️ Botão de envio acessível acima do overlay");
+                    }
+                };
+                
+                reader.onerror = function(error) {
+                    console.error("✗ Erro ao converter áudio para Base64:", error);
+                    alert("Erro ao processar áudio. Tente novamente.");
+                    reanudarIntervalo();
+                };
+                
+                reader.onprogress = function(event) {
+                    if (event.lengthComputable) {
+                        var percentComplete = (event.loaded / event.total) * 100;
+                        console.log("📊 Progresso de conversão: " + percentComplete.toFixed(2) + "%");
+                    }
+                };
+                
+                console.log("🔄 Iniciando conversão do blob para Base64...");
+                // Iniciar leitura do blob como Data URL (Base64)
+                reader.readAsDataURL(blob);
             }
 
             function __log(e, data) {
@@ -447,8 +952,12 @@
 
         // Scripts referentes à Gravação de Áudio //
             // Ocultar microfone e mosrar ítens gravando
-            $(".bt-recorder").click(function(){
+            $(".bt-recorder").click(function(event){
+                event.preventDefault();
+                console.log("Clique no botão GRAVAR");
                 if( $("#myInterval").val() !== "0" ){ clearInterval($("#myInterval").val()); }
+
+                pausarIntervalo(); // Pausa o auto-refresh enquanto grava
 
                 startRecording();
                 var myInterval = startTimer(0, $("#time"));
@@ -459,8 +968,12 @@
                 $("#msg").prop("disabled", true);
             });
             // Reaparecer microfone ao clicar em Stop
-            $(".bt-cancel").click(function(){
+            $(".bt-cancel").click(function(event){
+                event.preventDefault();
+                console.log("Clique no botão CANCELAR gravação");
                 if( $("#myInterval").val() !== "0" ){ clearInterval($("#myInterval").val()); }
+
+                reanudarIntervalo(); // Retoma o auto-refresh ao cancelar
 
                 stopRecording()
                 $("#gravando").val("9");
@@ -468,10 +981,18 @@
                 $(".microfone").slideDown(200);
                 $("#time").text("00:00");
                 $("#msg").prop( "disabled", false );
-                audioConfirmado = false;  // Áudio foi cancelado
+                
+                // CRÍTICO: Resetar TUDO ao cancelar
+                audioConfirmado = false;
+                audioProcessado = false;
+                ehaudio = false;
+                form = new FormData();  // Limpar form completamente
+                console.log("✓ Gravação cancelada - TODOS os flags zerados");
             });
             // Reaparecer microfone ao clicar em Send
-            $(".bt-send").click(function(){
+            $(".bt-send").click(function(event){
+                event.preventDefault();
+                console.log("Clique no botão ENVIAR (finalizar gravação)");
                 if( $("#myInterval").val() !== "0" ){ clearInterval($("#myInterval").val()); }
                 
                 stopRecording();
@@ -480,7 +1001,8 @@
                 $(".microfone").slideDown(200);
                 $("#time").text("00:00");
                 $("#msg").prop( "disabled", false );
-                $("#btnEnviar").attr("style", "display: block");
+                $("#btnEnviar")[0].style.setProperty("display", "block", "important");
+                $("#btnEnviar")[0].style.setProperty("visibility", "visible", "important");
                 audioConfirmado = true;  // Áudio foi confirmado - pronto para enviar ao pressionar Enter
             });
         // FIM Scripts referentes à Gravação de Áudio //
@@ -539,8 +1061,10 @@
                        // form.append("upload", file, "clipboard_image.png");
 
                         // Habilitando o Envio da Imagem e Bloqueando as demais Opções //
-                            $("#btnEnviar").attr("style", "display: block");
-                            $("#divAudio").attr("style", "display: none");
+                            $("#btnEnviar")[0].style.setProperty("display", "block", "important");
+                            $("#btnEnviar")[0].style.setProperty("visibility", "visible", "important");
+                            $("#btnFotografar").hide();
+                            $("#btnRecorder").hide();
                             $("#lnkRespostaRapida").removeAttr( "onclick");
                             $("#btnViewEmojs").prop( "disabled", true );
                         // FIM Habilitando o Envio da Imagem e Bloqueando as demais Opções //
@@ -555,15 +1079,32 @@
             });
 
             function cancelaUploadImageClipboard() {
+                // CRÍTICO: Reativar auto-refresh quando painel de pré-visualização fecha
+                if (audioConfirmado) {
+                    console.log("▶ Reativando auto-refresh após fechar pré-visualização de áudio");
+                    reanudarIntervalo();
+                }
+                
                 $(".panel-upImage").removeClass('open');
+                $("#panel-upImage-backdrop").remove();
+                
+                // CRÍTICO: Remover estilos forçados do botão e deixar CSS padrão
+                $("#btnEnviar").removeAttr("style");
                 $("#btnEnviar").attr("style", "display: none");
-                $("#divAudio").attr("style", "display: block");
+                
+                $("#btnFotografar").show();
+                $("#btnRecorder").show();
                 $("#lnkRespostaRapida").attr( "onclick", "abrirModal('#modalRespostaRapida')" );
                 $("#btnViewEmojs").prop( "disabled", false );
                 $("#msg").prop( "disabled", false );
+                // Limpar input file via DOM nativo para garantir reset completo
+                var imgInput = document.getElementById('imgDragDrop');
+                if (imgInput) imgInput.value = null;
                 $("#upload").val("");
-                $("#imgDragDrop").val("");
                 ehupload = false;
+
+                // Restaurar a área de drag-drop para o próximo uso
+                $("#dragDropImage").attr("style", "display:block");
 
                 // Removendo as Tags <img> e <audio> //
                 removeFile();
@@ -584,8 +1125,12 @@
 
 
                     $(".panel-upImage").addClass("open");
-                    $("#btnEnviar").attr("style", "display: block");
-                    $("#divAudio").attr("style", "display: none");
+                    // Remover backdrop para que o preview fique visível
+                    $("#panel-upImage-backdrop").remove();
+                    $("#btnEnviar")[0].style.setProperty("display", "block", "important");
+                    $("#btnEnviar")[0].style.setProperty("visibility", "visible", "important");
+                    $("#btnFotografar").hide();
+                    $("#btnRecorder").hide();
 
                     // Criando o Elemento <img> //
                         var imageClipboard = true;
@@ -696,13 +1241,11 @@
             });
 
             //Testando pra abrir pra selecionar arquivo
-            $("#dragDropImage").click(function() {
-                //Se for mobile eu forço a abertura para selecionar arquivos
-                var larguradatela = $(window).width();
-                if (larguradatela < 801){ //Se a tela for menor qu 800pixels minimizo os atendimentos para ficar mais responsivo
-                   var input = document.getElementById('imgDragDrop');                 
-                    input.click();   
-                }                                 
+            $("#dragDropImage").click(function(e) {
+                // Se o clique foi no próprio input file, não precisa disparar de novo
+                if (e.target.id === 'imgDragDrop') return;
+                var input = document.getElementById('imgDragDrop');                 
+                input.click();   
             });
             
 
@@ -731,6 +1274,7 @@
 
                             // Abrindo o Painel de Visualização do Arquivo //
                             $(".panel-upImage").removeClass('open');
+                            $("#panel-upImage-backdrop").remove();
                         }
                     }
                 });
@@ -739,9 +1283,10 @@
 
         // Removendo o Arquivo antes de Enviar //
             function removeFile() {
-                var imgView = document.getElementById("imgView");
+                // Remover TODOS os elementos imgView (pode haver múltiplos de seleções anteriores)
+                var imgViews = document.querySelectorAll("#imgView, .imgView");
+                for (var i = 0; i < imgViews.length; i++) { imgViews[i].remove(); }
                 var audView = document.getElementById("audioView");
-                if( imgView !== null ){ imgView.remove(); }
                 if( audView !== null ){ audView.remove(); }
             }
         // FIM Removendo o Arquivo antes de Enviar //
@@ -835,8 +1380,10 @@
     
             //    screenshotsContainer.prepend(img);               
                 $(".panel-upImage").addClass("open");
-                $("#btnEnviar").attr("style", "display: block");
-                $("#divAudio").attr("style", "display: none");
+                $("#btnEnviar")[0].style.setProperty("display", "block", "important");
+                $("#btnEnviar")[0].style.setProperty("visibility", "visible", "important");
+                $("#btnFotografar").hide();
+                $("#btnRecorder").hide();
 
                 imageCamera = true;
                 
@@ -857,8 +1404,64 @@
                   
                   // FIM Habilitando o Envio da Imagem e Bloqueando as demais Opções //          
            
-                 $('#mdlTiraFoto').modal('hide');         
-                 $("#msg").focus();                 
+                 $('#mdlTiraFoto').modal('hide');
+                 
+                 // Auto-enviar foto se configurado
+                 if( $('#parametrosEnvioFotoAuto').val() === "1" ){
+                    console.log("Enviando foto automaticamente...");
+                    
+                    var formAutoSendFoto = new FormData();
+                    formAutoSendFoto.append('numero', $("#s_numero").val());
+                    formAutoSendFoto.append('id_atendimento', $("#s_id_atendimento").val());
+                    formAutoSendFoto.append('nome', $("#s_nome").val());
+                    formAutoSendFoto.append('id_canal', $("#s_id_canal").val());
+                    formAutoSendFoto.append('msg', $("#msg").val());
+                    formAutoSendFoto.append('Resposta', $("#RespostaSelecionada").html());
+                    formAutoSendFoto.append('idResposta', $("#chatid_resposta").val());
+                    formAutoSendFoto.append('anexomsgRapida', $("#anexomsgRapida").val());
+                    formAutoSendFoto.append('nomeanexomsgRapida', $("#nomeanexomsgRapida").val());
+                    formAutoSendFoto.append('imageBase64', base64String);
+                    
+                    $.ajax({
+                        url: 'atendimento/gravarMensagem.php',
+                        data: formAutoSendFoto,
+                        processData: false,
+                        contentType: false,
+                        type: 'POST',
+                        success: function(retorno) {
+                            console.log("Foto enviada com sucesso. Resposta:", retorno);
+                            
+                            form = new FormData();
+                            imageCamera = false;
+                            imageClipboard = false;
+                            
+                            $("#msg").val("");
+                            $("#anexomsgRapida").val("0");
+                            $("#RespostaSelecionada").html("");
+                            $("#chatid_resposta").val("");
+                            $("#upload").val("");
+                            $("#imgDragDrop").val("");
+                            
+                            removeFile();
+                            cancelaUploadImageClipboard();
+                            
+                            console.log("Flags resetados apos auto-send de foto");
+                            
+                            $("#divAudio").attr("style", "display: block");
+                            $("#msg").focus();
+                            
+                            setTimeout(function() {
+                                carregaAtendimento();
+                            }, 500);
+                        },
+                        error: function(jqXHR, textStatus, errorThrown) {
+                            console.error("Erro ao enviar foto:", textStatus);
+                            alert("Erro ao enviar foto.");
+                        }
+                    });
+                 } else {
+                    $("#msg").focus();
+                 }
                  return false;
                  
             });

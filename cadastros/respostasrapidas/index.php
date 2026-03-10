@@ -7,7 +7,7 @@
     <h2 class="title" id="titleCadastroRespostaRapida">Adicionar Resposta Rápida</h2>
     <div class="">
         <form method="post" id="gravaRespostaRapida" name="gravaRespostaRapida" action="/cadastros/respostasrapidas/salvar.php" enctype="multipart/form-data">
-            <input type="hidden" value="0" name="acaoRespostaRapida" id="acaoRespostaRapida" />
+    <?php echo csrfField(); ?>
 			<input type="hidden" value="0" name="IdRespostaRapida" id="IdRespostaRapida" />
 			
   

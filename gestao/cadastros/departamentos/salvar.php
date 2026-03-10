@@ -1,6 +1,8 @@
 <?php
   require_once("../../../includes/padrao.inc.php");
 
+  if (!validarCSRF()) { echo "Token de segurança inválido."; exit; }
+
   $acao          = $_POST['acao'];
   $id            = $_POST['id'];
   $menu          = @$_POST['menu'];

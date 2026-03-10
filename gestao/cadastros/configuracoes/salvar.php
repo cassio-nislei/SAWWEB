@@ -1,6 +1,8 @@
 <?php
    require_once("../../../includes/padrao.inc.php");
 
+   if (!validarCSRF()) { echo "Token de segurança inválido."; exit; }
+
    $msg_aguardando_atendimento   = quebraDeLinha($_POST['msg_aguardando_atendimento']);
    $msg_inicio_atendimento       = quebraDeLinha($_POST['msg_inicio_atendimento']);
    $msg_inicio_atendente         = quebraDeLinha($_POST['msg_inicio_atendente']); 
@@ -17,6 +19,7 @@
    $iniciar_conversa             = !empty($_POST['iniciar_conversa']) ? $_POST['iniciar_conversa'] : "0";
    $env_resprapida_aut           = !empty($_POST['enviar_resprapida_aut']) ? $_POST['enviar_resprapida_aut'] : "0";
    $enviar_audio_aut             = !empty($_POST['enviar_audio_aut']) ? $_POST['enviar_audio_aut'] : "0";
+   $enviar_foto_aut              = !empty($_POST['enviar_foto_aut']) ? $_POST['enviar_foto_aut'] : "0";
    $qrcode                       = !empty($_POST['qrcode']) ? $_POST['qrcode'] : "0";
    $op_naoenv_ultmsg             = !empty($_POST['op_naoenv_ultmsg']) ? $_POST['op_naoenv_ultmsg'] : "0";
    $exibir_foto_perfil           = !empty($_POST['exibir_foto_perfil']) ? $_POST['exibir_foto_perfil'] : "0";
@@ -34,8 +37,22 @@
    
    $foto = !empty($_POST["foto2"]) ? mysqli_real_escape_string($conexao, trim($_POST["foto2"])) : "";
 
-	// DEBUG - Log para verificar se foto está sendo recebida
-	error_log("DEBUG: foto2 recebido: " . (!empty($_POST["foto2"]) ? "SIM (tamanho: " . strlen($_POST["foto2"]) . ")" : "NÃO"));
+	// DEBUG - removido log verboso
+	
+	// Verificar se a coluna enviar_foto_aut existe (pode não existir em versões antigas)
+	$colEnviarFotoAut = mysqli_query($conexao, "SHOW COLUMNS FROM tbparametros LIKE 'enviar_foto_aut'");
+	$temColEnviarFotoAut = ($colEnviarFotoAut && mysqli_num_rows($colEnviarFotoAut) > 0);
+	if (!$temColEnviarFotoAut) {
+		// Tentar criar a coluna automaticamente
+		mysqli_query($conexao, "ALTER TABLE tbparametros ADD COLUMN enviar_foto_aut TINYINT(1) DEFAULT 0");
+		$colEnviarFotoAut2 = mysqli_query($conexao, "SHOW COLUMNS FROM tbparametros LIKE 'enviar_foto_aut'");
+		$temColEnviarFotoAut = ($colEnviarFotoAut2 && mysqli_num_rows($colEnviarFotoAut2) > 0);
+	}
+
+	// Sanitizar os inputs com escape
+	$title = mysqli_real_escape_string($conexao, $title);
+	$minutosOffline = intval($minutosOffline);
+	$color = mysqli_real_escape_string($conexao, $color);
 
 	// Atualiza a cor da tarja na Sessão //
 	$_SESSION["parametros"]["color"] = $color;
@@ -105,7 +122,14 @@
                   , historico_conversas = '".$historico_conversas."'
                   , iniciar_conversa = '".$iniciar_conversa."'
                   , enviar_resprapida_aut = '".$env_resprapida_aut."'
-                  , enviar_audio_aut = '".$enviar_audio_aut."'
+                  , enviar_audio_aut = '".$enviar_audio_aut."'";
+      
+      // Só incluir enviar_foto_aut se a coluna existir
+      if ($temColEnviarFotoAut) {
+         $sql .= ", enviar_foto_aut = '".$enviar_foto_aut."'";
+      }
+      
+      $sql .= "
                   , qrcode = '".$qrcode."'
                   , op_naoenv_ultmsg = '".$op_naoenv_ultmsg."'
                   , exibe_foto_perfil = '".$exibir_foto_perfil."'
@@ -128,14 +152,16 @@
 
       $sql .= " WHERE id = 1";
 
-      $atualizar = mysqli_query($conexao,$sql)
-         or die($sql."<br/>".mysqli_error($conexao));
+      $atualizar = mysqli_query($conexao,$sql);
+
+      if (!$atualizar) {
+         error_log("Erro ao atualizar parametros: " . mysqli_error($conexao));
+      }
 
       if ($atualizar){ 
          echo "1"; 
-         error_log("UPDATE sucesso - imagem_perfil atualizado: " . (!empty($foto) ? "SIM" : "NÃO"));
       }
       else{
-         error_log("ERRO UPDATE: " . mysqli_error($conexao));
+         error_log("Erro UPDATE parametros: " . mysqli_error($conexao));
       }
    }

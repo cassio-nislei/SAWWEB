@@ -1,22 +1,24 @@
 <?php
 require_once("../../../includes/padrao.inc.php");
 
+if (!validarCSRF()) { echo "Token de segurança inválido."; exit; }
+
 // Garantir que a coluna 'foto' existe
 $verificaColuna = mysqli_query($conexao, "SHOW COLUMNS FROM tbusuario LIKE 'foto'");
 if (mysqli_num_rows($verificaColuna) == 0) {
     mysqli_query($conexao, "ALTER TABLE tbusuario ADD COLUMN foto LONGTEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci AFTER nome_chat");
 }
 
-$acao           = $_POST['acaoUsuario'];
-$id             = isset($_POST['id_usuarios']) ? $_POST['id_usuarios'] : '0';
-$nome           = $_POST['nome_usuario'];
-$login          = $_POST['login'];
-$email          = $_POST['email'];
-$senha          = $_POST["senha"];
-$perfil         = $_POST["perfil"];
+$acao           = isset($_POST['acaoUsuario']) ? $_POST['acaoUsuario'] : '0';
+$id             = isset($_POST['id_usuarios']) ? intval($_POST['id_usuarios']) : 0;
+$nome           = isset($_POST['nome_usuario']) ? trim($_POST['nome_usuario']) : '';
+$login          = isset($_POST['login']) ? trim($_POST['login']) : '';
+$email          = isset($_POST['email']) ? trim($_POST['email']) : '';
+$senha          = isset($_POST["senha"]) ? $_POST["senha"] : '';
+$perfil         = isset($_POST["perfil"]) ? intval($_POST["perfil"]) : 0;
 $fotoBase64     = isset($_POST['foto_base64']) ? $_POST['foto_base64'] : '';
 
-if (trim($_POST['nome_usuario'])==''){
+if (trim($nome)==''){
 	exit();
 }
 //A: ATIVO; I: INATIVO
@@ -28,28 +30,39 @@ if (isset($_POST["usuario_ativo"])){
 
 // Se ação é UPDATE (acao != 0) e id está vazio, buscar por nome
 if ($acao != 0 && empty($id)) {
-	$buscaNome = mysqli_query($conexao, "SELECT id FROM tbusuario WHERE nome = '".$nome."' LIMIT 1");
+	$stmtBusca = mysqli_prepare($conexao, "SELECT id FROM tbusuario WHERE nome = ? LIMIT 1");
+	mysqli_stmt_bind_param($stmtBusca, "s", $nome);
+	mysqli_stmt_execute($stmtBusca);
+	$buscaNome = mysqli_stmt_get_result($stmtBusca);
 	if (mysqli_num_rows($buscaNome) > 0) {
 		$resultadoBusca = mysqli_fetch_assoc($buscaNome);
-		$id = $resultadoBusca['id'];
+		$id = intval($resultadoBusca['id']);
 	}
+	mysqli_stmt_close($stmtBusca);
 }
     
 
 if( $acao == 0 ){
-	$existe = mysqli_query($conexao, "SELECT * FROM tbusuario WHERE login = '".$login."'");
+	$stmtExiste = mysqli_prepare($conexao, "SELECT id FROM tbusuario WHERE login = ?");
+	mysqli_stmt_bind_param($stmtExiste, "s", $login);
+	mysqli_stmt_execute($stmtExiste);
+	$existe = mysqli_stmt_get_result($stmtExiste);
 
 	if( mysqli_num_rows($existe) > 0 ){
 		echo "3";
+		mysqli_stmt_close($stmtExiste);
 		exit();
 	}
+	mysqli_stmt_close($stmtExiste);
 
-	// Preparar foto (escapar para MySQL)
-	$fotoParaDB = !empty($fotoBase64) ? mysqli_real_escape_string($conexao, $fotoBase64) : '';
+	// Hash da senha com bcrypt
+	$senhaHash = hashSenha($senha);
+	$fotoParaDB = !empty($fotoBase64) ? $fotoBase64 : '';
 	
-	$sql = "INSERT INTO tbusuario (nome, login, email, senha, situacao, nome_chat, perfil, foto) VALUES ('$nome', '$login','$email', '$senha', '$ativo', '$nome', '$perfil', '$fotoParaDB')";
-	$inserir = mysqli_query($conexao, $sql)
-		or die($sql . "<br />" . mysqli_error($conexao));
+	$stmtInsert = mysqli_prepare($conexao, "INSERT INTO tbusuario (nome, login, email, senha, situacao, nome_chat, perfil, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?)");
+	mysqli_stmt_bind_param($stmtInsert, "ssssssis", $nome, $login, $email, $senhaHash, $ativo, $nome, $perfil, $fotoParaDB);
+	$inserir = mysqli_stmt_execute($stmtInsert);
+	mysqli_stmt_close($stmtInsert);
 
 	if( $inserir ){
 		echo "1";
@@ -63,32 +76,37 @@ else{
 			exit();
 		  }
 	}
-	
-	  
-	
+
 	  if ($_SESSION["usuariosaw"]["perfil"] == 0){
-		 //Busco o nome do usuario para saber se é o admin
-		 $usuario = mysqli_query($conexao,"select login from tbusuario where id = '$id'") or die(mysqli_error($conexao));
+		 $stmtUsuario = mysqli_prepare($conexao, "SELECT login FROM tbusuario WHERE id = ?");
+		 mysqli_stmt_bind_param($stmtUsuario, "i", $id);
+		 mysqli_stmt_execute($stmtUsuario);
+		 $usuario = mysqli_stmt_get_result($stmtUsuario);
 		 $usuarioSelecionado = mysqli_fetch_assoc($usuario);
-		if ($usuarioSelecionado["login"]=='admin'){
-		  echo '5'; //Retorno 4 e aviso que não pode Desativar o Administrador Principal
+		 mysqli_stmt_close($stmtUsuario);
+		if ($usuarioSelecionado && $usuarioSelecionado["login"]=='admin'){
+		  echo '5';
 		   exit();
 		}
-		
 	  }
 
-	// Preparar foto (escapar para MySQL)
-	$fotoParaDB = !empty($fotoBase64) ? mysqli_real_escape_string($conexao, $fotoBase64) : '';
-	
-	// Se foto foi enviada, incluir no UPDATE
-	if (!empty($fotoParaDB)) {
-		$sql = "UPDATE tbusuario SET nome = '$nome', senha = '$senha', login = '$login', email = '$email', nome_chat = '$nome', perfil = '$perfil', situacao='$ativo', foto='$fotoParaDB' where id = '$id'";
-	} else {
-		$sql = "UPDATE tbusuario SET nome = '$nome', senha = '$senha', login = '$login', email = '$email', nome_chat = '$nome', perfil = '$perfil', situacao='$ativo' where id = '$id'";
+	// Se senha foi alterada, fazer hash
+	$senhaFinal = $senha;
+	if (!empty($senha)) {
+		$senhaFinal = hashSenha($senha);
 	}
+
+	$fotoParaDB = !empty($fotoBase64) ? $fotoBase64 : '';
 	
-	$atualizar = mysqli_query($conexao, $sql)
-		or die($sql . "<br />" . mysqli_error($conexao));
+	if (!empty($fotoParaDB)) {
+		$stmtUpdate = mysqli_prepare($conexao, "UPDATE tbusuario SET nome = ?, senha = ?, login = ?, email = ?, nome_chat = ?, perfil = ?, situacao = ?, foto = ? WHERE id = ?");
+		mysqli_stmt_bind_param($stmtUpdate, "sssssissi", $nome, $senhaFinal, $login, $email, $nome, $perfil, $ativo, $fotoParaDB, $id);
+	} else {
+		$stmtUpdate = mysqli_prepare($conexao, "UPDATE tbusuario SET nome = ?, senha = ?, login = ?, email = ?, nome_chat = ?, perfil = ?, situacao = ? WHERE id = ?");
+		mysqli_stmt_bind_param($stmtUpdate, "sssssisi", $nome, $senhaFinal, $login, $email, $nome, $perfil, $ativo, $id);
+	}
+	$atualizar = mysqli_stmt_execute($stmtUpdate);
+	mysqli_stmt_close($stmtUpdate);
    
 	if( $atualizar ){
 		echo "2";

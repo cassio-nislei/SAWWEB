@@ -298,6 +298,52 @@ if (!isset($_SESSION["usuariosaw"])) {
         word-wrap: break-word;
     }
 
+    /* Estilos para anexos */
+    .message-item img[onclick*="abrirImagemGrande"] {
+        border-radius: 8px;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+        transition: transform 0.2s ease;
+    }
+
+    .message-item img[onclick*="abrirImagemGrande"]:hover {
+        cursor: pointer;
+        transform: scale(1.02);
+        box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+    }
+
+    .message-item audio {
+        background: #f0f2f5;
+        border-radius: 8px;
+        padding: 8px;
+    }
+
+    .message-item .anexo-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 10px;
+        background: #f8f9fa;
+        border-radius: 8px;
+        border-left: 4px solid #667eea;
+        margin: 8px 0;
+    }
+
+    .message-item .anexo-container i {
+        font-size: 20px;
+        color: #667eea;
+    }
+
+    .message-item .anexo-container a {
+        color: #667eea;
+        text-decoration: none;
+        flex: 1;
+        font-weight: 500;
+    }
+
+    .message-item .anexo-container a:hover {
+        text-decoration: underline;
+    }
+
     .message-item.own .message-text {
         color: white;
     }
@@ -419,6 +465,32 @@ if (!isset($_SESSION["usuariosaw"])) {
 
     .btn-send i {
         font-size: 18px;
+    }
+
+    .btn-action {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #f0f2f5;
+        border: 2px solid #e0e0e0;
+        color: #667eea;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+        flex-shrink: 0;
+        font-size: 16px;
+    }
+
+    .btn-action:hover {
+        background: #e0e0e0;
+        border-color: #667eea;
+        color: #667eea;
+    }
+
+    .btn-action:active {
+        transform: scale(0.95);
     }
 
     .loading-spinner {
@@ -667,10 +739,26 @@ setInterval(forceMessageActionIconColors, 1000);
 
         <!-- Message Input (Second Row) -->
         <div class="input-wrapper">
+            <!-- Hidden file input para anexos -->
+            <input type="file" id="fileAnexo" accept="image/*,audio/*,.pdf,.doc,.docx" style="display: none;" />
+            
+            <!-- Preview de anexo -->
+            <div id="previewAnexo" style="display: none; margin-bottom: 10px; padding: 8px; background: #f0f2f5; border-radius: 5px; font-size: 12px;">
+                <span id="previewText"></span>
+                <button type="button" id="btnRemoverAnexo" style="margin-left: 10px; padding: 2px 8px; background: #dc3545; color: white; border: none; border-radius: 3px; cursor: pointer; font-size: 11px;">Remover</button>
+            </div>
+            
             <textarea id="msgChat" placeholder="Escreva sua mensagem..." data-lpignore="true"></textarea>
-            <button class="btn-send" id="btnSendMsg" title="Enviar (Enter)" disabled="">
-                <i class="bi bi-send-fill"></i>
-            </button>
+            
+            <!-- Botões de ação -->
+            <div style="display: flex; gap: 5px;">
+                <button class="btn-action" id="btnAnexar" title="Anexar Arquivo">
+                    <i class="fas fa-paperclip"></i>
+                </button>
+                <button class="btn-send" id="btnSendMsg" title="Enviar (Enter)" disabled="">
+                    <i class="bi bi-send-fill"></i>
+                </button>
+            </div>
         </div>
     </div>
 </div>
@@ -690,11 +778,74 @@ setInterval(forceMessageActionIconColors, 1000);
         var checkboxPrivado = $('#ehPrivada');
         var operadorSelectorDiv = $('#operadorSelectorDiv');
         var operadorSelect = $('#operadorDestino');
+        
+        // Variáveis para anexo
+        var anexoBase64 = null;
+        var anexoNome = null;
+        var anexoTipo = null;
+        var fileInput = $('#fileAnexo');
+        var btnAnexar = $('#btnAnexar');
+        var previewAnexo = $('#previewAnexo');
+        var previewText = $('#previewText');
+        var btnRemoverAnexo = $('#btnRemoverAnexo');
+
+        // Click em botão de anexar
+        btnAnexar.on('click', function(e) {
+            e.preventDefault();
+            fileInput.click();
+        });
+
+        // Quando arquivo é selecionado
+        fileInput.on('change', function(e) {
+            var file = e.target.files[0];
+            if (!file) return;
+
+            // Validações
+            var tiposPermitidos = ['image/jpeg', 'image/png', 'image/gif', 'audio/mpeg', 'audio/ogg', 'audio/webm', 'application/pdf'];
+            
+            if (!tiposPermitidos.includes(file.type)) {
+                alert('Tipo de arquivo não permitido. Envie imagens (JPG, PNG, GIF), áudios (MP3, OGG, WebM) ou PDF.');
+                fileInput.val('');
+                return;
+            }
+
+            // Validar tamanho máximo (10MB)
+            var maxSize = 10 * 1024 * 1024;
+            if (file.size > maxSize) {
+                alert('Arquivo muito grande. Máximo: 10MB');
+                fileInput.val('');
+                return;
+            }
+
+            // Converter para base64
+            var reader = new FileReader();
+            reader.onload = function(event) {
+                anexoBase64 = event.target.result;
+                anexoNome = file.name;
+                anexoTipo = file.type;
+
+                // Mostrar preview
+                var nomeArquivo = file.name.length > 30 ? file.name.substring(0, 27) + '...' : file.name;
+                previewText.text('📎 ' + nomeArquivo + ' (' + (file.size / 1024 / 1024).toFixed(2) + 'MB)');
+                previewAnexo.show();
+            };
+            reader.readAsDataURL(file);
+        });
+
+        // Remover anexo
+        btnRemoverAnexo.on('click', function(e) {
+            e.preventDefault();
+            anexoBase64 = null;
+            anexoNome = null;
+            anexoTipo = null;
+            fileInput.val('');
+            previewAnexo.hide();
+        });
 
         // Carregar lista de operadores
         function carregaOperadores(idDepto = 0) {
             $.ajax({
-                url: '/webchat/getOperadores.php?idDepto=' + idDepto,
+                url: 'webchat/getOperadores.php?idDepto=' + idDepto,
                 type: 'GET',
                 dataType: 'json',
                 success: function(response) {
@@ -721,7 +872,7 @@ setInterval(forceMessageActionIconColors, 1000);
             isLoading = true;
 
             $.ajax({
-                url: '/webchat/listaMensagens.php?idDepto=' + idDepartamento,
+                url: 'webchat/listaMensagens.php?idDepto=' + idDepartamento,
                 type: 'GET',
                 dataType: 'html',
                 timeout: 10000,
@@ -792,7 +943,8 @@ setInterval(forceMessageActionIconColors, 1000);
             const ehPrivada = checkboxPrivado.is(':checked') ? 1 : 0;
             const idDestinatario = ehPrivada ? parseInt(operadorSelect.val()) : 0;
 
-            if (!mensagem) return;
+            // Se não tem mensagem, verificar se tem anexo
+            if (!mensagem && !anexoBase64) return;
 
             // Se é privada e não selecionou operador
             if (ehPrivada && !idDestinatario) {
@@ -803,19 +955,28 @@ setInterval(forceMessageActionIconColors, 1000);
             btnSend.prop('disabled', true).html('<div class="loading-spinner"></div>');
 
             $.ajax({
-                url: '/webchat/gravarMensagemChat.php',
+                url: 'webchat/gravarMensagemChat.php',
                 type: 'POST',
                 dataType: 'json',
                 data: {
                     idDepto: idDepto,
                     strMensagem: mensagem,
                     ehPrivada: ehPrivada,
-                    idDestinatario: idDestinatario
+                    idDestinatario: idDestinatario,
+                    anexoBase64: anexoBase64,
+                    anexoNome: anexoNome,
+                    anexoTipo: anexoTipo
                 },
-                timeout: 10000,
+                timeout: 30000,
                 success: function(response) {
                     if (response.success) {
                         msgInput.val('').trigger('input');
+                        // Limpar anexo após envio
+                        anexoBase64 = null;
+                        anexoNome = null;
+                        anexoTipo = null;
+                        fileInput.val('');
+                        previewAnexo.hide();
                         carregaChat(idDepto);
                         btnSend.prop('disabled', true).html('<i class="bi bi-send-fill"></i>');
                     } else {
@@ -829,7 +990,7 @@ setInterval(forceMessageActionIconColors, 1000);
                     let mensagemErro = 'Erro ao enviar mensagem.';
                     
                     if (status === 'timeout') {
-                        mensagemErro += ' Tempo limite excedido.';
+                        mensagemErro += ' Tempo limite excedido (arquivo muito grande?).';
                     } else if (xhr.responseJSON && xhr.responseJSON.error) {
                         mensagemErro += ' ' + xhr.responseJSON.error;
                     }

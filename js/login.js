@@ -56,7 +56,8 @@ $( document ).ready(function() {
 		  var senha   = $("#senha").val();
 		  
 
-          $.post("login.php", {usuario:usuario,senha:senha}, function(data){
+          var csrfToken = $('input[name="csrf_token"]').val() || '';
+          $.post("login.php", {usuario:usuario,senha:senha,csrf_token:csrfToken}, function(data){
 		   var mensagem = data;
            // alert(data);		 
 			if(data==2){ //Usuario ainda não está ativo

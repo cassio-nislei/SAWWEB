@@ -331,7 +331,7 @@ if($interval->format('%i%h%d%m%y')=="00000")
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                 <i class="fas fa-envelope fa-fw"></i>
                                 <!-- Counter - Messages -->
-                                <span class="badge badge-danger badge-counter">0</span>
+                                <span class="badge badge-danger badge-counter"><?php echo qtdLinhas("SELECT id FROM tbenviomgsmassa WHERE ativo = 1"); ?></span>
                             </a>
                             <!-- Dropdown - Messages -->
                             <div class="dropdown-list dropdown-menu dropdown-menu-right shadow animated--grow-in"

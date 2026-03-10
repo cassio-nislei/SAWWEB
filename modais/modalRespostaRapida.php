@@ -4,6 +4,7 @@
 
     <div class="box-modal" id="FormRespostaRapida" style="display: none;">
         <form method="post" id="gravaRespostaRapida" name="gravaRespostaRapida" action="cadastros/respostasrapidas/salvar.php">
+        <?php echo csrfField(); ?>
         <input type="hidden" value="0" name="acaoRespostaRapida" id="acaoRespostaRapida">
         <input type="hidden" id="IdRespostaRapida" name="IdRespostaRapida" value="0" />
 

@@ -7,7 +7,8 @@
 		$htmlConversas = "";
 		//Perfil 0 = Administrador e Perfil 2 = Corrdenador
 		$mostra_todos_chats = isset($_SESSION["parametros"]["mostra_todos_chats"]) ? $_SESSION["parametros"]["mostra_todos_chats"] : 0;
-		$permissaoAdmin = (isset($_SESSION["usuariosaw"]["perfil"]) && ($_SESSION["usuariosaw"]["perfil"] == 0 || $_SESSION["usuariosaw"]["perfil"] == 2) && $mostra_todos_chats == 1) ? '' : "AND ta.id_atend = '".$id_usuario."'";
+	$id_usuario_safe = intval($id_usuario);
+	$permissaoAdmin = (isset($_SESSION["usuariosaw"]["perfil"]) && ($_SESSION["usuariosaw"]["perfil"] == 0 || $_SESSION["usuariosaw"]["perfil"] == 2) && $mostra_todos_chats == 1) ? '' : "AND ta.id_atend = '".$id_usuario_safe."'";
 		$ultHora = null;
 		$ultMsg = null;
 	// FIM Definições de Variáveis //
@@ -21,9 +22,16 @@
 	}
 
                                                                                                                                                                                                                                                     //Add Marcelo NOME_EMPRESA 
-	$strAtendimento = "SELECT taa.id, taa.numero, ta.nome, CASE WHEN  tc.nome IS NULL then ta.nome when tc.nome = '' then ta.nome else tc.nome END  AS nomeContato, ta.canal, ta.id_atend, ta.nome_atend, td.departamento, /*tfp.foto AS foto_perfil,*/ ta.nome_empresa,  
+	$strAtendimento = "SELECT taa.id, taa.numero, ta.nome, CASE WHEN tc.nome IS NULL then ta.nome when tc.nome = '' then ta.nome else tc.nome END AS nomeContato, ta.canal, ta.id_atend, ta.nome_atend, td.departamento, ta.nome_empresa,  
 						(SELECT nome FROM tbusuario WHERE id = ta.id_atend) AS operador,
-						(SELECT MAX(hr_msg) FROM tbmsgatendimento WHERE id = taa.id) AS ordem
+						(SELECT MAX(hr_msg) FROM tbmsgatendimento WHERE id = taa.id) AS ordem,
+						/* Subqueries para evitar N+1 */
+						(SELECT count(m2.id) FROM tbmsgatendimento m2 WHERE m2.numero = taa.numero AND m2.id = taa.id AND m2.id_atend = 0 AND m2.visualizada = false) AS qtd_novas,
+						(SELECT m3.msg FROM tbmsgatendimento m3 WHERE m3.numero = taa.numero AND m3.id = taa.id ORDER BY m3.seq DESC LIMIT 1) AS ult_msg,
+						(SELECT DATE_FORMAT(m4.hr_msg, '%H:%i') FROM tbmsgatendimento m4 WHERE m4.numero = taa.numero AND m4.id = taa.id ORDER BY m4.seq DESC LIMIT 1) AS ult_hora,
+						(SELECT TIMESTAMPDIFF(MINUTE, m5.dt_msg, NOW()) FROM tbmsgatendimento m5 WHERE m5.numero = taa.numero AND m5.id = taa.id ORDER BY m5.seq DESC LIMIT 1) AS minutos_msg,
+						(SELECT m6.id_atend FROM tbmsgatendimento m6 WHERE m6.numero = taa.numero AND m6.id = taa.id ORDER BY m6.seq DESC LIMIT 1) AS ult_id_atend,
+						(SELECT DATE_FORMAT(m7.hr_msg, '%H:%i') FROM tbmsgatendimento m7 WHERE m7.numero = taa.numero AND m7.id = taa.id AND m7.id_atend = 0 ORDER BY m7.seq DESC LIMIT 1) AS ult_hora_cliente
 						, tbe.cor, tbe.descricao as etiqueta
 						FROM tbatendimentoaberto taa
 							INNER JOIN tbatendimento ta ON(taa.id = ta.id) AND taa.numero = ta.numero
@@ -49,18 +57,11 @@
 	while( $registros = mysqli_fetch_object($qryAtendimento) ){
 		
 			
-		// Busco a QTD de mensagens novas //
-		$qtdNovas = mysqli_query(
-			$conexao
-			, "SELECT count(id) AS qtd_novas 
-				FROM tbmsgatendimento 
-					WHERE numero = '".$registros->numero."' AND id = '".$registros->id."' AND id_atend = 0 AND visualizada = false"
-		);
-		
-		$not = mysqli_fetch_array($qtdNovas);
+		// Usando dados das subqueries (evita N+1) //
+		$qtdNovasVal = intval($registros->qtd_novas);
 
-		if( $not["qtd_novas"] > 0 ){
-			$notificacoes = '<span class="OUeyt messages-count-new">'.$not["qtd_novas"].'</span>';
+		if( $qtdNovasVal > 0 ){
+			$notificacoes = '<span class="OUeyt messages-count-new">'.$qtdNovasVal.'</span>';
 
 			// Dispara o Alerta Sonoro - Se definido no Painel de Configurações //
 			$alerta_sonoro = isset($_SESSION["parametros"]["alerta_sonoro"]) ? $_SESSION["parametros"]["alerta_sonoro"] : 0;
@@ -70,82 +71,42 @@
 
 
 			//Se recebeu uma nova mensagem em horario de almoço, respondo com a mensagem de almoço
-			//echo "Variavel".$_SESSION["usuariosaw"]["em_almoco"];
 			$em_almoco = isset($_SESSION["usuariosaw"]["em_almoco"]) ? $_SESSION["usuariosaw"]["em_almoco"] : "false";
 			$msg_almoco = isset($_SESSION["usuariosaw"]["msg_almoco"]) ? $_SESSION["usuariosaw"]["msg_almoco"] : "";
 			if (($em_almoco=="true") && ($id_usuario==$registros->id_atend)){
-				$newSequence = newSequence($conexao, $registros->id,$registros->numero, $registros->canal); // Gera a sequencia da mensagem
-				$msgAlmoco = $msg_almoco;
+				$newSequence = newSequence($conexao, $registros->id,$registros->numero, $registros->canal);
+				$msgAlmoco = mysqli_real_escape_string($conexao, $msg_almoco);
+				$nomeContEsc = mysqli_real_escape_string($conexao, $registros->nomeContato);
 				$gravaMsgAlmoco = mysqli_query(
 					$conexao, 
 					"INSERT INTO tbmsgatendimento(id,seq,numero,msg,  nome_chat,situacao, dt_msg,hr_msg,id_atend,canal)
-						VALUES('".$registros->id."','".$newSequence."' ,'".$registros->numero."', '".$msgAlmoco."', 
-								'".$registros->nomeContato."' ,'E',NOW(),CURTIME(),'".$id_usuario."','".$registros->canal."')"
-				)or die(mysqli_error($conexao));
-				//Fim da Gravação de Mensagem de Horario de almoço
+						VALUES('".intval($registros->id)."','".$newSequence."' ,'".mysqli_real_escape_string($conexao, $registros->numero)."', '".$msgAlmoco."', 
+								'".$nomeContEsc."' ,'E',NOW(),CURTIME(),'".intval($id_usuario)."','".intval($registros->canal)."')"
+				);
 			}
-			
-
 
 		}
 		else{ $notificacoes = ""; }
 
-		// Verificando a última Mensagem //
-		//Consulta alterada pelo Marcelo para deixar fixo o id_atend = 0
-			$qryUltMsg = mysqli_query(
-				$conexao
-				, "SELECT msg, DATE_FORMAT(hr_msg, '%H:%i') AS hora,
-						 TIMESTAMPDIFF(MINUTE, dt_msg,
-							NOW()) AS MINUTOS_MSG, id_atend
-				
-				  FROM tbmsgatendimento 
-					-- WHERE numero = '".$registros->numero."' AND id = '".$registros->id."' and id_atend = '".$registros->id_atend."'
-					WHERE numero = '".$registros->numero."' AND id = '".$registros->id."' 
-						ORDER BY seq DESC
-							LIMIT 1"
-			);
-            
-	
-			
-			
-			// Verifica se Existe Resultado //
-			$ultMsg	= '';
-			if( mysqli_num_rows($qryUltMsg) > 0 ){
-				$arrUltMsg = mysqli_fetch_array($qryUltMsg);
-				$ultHora = $arrUltMsg['hora'];
-				$ultMsg	= $arrUltMsg['msg'];
-				$id_atendente = $arrUltMsg['id_atend'];  //Novo pegar o id do Atendente
+		// Usando dados das subqueries para última mensagem //
+			$ultMsg	= $registros->ult_msg ?? '';
+			$ultHora = $registros->ult_hora;
+			$minutosMsg = $registros->minutos_msg;
+			$id_atendente = $registros->ult_id_atend;
 
-
-                 //Trato a hora da Última mensagem de acordo com o Parametro
-				//Verifico se é para Exibir o tempo da Última mensagem apenas quando for enviada pelos Clientes
+			if ($ultMsg !== '') {
 				if( $_SESSION["parametros"]["contar_tempo_espera_so_dos_clientes"] ){
-					$qryHoraUltMsg = mysqli_query(
-						$conexao
-						, "SELECT DATE_FORMAT(hr_msg, '%H:%i') AS hora,
-								TIMESTAMPDIFF(MINUTE, dt_msg,
-									NOW()) AS MINUTOS_MSG, id_atend
-						
-						FROM tbmsgatendimento 
-							WHERE numero = '".$registros->numero."' AND id = '".$registros->id."' and id_atend = '0'
-								ORDER BY seq DESC
-									LIMIT 1"
-					);	//Passo o ID_ATEND Zero para pegar a hora da mensagem enviada pelo Cliente
-					
-					$arrUltHoraCliente = mysqli_fetch_array($qryHoraUltMsg);
-					$ultHora = $arrUltHoraCliente['hora'] ?? 0;
+					if ($registros->ult_hora_cliente !== null) {
+						$ultHora = $registros->ult_hora_cliente;
+					}
 				}
                 $regrex = '/\*(.*?)\*/';
-
-
 				
 				// Encurta a MSG caso ela possua mais que 40 caracteres //
 				if( strlen($ultMsg) > 40 ){ 
 					$ultMsg = str_replace("\\n"," ",$ultMsg);
 					$ultMsg = substr($ultMsg, 0, 40) . "..."; 
-					// Usa o REGEX Negrito:
-					$ultMsg = preg_replace($regrex, '<b>$1</b>', $ultMsg); //Substituindo todos utilizando a expressão regular. By Marcelo 24/04/2023					
-
+					$ultMsg = preg_replace($regrex, '<b>$1</b>', $ultMsg);
 				}
 			}
 		// FIM Verificando a última Mensagem //
@@ -162,22 +123,24 @@
         //Mostro a etiqueta de acordo com a selecionada no
 		$etiqueta = '';
 		//BUsco as etiquetas vinculadas ao numero
-		$qryEtiquetas = mysqli_query($conexao,"select te.cor, te.descricao as etiqueta from tbetiquetascontatos tec
-		inner join tbetiquetas te on te.id = tec.id_etiqueta
-		where tec.numero = '$registros->numero'");
+		$stmtEtiq = mysqli_prepare($conexao, "SELECT te.cor, te.descricao AS etiqueta FROM tbetiquetascontatos tec INNER JOIN tbetiquetas te ON te.id = tec.id_etiqueta WHERE tec.numero = ?");
+		mysqli_stmt_bind_param($stmtEtiq, 's', $registros->numero);
+		mysqli_stmt_execute($stmtEtiq);
+		$qryEtiquetas = mysqli_stmt_get_result($stmtEtiq);
 
 		while( $registrosEtiqueta = mysqli_fetch_object($qryEtiquetas) ){
 
 		if ($registrosEtiqueta->cor != ''){
-			$etiqueta .= '<i class="fas fa-tag" style="color:'.$registrosEtiqueta->cor.'" alt="'.$registrosEtiqueta->etiqueta.'" title="'.$registrosEtiqueta->etiqueta.'"></i>';
+			$etiqueta .= '<i class="fas fa-tag" style="color:'.e($registrosEtiqueta->cor).'" alt="'.e($registrosEtiqueta->etiqueta).'" title="'.e($registrosEtiqueta->etiqueta).'"></i>';
 		}
 
 	}
+		mysqli_stmt_close($stmtEtiq);
 
 		//Mostro o relógio indicando a qtd de minutos sem atendimento
         //Ajuste Marcelo não exibir o Relogio quando a ultima mensagem e do Atendente 23/04/2023
 	   if (@$id_atendente == 0) {
-		  @$msgtempoEspera = trataTempoOciosodoAtendente($arrUltMsg['MINUTOS_MSG'] ?? 0);
+		  @$msgtempoEspera = trataTempoOciosodoAtendente($minutosMsg ?? 0);
 	  
 	   } else{   
 		  @$msgtempoEspera = trataTempoOciosodoAtendente(0); //Não Exibir o Relogio quando a última mensagem e do Atendente
@@ -214,23 +177,24 @@
 			
 		}
 
+		$nomeEscapado = e(limpaNome($registros->nome));
+		$canalIcon = getCanal($conexao, $registros->canal);
 		if ($registros->canal==0){
-			//Se o Canal for igual a Zero, significa que o atendimento veio através do WEBCHAT
-			$corDoNome = '<font style="color:#8B0000">'.getCanal($conexao, $registros->canal).limpaNome($registros->nome).'</font>';
+			$corDoNome = '<font style="color:#8B0000">'.$canalIcon.$nomeEscapado.'</font>';
 		}else if ($registros->canal==1){
-			$corDoNome = '<font style="color:#000000">'.getCanal($conexao, $registros->canal).limpaNome($registros->nome).'</font>';
+			$corDoNome = '<font style="color:#000000">'.$canalIcon.$nomeEscapado.'</font>';
 		}else if ($registros->canal==2){
-			$corDoNome = '<font style="color:#0000FF">'.getCanal($conexao, $registros->canal).limpaNome($registros->nome).'</font>';
+			$corDoNome = '<font style="color:#0000FF">'.$canalIcon.$nomeEscapado.'</font>';
 		}else{
-			$corDoNome = '<font style="color:#006400">'.getCanal($conexao, $registros->canal).limpaNome($registros->nome).'</font>';
+			$corDoNome = '<font style="color:#006400">'.$canalIcon.$nomeEscapado.'</font>';
 		}
 		
 		// Saída HTML //
 			echo '<div class="contact-item linkDivAtendendo">
-					<input type="hidden" id="numero" value="'.$registros->numero.'">
-					<input type="hidden" id="id_atendimento" value="'.$registros->id.'">      <!-- Add Marcelo NOME_EMPRESA -->
-					<input type="hidden" id="nome" value="'.limpaNome($registros->nome).' - '.$registros->nome_empresa.'">
-					<input type="hidden" id="id_canal" value="'.$registros->canal.'">
+					<input type="hidden" id="numero" value="'.e($registros->numero).'">
+					<input type="hidden" id="id_atendimento" value="'.intval($registros->id).'">			<!-- Add Marcelo NOME_EMPRESA -->
+					<input type="hidden" id="nome" value="'.e(limpaNome($registros->nome)).' - '.e($registros->nome_empresa).'">
+					<input type="hidden" id="id_canal" value="'.intval($registros->canal).'">
 
 					<div class="dIyEr">
 						<div class="_1WliW" style="height: 49px; width: 49px;">
@@ -243,11 +207,11 @@
 					<div class="_3j7s9">
 						<div class="_2FBdJ">
 							<div class="_25Ooe">                                                                        <!-- Add Marcelo NOME_EMPRESA -->
-								<span dir="auto" title="'.limpaNome($registros->nome).' '.Mask($registros->numero).' - '.$registros->nome_empresa.'" class="_1wjpf">
+								<span dir="auto" title="'.e(limpaNome($registros->nome)).' '.e(Mask($registros->numero)).' - '.e($registros->nome_empresa).'" class="_1wjpf">
 								    '.$tempoOcioso.'
 								    '.$corDoNome.'																	
 								</span>
-								<span dir="auto" title="'.limpaNome($registros->operador).'" style="font-size:.8rem; color: #808080;">'.limpaNome($registros->operador).'</span>
+								<span dir="auto" title="'.e(limpaNome($registros->operador)).'" style="font-size:.8rem; color: #808080;">'.e(limpaNome($registros->operador)).'</span>
 							</div>
 							<div class="_3Bxar">
 								<span class="_3T2VG" id="hor'.$registros->numero.'">'.$ultHora.'</span>

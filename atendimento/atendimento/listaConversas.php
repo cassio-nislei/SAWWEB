@@ -1,5 +1,3 @@
-
-</div>
 <?php
 	// Requires //
 	require_once("../includes/padrao.inc.php");
@@ -14,19 +12,21 @@
 	// Definição do SQL //
 	// Alteração necessária para mostrar o 'Histórico de Atendimentos' aqui vai mostrar apenas o histórico do atendimento  //
 	if( $idAtendimento === "att" ){
-		$strSQL = "SELECT tma.chatid, tma.id, tma.seq, tma.numero, tma.msg, tma.resp_msg, tma.dt_msg, tma.hr_msg, tma.id_atend, ta.tipo_arquivo, ta.nome_original, tma.situacao, tma.reagir,tma.reacao,
-		tma.reacaorec
+		$strSQL = "SELECT tma.chatid, tma.id, tma.seq, tma.numero, tma.msg, tma.resp_msg, tma.dt_msg, tma.hr_msg, tma.id_atend, 
+		       ta.id as anexo_id, ta.numero as anexo_numero, ta.seq as anexo_seq, ta.tipo_arquivo, ta.nome_original, tma.situacao, tma.reagir, tma.reacao,
+		       tma.reacaorec
 					FROM tbmsgatendimento tma
-						LEFT JOIN tbanexos ta ON tma.id = ta.id AND tma.seq = ta.seq AND tma.numero = ta.numero
+						LEFT JOIN tbanexos ta ON tma.id_anexo = ta.id
 							WHERE tma.numero = '".$numero."' and tma.id = '$idAtendimento'
 								ORDER BY tma.id, seq";
 	}else
 		// Alteração necessária para mostrar o 'Histórico de Atendimentos' do Cliente completo pelo número//
 		if( $idAtendimento === "all" ){
-			$strSQL = "SELECT tma.chatid, tma.id, tma.seq, tma.numero, tma.msg, tma.resp_msg, tma.dt_msg, tma.hr_msg, tma.id_atend, ta.tipo_arquivo, ta.nome_original, tma.situacao, tma.reagir,tma.reacao,
-			tma.reacaorec
+			$strSQL = "SELECT tma.chatid, tma.id, tma.seq, tma.numero, tma.msg, tma.resp_msg, tma.dt_msg, tma.hr_msg, tma.id_atend, 
+			       ta.id as anexo_id, ta.numero as anexo_numero, ta.seq as anexo_seq, ta.tipo_arquivo, ta.nome_original, tma.situacao, tma.reagir, tma.reacao,
+			       tma.reacaorec
 						FROM tbmsgatendimento tma
-							LEFT JOIN tbanexos ta ON tma.id = ta.id AND tma.seq = ta.seq AND tma.numero = ta.numero
+						LEFT JOIN tbanexos ta ON tma.id_anexo = ta.id
 								WHERE tma.numero = '".$numero."'
 									ORDER BY tma.id, seq";
 		}
@@ -35,7 +35,7 @@
 			  $intUserId = $_SESSION["usuariosaw"]["id"]; //Atualizo a mensagem como visualizada apenas se o Dono do chamado visualiza-la
 			  $mesmoUsuario = mysqli_query($conexao, "select id_atend from tbatendimento WHERE id = '".$idAtendimento."' AND  numero = '".$numero."'") ;
 			  $mesmousuariologado = mysqli_fetch_assoc($mesmoUsuario);
-			  if ($mesmousuariologado["id_atend"]==$intUserId){
+			  if ($mesmousuariologado && isset($mesmousuariologado["id_atend"]) && $mesmousuariologado["id_atend"]==$intUserId){
                 $sqlUpdateTbMsgAtendimento = "UPDATE tbmsgatendimento 
 												SET visualizada = true
 													WHERE id = '".$idAtendimento."' AND  numero = '".$numero."'";
@@ -45,10 +45,11 @@
 				
 			// FIM Atualizo as visualizações das mensagens para zerar o contador conforme atualiza a conversa //
 
-			$strSQL = "SELECT tma.chatid, tma.id, tma.seq, tma.numero, tma.msg,  tma.resp_msg, tma.dt_msg, tma.hr_msg, tma.id_atend, ta.tipo_arquivo, ta.nome_original, tma.situacao, tma.reagir,tma.reacao,
-			tma.reacaorec
+			$strSQL = "SELECT tma.chatid, tma.id, tma.seq, tma.numero, tma.msg,  tma.resp_msg, tma.dt_msg, tma.hr_msg, tma.id_atend, 
+			       ta.id as anexo_id, ta.numero as anexo_numero, ta.seq as anexo_seq, ta.tipo_arquivo, ta.nome_original, tma.situacao, tma.reagir, tma.reacao,
+			       tma.reacaorec
 						FROM tbmsgatendimento tma
-							LEFT JOIN tbanexos ta ON tma.id = ta.id AND tma.seq = ta.seq AND tma.numero = ta.numero
+						LEFT JOIN tbanexos ta ON tma.id_anexo = ta.id
 								WHERE tma.numero = '".$numero."' AND  tma.id = '".$idAtendimento."'
 									ORDER BY seq";
 		}
@@ -60,6 +61,14 @@
 
 	// Foto Perfil //
 	$fotoPerfil = getFotoPerfil($conexao, $numero);
+
+	// Verifica se há mensagens //
+	$numLinhas = mysqli_num_rows($qryConversa);
+	if($numLinhas == 0) {
+		echo '<div style="padding: 20px; text-align: center; color: #999;">
+				<p>📭 Nenhuma mensagem neste atendimento</p>
+			</div>';
+	}
 
 	while( $objConversa = mysqli_fetch_object($qryConversa) ){
 		$chatID  = $objConversa->chatid;
@@ -138,25 +147,29 @@
 
 		
 		//Trato o Anexo para exibir
-		//Quando for gravação de Audio
+		//Quando para gravação de Audio
 		if ($objConversa->tipo_arquivo=='PTT'){									
-			$mensagem = '<audio controls="" style="width:240px"><source src="atendimento/anexo.php?id='.$objConversa->id.'&numero='.$objConversa->numero.'&seq='.$objConversa->seq.'"></audio>';	
+			$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->anexo_id."&numero=".$objConversa->anexo_numero."&seq=".$objConversa->anexo_seq, ENT_QUOTES, 'UTF-8');
+			$mensagem = '<audio controls="" style="width:240px"><source src="'.$url_anexo.'" /></audio>';	
 		//Quando for envio de Audio
 		}
 		elseif ($objConversa->tipo_arquivo=='AUDIO'){
-			$mensagem = '<a class="youtube cboxElement" href="atendimento/anexo.php?id='.$objConversa->id.'&numero='.$objConversa->numero.'&seq='.$objConversa->seq.'"><img src="images/abrir_audio.png" width="100" height="100"></a><br>'.$objConversa->nome_original;	
+			$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->anexo_id."&numero=".$objConversa->anexo_numero."&seq=".$objConversa->anexo_seq, ENT_QUOTES, 'UTF-8');
+			$mensagem = '<a class="youtube cboxElement" href="'.$url_anexo.'"><img src="images/abrir_audio.png" width="100" height="100"></a><br>'.htmlspecialchars($objConversa->nome_original, ENT_QUOTES, 'UTF-8');	
 		//Quando for envio de Video
 		}
 		elseif ($objConversa->tipo_arquivo=='VIDEO'){
-			$mensagem = '<a class="youtube cboxElement" href="atendimento/anexo.php?id='.$objConversa->id.'&numero='.$objConversa->numero.'&seq='.$objConversa->seq.'"><img src="images/abrir_video.png" width="100" height="100"></a><br>'.$objConversa->nome_original;									 
+			$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->anexo_id."&numero=".$objConversa->anexo_numero."&seq=".$objConversa->anexo_seq, ENT_QUOTES, 'UTF-8');
+			$mensagem = '<a class="youtube cboxElement" href="'.$url_anexo.'"><img src="images/abrir_video.png" width="100" height="100"></a><br>'.htmlspecialchars($objConversa->nome_original, ENT_QUOTES, 'UTF-8');									 
 			//Quando for Imagem
 		}
 		elseif ($objConversa->tipo_arquivo=='STICKER'){
-			$mensagem = '<a class="youtube cboxElement" href="atendimento/anexo.php?id='.$objConversa->id.'&numero='.$objConversa->numero.'&seq='.$objConversa->seq.'"><img src="atendimento/anexo.php?id='.$objConversa->id.'&numero='.$objConversa->numero.'&seq='.$objConversa->seq.'" width="100" height="100"></a>';
+			$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->anexo_id."&numero=".$objConversa->anexo_numero."&seq=".$objConversa->anexo_seq, ENT_QUOTES, 'UTF-8');
+			$mensagem = '<a class="youtube cboxElement" href="'.$url_anexo.'"><img src="'.$url_anexo.'" width="100" height="100"></a>';
 		}
 		// Imagem da Câmera (base64 comprimida)
 		elseif ($objConversa->tipo_arquivo=='IMG'){
-			$strAnexos = "SELECT arquivo FROM tbanexos WHERE id = '".$objConversa->id."' AND numero = '".$objConversa->numero."' AND seq = '".$objConversa->seq."' LIMIT 1";
+			$strAnexos = "SELECT arquivo FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."' LIMIT 1";
 			$qryAnexos = mysqli_query($conexao, $strAnexos);
 			$objAnexos = mysqli_fetch_object($qryAnexos);
 			
@@ -180,7 +193,7 @@
 			}
 		}
 		elseif ($objConversa->tipo_arquivo=='IMAGE'){
-			$strAnexos = "SELECT arquivo, nome_arquivo, tipo_arquivo, nome_contato FROM tbanexos WHERE id = '".$objConversa->id."' AND numero = '".$objConversa->numero."' AND seq = '".$objConversa->seq."'";
+			$strAnexos = "SELECT arquivo, nome_arquivo, tipo_arquivo, nome_contato FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."'";
 			$qryAnexos = mysqli_query($conexao, $strAnexos);
 			$objAnexos = mysqli_fetch_object($qryAnexos);
 			
@@ -227,7 +240,10 @@
 				$imgIcone = 'abrir_outros.png'; // Icone Generico
 			}
 
-			$mensagem = '<a href="atendimento/anexo.php?id='.$objConversa->id.'&numero='.$objConversa->numero.'&seq='.$objConversa->seq.'"><img src="images/'.$imgIcone.'" width="100" height="100"></a><br>'.$objConversa->nome_original.'<br>'. $objConversa->msg;
+			$msgEscaped = htmlspecialchars($objConversa->msg, ENT_QUOTES, 'UTF-8');
+			$nomeEscaped = htmlspecialchars($objConversa->nome_original, ENT_QUOTES, 'UTF-8');
+			$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->id."&numero=".$objConversa->numero."&seq=".$objConversa->seq, ENT_QUOTES, 'UTF-8');
+			$mensagem = '<a href="'.$url_anexo.'"><img src="images/'.$imgIcone.'" width="100" height="100"></a><br>'.$nomeEscaped.'<br>'.$msgEscaped;
 		}
 		else if (strlen($objConversa->msg)>0) {
 			$mensagem = $objConversa->msg;	
@@ -494,130 +510,8 @@
          <button type="button" class="emojreacao" style="padding:5px " value="19">😅</button>
          <button type="button" class="emojreacao" style="padding:5px " value="20">👋</button>
 
-		
-reacao</div>
+      </div>
 		</span>
 
     </div>
   </div>
-
-<script src="js/responsive.min.js"></script>
-<script>
-	$(document).ready(function() {
-		// Scroll Automático //
-			if( $("#mensagens").length ){
-				var rolagem = document.getElementById('mensagens');
-				var target = $('#mensagens');
-		
-				target.animate({ scrollTop: rolagem.scrollHeight }, 200);
-			}
-		// FIM Scroll Automático //
-
-		// Cartão Contato //
-        $(".btn-message-send").on("click", function() {
-			// Declaração de Variáveis //
-			var numero = $(this).data('numero');
-			var nome = $(this).data('nome');
-
-			// Cadastrando o Contato //
-				$.post("cadastros/contatos/ContatoController.php",{
-					id: 0,
-					acao: 1,
-					numero_contato: numero,
-					nome_contato: nome
-				},function(resultado){});
-			// FIM Cadastrando o Contato //
-
-            // Faz a Inicialização do Atendimento //
-				$.post("atendimento/gerarAtendimento.php",{numero:numero,nome:nome}, function(idAtendimento){
-					// Atualiza a notificação
-					if (idAtendimento != "erro"){
-						$('#not'+idAtendimento).text(""); //limpa a qtd quando de notificações abre a conversa
-						$('#AtendimentoAberto').html("<div class='spinner-border text-primary' role='status'><span class='sr-only'>Carregando ...</span></div>");
-						$.ajax("atendimento/conversa.php?id="+idAtendimento+"&id_canal=1&numero="+encodeURIComponent(numero)+"&nome="+encodeURIComponent(nome)).done(function(data) {
-							$('#AtendimentoAberto').html(data);
-
-							$.ajax("atendimento/atendendo.php").done(function(data) {
-								$('#ListaEmAtendimento').html(data);
-							});
-						});
-					}
-					else{ mostraDialogo("Erro ao tentar Iniciar o Atendimento!", "danger", 2500); }
-				});
-			// FIM Faz a Inicialização do Atendimento //
-		});
-
-
-		$(".btnResponderMSG").click(function(){ 
-			var msgRecuperada = $(this).parent().find("#msg_original").val();
-			var idResposta    = $(this).parent().find("#chatID").val();
-
-			$(".panel-Respostas").fadeIn(500);  
-			$("#chatid_resposta").val(idResposta);         
-			$("#RespostaSelecionada").html(msgRecuperada);
-			$('#msg').focus();
-
-	    });	
-
-		$("#fecharResposta").click(function(){ 
-			$(".panel-Respostas").fadeOut(500);           
-			$("#RespostaSelecionada").html('');
-	    });	
-
-		//Gravo o elemento que Vai armazenar a Reação pra Exibir
-        var elementoreacao = "" ;
-        var idResposta = "" ;
-		$(".btnReagirMSG").click(function(){ 
-			var msgRecuperada = $(this).parent().find("#msg_original").val();
-			idResposta    = $(this).parent().find("#chatID").val();
-			elementoreacao = $(this).parents(".message").find(".ReacaoManifestada") ;
-            
-			 $('#ModalReacoes').modal('show');	
-
-			
-			
-	    });	
-
-		$(".emojreacao").click(function(){ 
-			$(elementoreacao).fadeIn();
-			$(elementoreacao).html($(this).html());
-			var iconereact = $(this).val(); 
-			//alert(iconereact);
-			$.post("atendimento/reacaoMensagem.php",{id:idResposta,reacao:iconereact},function(resultado){
-				//elementoMensagem.html(elementoreacao+"Mensagem Apagada");
-				//alert(idResposta);
-			}); 
-		    
-			$('#ModalReacoes').modal('hide');				
-		});	
-
-		$(document).on("click", "#ModalReacoes", function(){
-			$('#ModalReacoes').modal('hide');	
-        });
-		
-
-		$(".btnApagarMSG").click(function(){ 
-			var idUnico    = $(this).parent().find("#chatID").val(),
-			elementoMensagem = $(this).parent().parent().parent().parent().find(".Tkt2p");
-			var numero = $("#s_numero").val();
-            var id_atendimento = $("#s_id_atendimento").val();
-            var id_canal = $("#s_id_canal").val();
-			var sequencia =  $(this).parent().find("#seq_msg").val();
-
-		//	alert("NUmero"+numero+" ID:"+ id_atendimento+ ' Sequencia: '+sequencia)
-		//alert(elementoMensagem.html());
-            // reagindo a mensagem //
-			 
-
-			// Apagando a mensagem //
-			$.post("atendimento/apagarMensagem.php",{id:idUnico,numero:numero,id_atendimento:id_atendimento, seq:sequencia},function(resultado){
-				elementoMensagem.html("🚫Mensagem Apagada!!!");
-				//alert(resultado);
-			});
-			// FIM da Exclusão da Mensagem //
-		
-	    });	
-		
-
-	});
-</script>

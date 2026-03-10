@@ -43,7 +43,7 @@
             <select name="ano" id="ano" style="padding: 5px 10px; margin: 0 10px; font-size: 14px;">
                             <?php
                            
-                              $ano = mysqli_query($conexao,"select distinct YEAR(dt_atend) as ano from tbatendimento order by dt_atend DESC");
+                              $ano = mysqli_query($conexao,"select distinct YEAR(dt_atend) as ano from tbatendimento order by ano DESC");
                               while ($anos = mysqli_fetch_assoc($ano)){
                                 if ($anos['ano'] == date("Y")){
                                   $seleciona = 'selected';
@@ -94,7 +94,7 @@
                       <div class="col mr-2">
                           <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">
                               SEM SETOR</div>
-                          <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $card["triagem"]; ?></div>
+                          <div class="h5 mb-0 font-weight-bold text-gray-800" id="cardTriagem"><?php echo $card["triagem"]; ?></div>
                       </div>
                       <div class="col-auto">
                           <i class="fas fa-calendar fa-2x text-gray-300"></i>
@@ -112,7 +112,7 @@
                       <div class="col mr-2">
                           <div class="text-xs font-weight-bold text-success text-uppercase mb-1">
                             AGUARDANDO ATENDENTE</div>
-                          <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $card["pendentes"]; ?></div>
+                          <div class="h5 mb-0 font-weight-bold text-gray-800" id="cardPendentes"><?php echo $card["pendentes"]; ?></div>
                       </div>
                       <div class="col-auto">
                           <i class="fas fa-clock fa-2x text-gray-300"></i>
@@ -132,7 +132,7 @@
                           </div>
                           <div class="row no-gutters align-items-center">
                               <div class="col-auto">
-                                  <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800"><?php echo $card["atendendo"]; ?></div>
+                                  <div class="h5 mb-0 mr-3 font-weight-bold text-gray-800" id="cardAtendendo"><?php echo $card["atendendo"]; ?></div>
                               </div>
                               <div class="col">
                                   <div class="progress progress-sm mr-2">
@@ -159,7 +159,7 @@
                       <div class="col mr-2">
                           <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">
                               ENCERRADOS</div>
-                          <div class="h5 mb-0 font-weight-bold text-gray-800"><?php echo $card["finalizados"]; ?></div>
+                          <div class="h5 mb-0 font-weight-bold text-gray-800" id="cardFinalizados"><?php echo $card["finalizados"]; ?></div>
                       </div>
                       <div class="col-auto">
                       <i class="fas fa-clipboard-list fa-2x text-gray-300"></i> 
@@ -280,90 +280,91 @@
   <script src="vendor/chart.js/Chart.min.js"></script>
 
   <script>
-    //carrego e atualizo os dados dos Atendentes online
-    function atualizarRelatorio() {
-      // Faça uma requisição POST para o arquivo atualizarelatorio.php
-      $.post('dashboard/atendentesonline.php', function(data) {
-        console.log('Função atualizarRelatorio chamada.');
-        console.log('Dados retornados:', data);
-        $("#AtendentesOnline").html(data);
-        
-      })
-      .fail(function(jqXHR, textStatus, errorThrown) {
-        console.error('Erro ao atualizar o relatório:', textStatus, errorThrown);
-        console.error('Status:', jqXHR.status);
-        console.error('Response:', jqXHR.responseText);
+    // Variáveis globais para controlar instâncias de gráficos
+    var chartAreaInstance = null;
+    var chartBarInstance = null;
+
+    // Retorna os filtros selecionados
+    function getFiltros() {
+      return { ano: $("#ano").val(), mes: $("#mes").val() };
+    }
+
+    // Atualiza os cards via AJAX
+    function atualizarCards() {
+      var f = getFiltros();
+      $.post('dashboard/atualizacards.php', f, function(data) {
+        $("#cardTriagem").text(data.triagem);
+        $("#cardPendentes").text(data.pendentes);
+        $("#cardAtendendo").text(data.atendendo);
+        $("#cardFinalizados").text(data.finalizados);
+      }, 'json').fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('Erro ao atualizar cards:', textStatus, errorThrown);
       });
     }
 
-    //carrego e atualizo os dados dos Atendentes inativos
+    // Atendentes online
+    function atualizarRelatorio() {
+      $.post('dashboard/atendentesonline.php', function(data) {
+        $("#AtendentesOnline").html(data);
+      }).fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('Erro ao atualizar o relatório:', textStatus, errorThrown);
+      });
+    }
+
+    // Atendentes inativos
     function atualizarRelatorioInativos() {
       $.post('dashboard/atendentesinativos.php', function(data) {
-        console.log('Função atualizarRelatorioInativos chamada.');
-        console.log('Dados retornados:', data);
         $("#AtendentesInativos").html(data);
-        
-      })
-      .fail(function(jqXHR, textStatus, errorThrown) {
+      }).fail(function(jqXHR, textStatus, errorThrown) {
         console.error('Erro ao atualizar o relatório de inativos:', textStatus, errorThrown);
-        console.error('Status:', jqXHR.status);
-        console.error('Response:', jqXHR.responseText);
       });
     }
 
-    // Chame a função a cada 30 segundos (30 * 1000 milissegundos)
+    // Atendimentos por atendente
+    function atualizarAtendimentosPorAtendente() {
+      var f = getFiltros();
+      $.post('dashboard/atendimentosporatendente.php', f, function(data) {
+        $("#graficoAtendimentosPorAtendente").html(data);
+      }).fail(function(jqXHR, textStatus, errorThrown) {
+        console.error('Erro ao atualizar atendimentos por atendente:', textStatus, errorThrown);
+      });
+    }
+
+    // Timestamp do usuário
+    function updateTimestampUser() {
+      $.ajax("../../cadastros/usuarios/gravaTimestamp.php").fail(function() {
+        console.log('Erro ao atualizar timestamp');
+      });
+    }
+
+    // Intervalos automáticos
     setInterval(atualizarRelatorio, 30000);
     setInterval(atualizarRelatorioInativos, 30000);
-    
-    // Chama a primeira vez quando a página carrega
+    setInterval(atualizarAtendimentosPorAtendente, 30000);
+    setInterval(updateTimestampUser, 300000);
+
+    // Inicialização
     $(document).ready(function() {
-      // Define o mês atual como selecionado
-      var mesAtual = new Date().getMonth() + 1; // getMonth retorna 0-11, então +1
+      var mesAtual = new Date().getMonth() + 1;
       $("#mes").val(mesAtual);
-      
+
+      atualizarCards();
       atualizarRelatorio();
       atualizarRelatorioInativos();
-      updateTimestampUser(); // Atualiza o timestamp do usuário logado
-    });
-  
-    </script>
+      atualizarAtendimentosPorAtendente();
+      updateTimestampUser();
+      atualizarGraficoAnual();
+      atualizarGraficoMensal();
 
-    <script>
-    // Atualiza o timestamp do usuário a cada 5 minutos para manter online
-    var idTimestampUsuario = setInterval(function() { 
-        updateTimestampUser();
-    }, 300000); // 5 minutos
-    
-    function updateTimestampUser(){
-        $.ajax("../../cadastros/usuarios/gravaTimestamp.php").done(
-            function(response) {
-                console.log('Timestamp do usuário atualizado');
-            }
-        ).fail(function() {
-            console.log('Erro ao atualizar timestamp');
-        });
-    }
-    </script>
-
-    <script>
-    //carrego e atualizo os dados dos Atendentes online
-    function atualizarAtendimentosPorAtendente() {
-      // Faça uma requisição POST para o arquivo atualizarelatorio.php
-      $.post('dashboard/atendimentosporatendente.php', function(data) {
-        $("#graficoAtendimentosPorAtendente").html(data);
-        
-      })
-      .fail(function(jqXHR, textStatus, errorThrown) {
-        console.error('Erro ao atualizar o relatório:', textStatus, errorThrown);
+      // Ao mudar ano ou mês, recarregar toda a interface filtrada
+      $("#ano, #mes").on('change', function() {
+        atualizarCards();
+        atualizarAtendimentosPorAtendente();
+        atualizarGraficoAnual();
+        atualizarGraficoMensal();
       });
-    }
-
-    // Chame a função a cada 30 segundos (30 * 1000 milissegundos)
-    setInterval(atualizarAtendimentosPorAtendente, 30000);
-    
-    atualizarAtendimentosPorAtendente();
-  
-    </script>
+    });
+  </script>
 
 
 
@@ -399,8 +400,9 @@ function number_format(number, decimals, dec_point, thousands_sep) {
 
 function atualizarGraficoAnual() {
 var listaDadosMeses;
+var f = getFiltros();
   
-    $.post( "dashboard/atualizadados.php", function( data ) {
+    $.post( "dashboard/atualizadados.php", f, function( data ) {
      // alert(data);
       listaDadosMeses = data;
       let array = [];
@@ -408,6 +410,7 @@ var listaDadosMeses;
   
 
 // Area Chart Example
+if (chartAreaInstance) { chartAreaInstance.destroy(); }
 var ctx = document.getElementById("myAreaChart");
 var myLineChart = new Chart(ctx, {
   type: 'line',
@@ -499,13 +502,12 @@ var myLineChart = new Chart(ctx, {
     }
   }
 });
+chartAreaInstance = myLineChart;
 });
 }
 
  // Chame a função a cada 30 segundos (30 * 1000 milissegundos)
  setInterval(atualizarGraficoAnual, 420000); //Seta um timer para atualizar o Gráfico de tempos em tempos
-    
- atualizarGraficoAnual(); //Carrega o Gráfico na Inicialização
 
  </script>
 
@@ -513,7 +515,10 @@ var myLineChart = new Chart(ctx, {
    //Gráfico de Barras Tempo Médio de atendimentos
 
    function atualizarGraficoMensal() {
-   $.post( "dashboard/atualizagraficotempomedio.php", function( data ) {
+   var f = getFiltros();
+   // Se mes = 0 (Todos), usa o mês atual para o gráfico diário
+   if (f.mes == '0') { f.mes = (new Date().getMonth() + 1).toString(); }
+   $.post( "dashboard/atualizagraficotempomedio.php", f, function( data ) {
    // alert(data);
       listaDadosMeses = data;
       let array = [];
@@ -534,6 +539,7 @@ Chart.defaults.global.defaultFontColor = '#858796';
 
 
 var ctx = document.getElementById("myBarChart");
+if (chartBarInstance) { chartBarInstance.destroy(); }
 var myBarChart = new Chart(ctx, {
     type: 'bar', // Mantido como gráfico de barras
     data: {
@@ -600,15 +606,13 @@ var myBarChart = new Chart(ctx, {
         },
     }
 });
-
+chartBarInstance = myBarChart;
 });
 
    }
 
      // Chame a função a cada 30 segundos (30 * 1000 milissegundos)
      setInterval(atualizarGraficoMensal, 60000);
-    
-     atualizarGraficoMensal();
 
 
 

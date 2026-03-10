@@ -292,11 +292,14 @@
 
 
 <script>
-    $( document ).ready(function() {	
+      $( document ).ready(function() {	
         var numero = $("#s_numero").val();
         var nome = encodeURIComponent($("#s_nome").val());
         var idCanal = $("#s_id_canal").val();
-
+    // NOTE: This code runs within the main $(document).ready()) from conversa.php
+    // Removed duplicate $(document).ready()) block to prevent conflicts
+    
+    {
         // Valida se Habilita a opção de Histórico de Conversas para os Operadores //
         $("#menu-historico").click(function () {
             if( $("#perfilUsuario").val() == 1
@@ -392,9 +395,7 @@
 	  }); //Fim do Carregamento da tela
     });
 // FIM Abrindo a tela para Alteração de Contato //
-   
+   }
 
-
-
-	});
+   	});
 </script>

@@ -220,6 +220,7 @@ $("#btnBuscarPorNome").on("click", function(e) {
 </script>
 	<h1>Usuários</h1>
 	<form method="post" action="cadastros/usuarios/salvar.php" name="gravaUsuario" id="gravaUsuario">	
+		<?php echo csrfField(); ?>
 		<input type="hidden" id="id_usuarios" name="id_usuarios" value="0" />
 		<input type="hidden" value="0" name="acaoUsuario" id="acaoUsuario" />
 		

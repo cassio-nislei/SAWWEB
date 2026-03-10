@@ -1,5 +1,8 @@
 <?php
 	require_once($_SERVER['DOCUMENT_ROOT'] . "/includes/padrao.inc.php");
+
+if (!validarCSRF()) { echo "Token de segurança inválido."; exit; }
+
 @$id            = $_POST['id_Etiqueta'];
 $acao           = $_POST['acaoEtiqueta'];
 $cor            = $_POST['cor'];

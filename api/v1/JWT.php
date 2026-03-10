@@ -22,7 +22,7 @@ class JWT {
         $signature = hash_hmac(
             'sha256',
             "$headerEncoded.$payloadEncoded",
-            getenv('JWT_SECRET') ?: 'SAW_JWT_SECRET_2025',
+            getenv('JWT_SECRET') ?: (defined('JWT_SECRET_KEY') ? JWT_SECRET_KEY : 'TROQUE_ESTA_CHAVE_' . md5(__DIR__)),
             true
         );
         
@@ -48,7 +48,7 @@ class JWT {
             $signature = hash_hmac(
                 'sha256',
                 "$headerEncoded.$payloadEncoded",
-                getenv('JWT_SECRET') ?: 'SAW_JWT_SECRET_2025',
+                getenv('JWT_SECRET') ?: (defined('JWT_SECRET_KEY') ? JWT_SECRET_KEY : 'TROQUE_ESTA_CHAVE_' . md5(__DIR__)),
                 true
             );
             

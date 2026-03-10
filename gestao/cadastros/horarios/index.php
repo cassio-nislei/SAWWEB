@@ -54,6 +54,7 @@ $sabado["fechado"] ? $sabado_marcado = 'checked' : $sabado_marcado = '';
 
 ?>
  <form method="post" id="grava" name="grava" action="cadastros/horarios/salvar.php">
+<?php echo csrfField(); ?>
 <div class="container" id="FormFormasPagamento" >
  <div class="panel panel-default">
 	<div class="panel-heading"><b>Horários de Funcionamento</b></div>

@@ -1,5 +1,6 @@
 <?php
 	require_once($_SERVER['DOCUMENT_ROOT'] . "/includes/padrao.inc.php");
+	if (!validarCSRF()) { echo "Token de segurança inválido."; exit; }
 	$acao	= $_POST['acaoRespostaRapida'];
 	$id		= $_POST['IdRespostaRapida'];
 	$idUser	= $_SESSION["usuariosaw"]["id"];
