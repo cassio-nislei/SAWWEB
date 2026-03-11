@@ -1,10 +1,18 @@
 <?php
- session_start();
-  if (isset($_SESSION["usuariosaw"])){
-    header("Location: conversas.php");
-    exit;
-  }
-  session_write_close(); // Libera session lock o mais cedo possível
+session_start();
+
+// Se usuário já está logado, redirecionar
+if (isset($_SESSION["usuariosaw"])){
+  header("Location: conversas.php");
+  exit;
+}
+
+// Gerar token CSRF se não existir
+if (!isset($_SESSION['csrf_token'])) {
+  $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+}
+
+session_write_close(); // Libera session lock o mais cedo possível
 ?>
 <html class="" dir="ltr" loc="pt-BR" lang="pt-BR">
 
@@ -37,14 +45,7 @@
 				<img src="img/uptalk-logo.png">
 				<h2>Login</h2>
 				<form id="FormLogin" method="post">
-					<?php 
-						session_start();
-						if (!isset($_SESSION['csrf_token'])) {
-							$_SESSION['csrf_token'] = bin2hex(random_bytes(32));
-						}
-						echo '<input type="hidden" name="csrf_token" value="'.htmlspecialchars($_SESSION['csrf_token']).'">';
-						session_write_close(); // Libera lock antes de conexão DB
-					?>
+					<input type="hidden" name="csrf_token" value="<?php echo htmlspecialchars($_SESSION['csrf_token']); ?>">
 					<label>Usuário</label>
 					<input type="text" name="usuario" id="usuario" placeholder="Digite seu usuário" class="form-control">
 					<label>Senha</label>
