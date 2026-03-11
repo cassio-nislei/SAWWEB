@@ -19266,7 +19266,7 @@ html[dir="rtl"] ._2ICcy:after {
   opacity: 0;
   left: 0;
   top: 0;
-  z-index: 10;
+  z-index: 10001;
 }
 .dropzone-wrapper:hover,
 .dropzone-wrapper.dragover {
