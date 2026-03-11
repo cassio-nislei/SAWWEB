@@ -17927,7 +17927,7 @@ html[dir="rtl"] ._2ICcy:after {
 }
 #panel-upload-image {
   text-align: center;
-  padding: 3rem;
+  padding: 1rem;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -17935,6 +17935,7 @@ html[dir="rtl"] ._2ICcy:after {
   width: 100%;
   position: relative;
   z-index: 10001 !important;
+  gap: 1rem;
 }
 
 #panel-upload-image img,
@@ -17943,6 +17944,54 @@ html[dir="rtl"] ._2ICcy:after {
   margin: 0 auto;
   display: block;
   pointer-events: auto !important;
+  z-index: 10001 !important;
+  height: auto;
+}
+
+#panel-upload-image img {
+  max-height: 50vh;
+}
+
+#panel-upload-image audio {
+  width: 95%;
+  height: 50px;
+  cursor: pointer !important;
+}
+
+/* Responsivo para telas muito pequenas */
+@media (max-width: 480px) {
+  #panel-upload-image {
+    padding: 0.75rem;
+    gap: 0.75rem;
+  }
+
+  #panel-upload-image img {
+    max-width: 100%;
+    max-height: 45vh;
+  }
+
+  #panel-upload-image audio {
+    width: 100%;
+    height: 45px;
+  }
+}
+
+/* Responsivo para tablets */
+@media (max-width: 768px) {
+  #panel-upload-image {
+    padding: 1rem;
+  }
+
+  #panel-upload-image img {
+    max-width: 95%;
+    max-height: 50vh;
+  }
+
+  #panel-upload-image audio {
+    width: 95%;
+    height: 48px;
+  }
+}
   z-index: 10001 !important;
 }
 
@@ -17958,19 +18007,48 @@ html[dir="rtl"] ._2ICcy:after {
   justify-content: center;
   align-items: center;
   transform: translateX(-50%) translateY(-50%) !important;
-  padding: 3rem;
+  padding: 1.5rem;
   background: #333;
-  max-height: 80vh;
+  max-height: 85vh;
   overflow-y: auto;
   left: 50% !important;
   top: 50% !important;
-  margin-left: 0 !important;
+  margin: 0 !important;
   width: 90% !important;
   max-width: 600px;
   visibility: visible;
   pointer-events: auto;
   border-radius: 8px;
   box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+/* Responsivo para telas muito pequenas (< 480px) */
+@media (max-width: 480px) {
+  .panel-upImage.open {
+    width: 95% !important;
+    max-width: 100% !important;
+    max-height: 90vh !important;
+    padding: 1rem;
+    top: 50% !important;
+  }
+}
+
+/* Responsivo para tablets e telas pequenas (480px - 768px) */
+@media (max-width: 768px) {
+  .panel-upImage.open {
+    width: 92% !important;
+    max-width: 550px !important;
+    max-height: 80vh !important;
+    padding: 1.25rem;
+  }
+}
+
+/* Para telas muito altas (landscape em mobile) */
+@media (max-height: 600px) {
+  .panel-upImage.open {
+    max-height: 95vh !important;
+    top: 45% !important;
+  }
 }
 .panel-Respostas.open {
   display: block;

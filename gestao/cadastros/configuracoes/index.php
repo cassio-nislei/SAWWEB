@@ -117,6 +117,7 @@
 		if( $enviar_audio_aut === "1" ){ $isCkdEnvAudioAut = "checked"; }
 
 		// Enviar 'Foto' Automaticamente ao finalizar a Captura //
+		$isCkdEnvFotoAut = "";
 		if( $enviar_foto_aut === "1" ){ $isCkdEnvFotoAut = "checked"; }
 
 		// Permitir a Leitura do 'QRCode' via WEB //

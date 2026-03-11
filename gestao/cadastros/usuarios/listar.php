@@ -35,6 +35,7 @@
 
 <?php	 
  include_once("../../../includes/conexao.php");
+ include_once("../../../includes/padrao.inc.php");
     // Monto os options dos Departamentos //
     $options = '<select name="sltDepartamentos" id="sltDepartamentos" class="uk-select" style="width:75%;height:25px;margin-top:-15px;clear: both;font-size:12px;padding:0">
                     <option value="0">Departamento</option>';

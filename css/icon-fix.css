@@ -281,18 +281,51 @@ i[style*="rgb(255, 255, 255)"] {
 
 /* Centralização vertical do preview panel */
 .panel-upImage.open {
-  transform: translateY(-50%) !important; /* Centra verticalmente */
+  transform: translateX(-50%) translateY(-50%) !important;
   z-index: 10000 !important;
   pointer-events: auto !important;
   position: fixed !important;
   left: 50% !important;
   top: 50% !important;
-  margin-left: -45% !important;
+  margin: 0 !important;
+  padding: 1.5rem !important;
   width: 90% !important;
   max-width: 600px !important;
-  max-height: 80vh !important;
+  max-height: 85vh !important;
   overflow-y: auto !important;
   visibility: visible !important;
+  background: #333 !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4) !important;
+}
+
+/* Responsivo para telas muito pequenas (< 480px) */
+@media (max-width: 480px) {
+  .panel-upImage.open {
+    width: 95% !important;
+    max-width: 100% !important;
+    max-height: 90vh !important;
+    padding: 1rem !important;
+    top: 50% !important;
+  }
+}
+
+/* Responsivo para tablets e telas pequenas (480px - 768px) */
+@media (max-width: 768px) {
+  .panel-upImage.open {
+    width: 92% !important;
+    max-width: 550px !important;
+    max-height: 80vh !important;
+    padding: 1.25rem !important;
+  }
+}
+
+/* Para telas muito altas (landscape em mobile) */
+@media (max-height: 600px) {
+  .panel-upImage.open {
+    max-height: 95vh !important;
+    top: 45% !important;
+  }
 }
 
 /* Botão enviar visível quando preview aberto */
@@ -311,6 +344,9 @@ i[style*="rgb(255, 255, 255)"] {
   pointer-events: auto !important;
   z-index: 10001 !important;
   cursor: pointer !important;
+  width: 95% !important;
+  max-width: 400px !important;
+  height: 50px !important;
 }
 
 /* Imagens no painel - visíveis e clicáveis */
@@ -319,12 +355,49 @@ i[style*="rgb(255, 255, 255)"] {
   z-index: 10001 !important;
   cursor: pointer !important;
   opacity: 1 !important;
+  max-width: 95% !important;
+  max-height: 50vh !important;
+  height: auto !important;
+  margin: 0 auto !important;
 }
 
 /* Garante que o container do upload está acima */
 #panel-upload-image {
   pointer-events: auto !important;
   z-index: 10001 !important;
+  width: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 0 !important;
+  gap: 1rem !important;
+}
+
+/* Responsivo para imagens e áudio em telas pequenas */
+@media (max-width: 480px) {
+  #panel-upload-image img {
+    max-width: 100% !important;
+    max-height: 45vh !important;
+  }
+
+  #panel-upload-image audio {
+    width: 100% !important;
+    height: 45px !important;
+  }
+}
+
+/* Responsivo para telas médias */
+@media (max-width: 768px) {
+  #panel-upload-image img {
+    max-width: 95% !important;
+    max-height: 50vh !important;
+  }
+
+  #panel-upload-image audio {
+    width: 95% !important;
+    height: 48px !important;
+  }
 }
 
 /* Input de nome do chat */
