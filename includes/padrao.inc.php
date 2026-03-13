@@ -293,18 +293,60 @@ if (session_status() === PHP_SESSION_NONE) {
 
 
     function ValidarImagemBase64($ImgRaw){
-    $ImgRaw         = explode("base64,", $ImgRaw);
-    $ImgRaw         = $ImgRaw[1];
-    $ImgRaw         = str_replace("base64,", "", $ImgRaw);
-    $ImgDecode      = base64_decode($ImgRaw);
-    $ObjImg         = imagecreatefromstring($ImgDecode);
-    if(!$ObjImg)  {
+    // Extrair dados base64
+    $ImgRaw = explode("base64,", $ImgRaw);
+    if(count($ImgRaw) < 2) return false;
+    
+    $ImgRaw = $ImgRaw[1];
+    $ImgRaw = str_replace("base64,", "", $ImgRaw);
+    
+    // Validar se é base64 válido
+    if (!preg_match('%^[a-zA-Z0-9/+]*={0,2}$%', $ImgRaw)) {
         return false;
     }
-    $ObjData        = getimagesizefromstring($ImgDecode);    
-    if( !$ObjData || $ObjData[0] == 0 || $ObjData[1] == 0 || !$ObjData["mime"])  {
+    
+    // Decodificar
+    $ImgDecode = base64_decode($ImgRaw, true);
+    if($ImgDecode === false) {
         return false;
     }
+    
+    // Validar se é uma imagem usando função GD se disponível
+    if(function_exists('imagecreatefromstring')) {
+        $ObjImg = imagecreatefromstring($ImgDecode);
+        if(!$ObjImg) {
+            return false;
+        }
+        if(function_exists('getimagesizefromstring')) {
+            $ObjData = getimagesizefromstring($ImgDecode);
+            if(!$ObjData || $ObjData[0] == 0 || $ObjData[1] == 0 || !$ObjData["mime"]) {
+                return false;
+            }
+        }
+    } else {
+        // Fallback quando GD não está disponível - verificar magic bytes de imagens comuns
+        $ImgStart = substr($ImgDecode, 0, 12);
+        
+        // JPG
+        if(substr($ImgStart, 0, 3) === "\xFF\xD8\xFF") {
+            return true;
+        }
+        // PNG
+        if(substr($ImgStart, 0, 8) === "\x89PNG\r\n\x1a\n") {
+            return true;
+        }
+        // GIF
+        if(substr($ImgStart, 0, 6) === "GIF87a" || substr($ImgStart, 0, 6) === "GIF89a") {
+            return true;
+        }
+        // WebP
+        if(substr($ImgStart, 0, 4) === "RIFF" && substr($ImgStart, 8, 4) === "WEBP") {
+            return true;
+        }
+        // Se não conseguiu validar sem GD, pelo menos confirma que é base64 válido
+        return strlen($ImgDecode) > 100; // Mínimo de bytes para uma imagem válida
+    }
+    
     return true;
 }
 
