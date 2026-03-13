@@ -380,13 +380,14 @@ if($interval->format('%i%h%d%m%y')=="00000")
                         <li class="nav-item dropdown no-arrow">
                             <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button"
                                 data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?php echo $_SESSION["usuariosaw"]["nome"]; ?></span>
+                                <span class="mr-2 d-none d-lg-inline text-gray-600 small"><?php echo isset($_SESSION["usuariosaw"]["nome"]) ? $_SESSION["usuariosaw"]["nome"] : "Usuário"; ?></span>
                                 <?php
                                     // Buscar foto do usuário logado
-                                    $idUsuario = $_SESSION["usuariosaw"]["id"];
-                                    $sqlFoto = "SELECT foto FROM tbusuario WHERE id = " . intval($idUsuario) . " LIMIT 1";
-                                    $resultFoto = mysqli_query($conexao, $sqlFoto);
-                                    $fotoUsuario = null;
+                                    $idUsuario = isset($_SESSION["usuariosaw"]["id"]) ? $_SESSION["usuariosaw"]["id"] : 0;
+                                    if ($idUsuario > 0) {
+                                        $sqlFoto = "SELECT foto FROM tbusuario WHERE id = " . intval($idUsuario) . " LIMIT 1";
+                                        $resultFoto = mysqli_query($conexao, $sqlFoto);
+                                        $fotoUsuario = null;
                                     
                                     if ($resultFoto && mysqli_num_rows($resultFoto) > 0) {
                                         $linhaFoto = mysqli_fetch_assoc($resultFoto);
@@ -395,6 +396,10 @@ if($interval->format('%i%h%d%m%y')=="00000")
                                     
                                     // Se encontrou foto em base64, usa; senão usa imagem padrão
                                     $srcFoto = (!empty($fotoUsuario)) ? $fotoUsuario : "imgs/undraw_profile.svg";
+                                    } else {
+                                        // Se não há ID válido, usa imagem padrão
+                                        $srcFoto = "imgs/undraw_profile.svg";
+                                    }
                                 ?>
                                 <img class="img-profile rounded-circle"
                                     src="<?php echo $srcFoto; ?>"
