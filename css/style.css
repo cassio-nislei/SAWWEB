@@ -19652,3 +19652,8 @@ html[dir="rtl"] ._2ICcy:after {
   pointer-events: auto !important;
   cursor: pointer !important;
 }
+
+/* Remove backdrop dos modals */
+.modal-backdrop {
+  display: none !important;
+}

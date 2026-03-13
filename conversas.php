@@ -2296,7 +2296,7 @@ if (!isset($_SESSION["usuariosaw"])){
 </script>
 
 <!-- Modal Editar Mensagem -->
-<div class="modal fade" id="editMessageModal" tabindex="-1" role="dialog" aria-labelledby="editMessageModalLabel" aria-hidden="true">
+<div class="modal fade" id="editMessageModal" tabindex="-1" role="dialog" data-backdrop="false" aria-labelledby="editMessageModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
@@ -2317,7 +2317,7 @@ if (!isset($_SESSION["usuariosaw"])){
 </div>
 
 <!-- Modal Confirmar Exclusão -->
-<div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
+<div class="modal fade" id="deleteConfirmModal" tabindex="-1" role="dialog" data-backdrop="false" aria-labelledby="deleteConfirmModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">

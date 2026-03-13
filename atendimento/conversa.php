@@ -533,10 +533,12 @@
         });
 
         // Reação emoji //
-        $(document).on("click", ".emojreacao", function() {
+        $(document).on("click", ".emojreacao", function(e) {
+            e.stopPropagation();
+            e.preventDefault();
             $(elementoreacao).fadeIn();
             $(elementoreacao).html($(this).html());
-            var iconereact = $(this).val();
+            var iconereact = $(this).attr('value');
             $.post("atendimento/reacaoMensagem.php", {id: idResposta, reacao: iconereact}, function(resultado) {});
             $('#ModalReacoes').modal('hide');
         });
