@@ -119,7 +119,7 @@ if($interval->format('%i%h%d%m%y')=="00000")
     <div id="wrapper">
 
         <!-- Sidebar -->
-        <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar" style="background-color: <?php echo $_SESSION["parametros"]["color"]; ?> !important;">
+        <ul class="navbar-nav sidebar sidebar-dark accordion" id="accordionSidebar" style="background-color: <?php echo isset($_SESSION["parametros"]["color"]) ? $_SESSION["parametros"]["color"] : '#224abe'; ?> !important;">
 
             <!-- Sidebar - Brand -->
             <a class="sidebar-brand d-flex align-items-center justify-content-center" href="index.php">
