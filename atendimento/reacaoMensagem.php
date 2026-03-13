@@ -1,5 +1,6 @@
 
 <?php
+	define('AJAX_CALL', true);
 	require_once("../includes/padrao.inc.php");
 	
 	// Declaração de Variáveis //

@@ -19630,3 +19630,25 @@ html[dir="rtl"] ._2ICcy:after {
   display: block;
   margin-top: 10px;
 }
+
+/* FIX: Permitir cliques nos botões da modal de reações */
+#ModalReacoes {
+  pointer-events: auto !important;
+}
+
+#ModalReacoes .modal-dialog {
+  pointer-events: auto !important;
+}
+
+#ModalReacoes .modal-content {
+  pointer-events: auto !important;
+}
+
+#ModalReacoes .modal-body {
+  pointer-events: auto !important;
+}
+
+#ModalReacoes .emojreacao {
+  pointer-events: auto !important;
+  cursor: pointer !important;
+}

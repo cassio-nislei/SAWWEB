@@ -27,6 +27,18 @@
       $('#divDigitacao').hide();
       $('#transferirParaMim').show();
 
+      // Atualiza timestamp de online do operador a cada 2 minutos
+      setInterval(function() {
+          $.ajax({
+              url: "cadastros/usuarios/gravaTimestamp.php",
+              type: "GET",
+              timeout: 5000,
+              error: function(jqXHR, textStatus, errorThrown) {
+                  console.debug("Timestamp update failed (this is normal): " + textStatus);
+              }
+          });
+      }, 120000);
+
       function AtualizaConversas() {
             var numero = $("#s_numero").val();
             var id = $("#s_id_atendimento").val();

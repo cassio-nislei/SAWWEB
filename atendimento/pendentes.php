@@ -1,4 +1,5 @@
 <?php
+	define('AJAX_CALL', true);
 	// Requires //
 	require_once("../includes/padrao.inc.php");
 

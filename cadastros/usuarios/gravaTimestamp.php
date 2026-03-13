@@ -1,6 +1,9 @@
 <?php
+	// Define como chamada AJAX para evitar redirecionamento
+	define('AJAX_CALL', true);
+	
 	// Requires //
-	require_once("../includes/padrao.inc.php");
+	require_once("../../includes/padrao.inc.php");
 
 	// Verifica se o usuário está logado //
 	if(!isset($_SESSION["usuariosaw"]["id"])){

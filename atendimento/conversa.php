@@ -1515,8 +1515,19 @@
 
         });
 
-
-
+        // FIX: Atualizar timestamp do usuário a cada 2 minutos para manter online
+        // Isso mantém o atendente marcado como online enquanto está atendendo
+        setInterval(function() {
+            $.ajax({
+                url: "cadastros/usuarios/gravaTimestamp.php",
+                type: "GET",
+                timeout: 5000,
+                error: function(jqXHR, textStatus, errorThrown) {
+                    // Silenciosamente falha se houver erro - não interfere na aplicação
+                    console.debug("Timestamp update failed (this is normal): " + textStatus);
+                }
+            });
+        }, 120000); // 120 segundos = 2 minutos
 
     });
 </script>

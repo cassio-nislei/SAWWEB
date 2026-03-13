@@ -1,4 +1,5 @@
 <?php
+  define('AJAX_CALL', true);
   require_once(__DIR__ . "/../../includes/padrao.inc.php");
 
   mysqli_next_result($conexao);

@@ -1,4 +1,5 @@
 <?php
+	define('AJAX_CALL', true);
 	// Requires //
 	require_once("../includes/padrao.inc.php");
 
@@ -484,11 +485,11 @@
 
 <!-- Modal -->
 <div class="modal fade" id="ModalReacoes" tabindex="-1" data-backdrop="false" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" style="border-radius:30px !important;;">
-  <div class="modal-dialog modal-sm modal-dialog-centered" role="document">
-   <span class=" modal-content" style="background:none"> 
+  <div class="modal-dialog modal-sm modal-dialog-centered" role="document" style="pointer-events: auto;">
+    <div class="modal-content" style="background:none; pointer-events: auto;"> 
       <div class="modal-body">
 	   
-	     <button type="button" class="emojreacao" style="padding:5px " value="0">👍</button>
+	     <button type="button" class="emojreacao" style="padding:5px; pointer-events: auto;" value="0">👍</button>
 		 <button type="button" class="emojreacao" style="padding:5px " value="1">❤️</button>
 		 <button type="button" class="emojreacao" style="padding:5px " value="2">😂</button>
 		 <button type="button" class="emojreacao" style="padding:5px " value="3">😮</button>
@@ -511,7 +512,7 @@
          <button type="button" class="emojreacao" style="padding:5px " value="20">👋</button>
 
       </div>
-		</span>
+    </div>
 
     </div>
   </div>
