@@ -1,7 +1,9 @@
-<center><h1>Resultado da Pesquisa</h1></center>
 <?php
  include_once("../conexao.php");
  $pesquisa = $_POST["pesquisa"];
+?>
+<center><h1>Resultado da Pesquisa</h1></center>
+<?php
 
     $listar = mysqli_query($conexao,"select tb_categorias.descricao categoria, tb_jogos.* from tb_jogos
 inner join tb_categorias on tb_jogos.id_categoria = tb_categorias.id

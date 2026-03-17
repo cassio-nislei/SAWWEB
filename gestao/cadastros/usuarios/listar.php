@@ -1,5 +1,7 @@
-
-
+<?php
+include_once("../../../includes/conexao.php");
+include_once("../../../includes/padrao.inc.php");
+?>
 <style>
 	table.table {
       border-spacing: 0px;
@@ -33,9 +35,7 @@
     </thead>
 	<tbody>
 
-<?php	 
- include_once("../../../includes/conexao.php");
- include_once("../../../includes/padrao.inc.php");
+<?php
     // Monto os options dos Departamentos //
     $options = '<select name="sltDepartamentos" id="sltDepartamentos" class="uk-select" style="width:75%;height:25px;margin-top:-15px;clear: both;font-size:12px;padding:0">
                     <option value="0">Departamento</option>';

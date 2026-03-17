@@ -1,5 +1,3 @@
-<span id="msgContatos"></span>
-
 <?php
 	// Quando vier pela Pesquisa, passa por aqui //
 	if( !isset($conexao) ){
@@ -28,6 +26,11 @@
 		if ($pesquisa==""){
 			$pesquisa=="%";
 		}
+?>
+
+<span id="msgContatos"></span>
+
+<?php
 
 
         $Consulta = "SELECT tbc.*, MAX(tbe.cor) AS cor, MAX(tbe.descricao) AS etiqueta  FROM tbcontatos tbc 

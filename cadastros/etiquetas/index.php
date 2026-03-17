@@ -1,4 +1,3 @@
-
 <?php 
 // Este arquivo pode ser carregado via AJAX diretamente, precisa do padrao.inc.php
 require_once(__DIR__ . "/../../includes/padrao.inc.php");

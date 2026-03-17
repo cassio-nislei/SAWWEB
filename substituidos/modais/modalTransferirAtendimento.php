@@ -1,4 +1,10 @@
 <!-- Transferir Atendimento -->
+<?php
+    // Este arquivo é incluído onde $conexao já está disponível
+    if(!isset($conexao)) {
+        require_once("../../includes/padrao.inc.php");
+    }
+?>
 <div class="window menor comprido" id="modalTransferirAtendimento">
     <div class="" id="tabs">
         <ul>
