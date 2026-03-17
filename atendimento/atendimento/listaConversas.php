@@ -15,7 +15,7 @@
 	if( $idAtendimento === "att" ){
 		$strSQL = "SELECT tma.chatid, tma.id, tma.seq, tma.numero, tma.msg, tma.resp_msg, tma.dt_msg, tma.hr_msg, tma.id_atend, 
 		       ta.id as anexo_id, ta.numero as anexo_numero, ta.seq as anexo_seq, ta.tipo_arquivo, ta.nome_original, tma.situacao, tma.reagir, tma.reacao,
-		       tma.reacaorec
+		       tma.reacaorec, tma.apagada
 					FROM tbmsgatendimento tma
 						LEFT JOIN tbanexos ta ON tma.id_anexo = ta.id
 							WHERE tma.numero = '".$numero."' and tma.id = '$idAtendimento'
@@ -25,7 +25,7 @@
 		if( $idAtendimento === "all" ){
 			$strSQL = "SELECT tma.chatid, tma.id, tma.seq, tma.numero, tma.msg, tma.resp_msg, tma.dt_msg, tma.hr_msg, tma.id_atend, 
 			       ta.id as anexo_id, ta.numero as anexo_numero, ta.seq as anexo_seq, ta.tipo_arquivo, ta.nome_original, tma.situacao, tma.reagir, tma.reacao,
-			       tma.reacaorec
+			       tma.reacaorec, tma.apagada
 						FROM tbmsgatendimento tma
 						LEFT JOIN tbanexos ta ON tma.id_anexo = ta.id
 								WHERE tma.numero = '".$numero."'
@@ -48,7 +48,7 @@
 
 			$strSQL = "SELECT tma.chatid, tma.id, tma.seq, tma.numero, tma.msg,  tma.resp_msg, tma.dt_msg, tma.hr_msg, tma.id_atend, 
 			       ta.id as anexo_id, ta.numero as anexo_numero, ta.seq as anexo_seq, ta.tipo_arquivo, ta.nome_original, tma.situacao, tma.reagir, tma.reacao,
-			       tma.reacaorec
+			       tma.reacaorec, tma.apagada
 						FROM tbmsgatendimento tma
 						LEFT JOIN tbanexos ta ON tma.id_anexo = ta.id
 								WHERE tma.numero = '".$numero."' AND  tma.id = '".$idAtendimento."'
@@ -75,7 +75,7 @@
 		$chatID  = $objConversa->chatid;
 		$seq_msg = $objConversa->seq;
 		$mensagem = "";
-		  $reactreceiver = $objConversa->reacaorec;
+		$reactreceiver = $objConversa->reacaorec;
 		$mensagemResposta = "";
 		$dt_msg = strtotime($objConversa->dt_msg);
 		$datamensagem = date("d/m/Y", $dt_msg);
@@ -83,6 +83,10 @@
 		$horamensagem = date("H:i", $hr_msg);
 		$cod_reacao = intval($objConversa->reacao);
 		$reagiuMSG = intval($objConversa->reagir);
+		
+		// Verificar se mensagem foi apagada pelo outro lado (apagada = 2)
+		$foiApadaDoOutroLado = isset($objConversa->apagada) && intval($objConversa->apagada) === 2;
+		$mensagemOriginal = $objConversa->msg; // Guardar mensagem original
 
 		if ($reagiuMSG >= 1){
 				
@@ -343,6 +347,13 @@
 				}	
 		      
                 
+				// Exibir aviso se mensagem foi apagada do outro lado (apagada = 2)
+				if ($foiApadaDoOutroLado) {
+					echo '<div style="background-color: #f0f0f0; border-left: 4px solid #ff9800; padding: 8px 12px; margin-bottom: 8px; border-radius: 3px;">
+							<span style="color: #ff9800; font-weight: bold; font-size: 14px;">🚫 Mensagem Apagada pelo outro lado</span>
+						</div>';
+				}
+				
 				echo'<div class="_3zb-j ZhF0n">
 									<span dir="ltr" class="selectable-text invisible-space message-text">'. str_replace("\\n","<br/>",$mensagem) .'</span>
 								</div>
@@ -439,6 +450,13 @@
 						';
 					}	
 						   
+				// Exibir aviso se mensagem foi apagada do outro lado (apagada = 2)
+				if ($foiApadaDoOutroLado) {
+					echo '<div style="background-color: #f0f0f0; border-left: 4px solid #ff9800; padding: 8px 12px; margin-bottom: 8px; border-radius: 3px;">
+							<span style="color: #ff9800; font-weight: bold; font-size: 14px;">🚫 Mensagem Apagada pelo outro lado</span>
+						</div>';
+				}
+				
 				echo '	<div class="_3zb-j ZhF0n">
 								<span dir="ltr" class="selectable-text invisible-space message-text">'. str_replace("\\n","<br/>",$mensagem) .'</span>
 							</div>							
