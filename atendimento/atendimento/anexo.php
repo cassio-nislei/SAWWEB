@@ -11,6 +11,42 @@
 		$seq = isset($_GET['seq']) ? $_GET['seq'] : null;
 	// FIM Declaração de Variáveis //
 
+	// Função para decodificar base64 de múltiplas fontes
+	function decodeFileData($arquivo, $base64) {
+		// Tentar coluna base64 (tem data URI)
+		if (!empty($base64)) {
+			$b64 = $base64;
+			if (strpos($b64, 'data:') === 0) {
+				$b64 = substr($b64, strpos($b64, ',') + 1);
+			}
+			$decoded = base64_decode($b64, true);
+			if ($decoded !== false && strlen($decoded) > 0) {
+				return $decoded;
+			}
+		}
+		
+		// Tentar coluna arquivo como base64 puro
+		if (!empty($arquivo)) {
+			// Verificar bases64 válido
+			if (preg_match('~^[A-Za-z0-9+/\r\n]+=*$~', substr($arquivo, 0, 200))) {
+				$decoded = base64_decode($arquivo, true);
+				if ($decoded !== false && strlen($decoded) > 0) {
+					return $decoded;
+				}
+			}
+			// Tentar como data URI
+			if (strpos($arquivo, 'data:') === 0) {
+				$b64part = substr($arquivo, strpos($arquivo, ',') + 1);
+				$decoded = base64_decode($b64part, true);
+				if ($decoded !== false && strlen($decoded) > 0) {
+					return $decoded;
+				}
+			}
+		}
+		
+		return null;
+	}
+
 	error_log("id=$id, numero=$numero, seq=$seq");
 
 	// Buscando os dados do Arquivo //
@@ -34,162 +70,102 @@
 
 	// Imagem //
 	if( $objAnexos->tipo_arquivo == 'IMAGE' ){
-		// $imagem = explode(".", $objAnexos->nome_arquivo);
-		// $fileName = "images/conversas/" . str_replace($imagem[0], $id.'_'.$numero.'_'.$seq, $objAnexos->nome_arquivo);
-
-		// if( !file_exists($fileName) ){
-		// 	$img = imagecreatefromstring( $objAnexos->arquivo );	
-		// 	imagejpeg( $img, $fileName );
-		// }
+		error_log("Processando IMAGE. Decodificando base64...");
 		
-		// header( "Content-type: image/jpeg" );
-		// header( sprintf( "Content-length: %d" , strlen( $objAnexos->arquivo ) ) );
-	}
-	// Áudio em Voz (PTT) - Base64 armazenado //
-	elseif( $objAnexos->tipo_arquivo == 'PTT' ){
-		error_log("Processando audio PTT. Tamanho arquivo_size: " . $objAnexos->arquivo_size . " bytes");
-		
-		// Definir cache para 30 dias
 		$cacheTime = 30 * 24 * 60 * 60; // 30 dias em segundos
 		header('Cache-Control: public, max-age=' . $cacheTime);
 		header('Pragma: cache');
 		$gmdate = gmdate('D, d M Y H:i:s', time() + $cacheTime) . ' GMT';
 		header('Expires: ' . $gmdate);
 		
-		// Se o arquivo é Base64, decodificamos
-		$audioData = $objAnexos->arquivo;
-		
-		// Verificar se é Base64 válido
-		if (preg_match('~^[A-Za-z0-9+/]*={0,2}$~', $audioData)) {
-			// Base64 puro, decodificar com strict mode
-			$decodedAudio = base64_decode($audioData, true);
-			if ($decodedAudio !== false && strlen($decodedAudio) > 0) {
-				header('Content-Type: audio/mpeg');
-				header('Content-Length: ' . strlen($decodedAudio));
-				ob_end_clean();
-				flush();
-				echo $decodedAudio;
-				exit;
-			}
+		$fileData = decodeFileData($objAnexos->arquivo, $objAnexos->base64);
+		if ($fileData === null) {
+			header('Content-Type: text/plain');
+			echo "Erro: Imagem não disponível";
+			exit;
 		}
 		
-		// Tentar como data URI
-		if (strpos($audioData, 'data:audio') === 0) {
-			$base64Part = substr($audioData, strpos($audioData, ',') + 1);
-			$decodedAudio = base64_decode($base64Part, true);
-			if ($decodedAudio !== false && strlen($decodedAudio) > 0) {
-				header('Content-Type: audio/mpeg');
-				header('Content-Length: ' . strlen($decodedAudio));
-				ob_end_clean();
-				flush();
-				echo $decodedAudio;
-				exit;
-			}
-		}
-		
-		// Fallback: usar coluna base64 se disponível
-		if (!empty($objAnexos->base64)) {
-			$base64Data = $objAnexos->base64;
-			if (strpos($base64Data, 'data:audio') === 0) {
-				$base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
-			}
-			$decodedAudio = base64_decode($base64Data, true);
-			if ($decodedAudio !== false && strlen($decodedAudio) > 0) {
-				header('Content-Type: audio/mpeg');
-				header('Content-Length: ' . strlen($decodedAudio));
-				ob_end_clean();
-				flush();
-				echo $decodedAudio;
-				exit;
-			}
-		}
-		
-		// Se tudo falhou, retornar erro
-		header('Content-Type: text/plain');
-		echo "Erro: Audio nao disponivel";
+		header('Content-Type: image/jpeg');
+		header('Content-Length: ' . strlen($fileData));
+		ob_end_clean();
+		flush();
+		echo $fileData;
 		exit;
 	}
-	// Arquivo de Áudio //
-	elseif( $objAnexos->tipo_arquivo == 'AUDIO' ){
-		error_log("Processando audio AUDIO (recebido). Tamanho arquivo_size: " . $objAnexos->arquivo_size . " bytes");
-		
-		// Definir cache para 30 dias
-		$cacheTime = 30 * 24 * 60 * 60; // 30 dias em segundos
-		header('Cache-Control: public, max-age=' . $cacheTime);
-		header('Pragma: cache');
-		$gmdate = gmdate('D, d M Y H:i:s', time() + $cacheTime) . ' GMT';
-		header('Expires: ' . $gmdate);
-		
-		// Se o arquivo é Base64, decodificamos (mesmo tratamento que PTT)
-		$audioData = $objAnexos->arquivo;
-		
-		// Verificar se é Base64 válido
-		if (preg_match('~^[A-Za-z0-9+/]*={0,2}$~', $audioData)) {
-			// Base64 puro, decodificar com strict mode
-			$decodedAudio = base64_decode($audioData, true);
-			if ($decodedAudio !== false && strlen($decodedAudio) > 0) {
-				header('Content-Type: audio/mpeg');
-				header('Content-Length: ' . strlen($decodedAudio));
-				ob_end_clean();
-				flush();
-				echo $decodedAudio;
-				exit;
-			}
-		}
-		
-		// Tentar como data URI
-		if (strpos($audioData, 'data:audio') === 0) {
-			$base64Part = substr($audioData, strpos($audioData, ',') + 1);
-			$decodedAudio = base64_decode($base64Part, true);
-			if ($decodedAudio !== false && strlen($decodedAudio) > 0) {
-				header('Content-Type: audio/mpeg');
-				header('Content-Length: ' . strlen($decodedAudio));
-				ob_end_clean();
-				flush();
-				echo $decodedAudio;
-				exit;
-			}
-		}
-		
-		// Fallback: usar coluna base64 se disponível
-		if (!empty($objAnexos->base64)) {
-			$base64Data = $objAnexos->base64;
-			if (strpos($base64Data, 'data:audio') === 0) {
-				$base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
-			}
-			$decodedAudio = base64_decode($base64Data, true);
-			if ($decodedAudio !== false && strlen($decodedAudio) > 0) {
-				header('Content-Type: audio/mpeg');
-				header('Content-Length: ' . strlen($decodedAudio));
-				ob_end_clean();
-				flush();
-				echo $decodedAudio;
-				exit;
-			}
-		}
-		
-		// Se tudo falhou, retornar erro
-		header('Content-Type: text/plain');
-		echo "Erro: Audio nao disponivel";
-		exit;
-	}
-	// Arquivo de Vídeo //
-	elseif( $objAnexos->tipo_arquivo == 'VIDEO' ){
-		header("Content-Type: video/mp4");
-	}
-	// Áudio em Voz //
+	// Áudio em Voz (PTT) ou Áudio Recebido (AUDIO) ou Vídeo ou demais arquivos
 	else{
-		// Faz o Download do Arquivo //
-		header('Content-Description: File Transfer');
-		header("Content-Type: application/octet-stream");
-		// header("Content-Type: audio/ogg");
-		header("Content-Disposition: attachment; filename=".basename($objAnexos->nome_arquivo));
-		header("Content-Transfer-Encoding: binary");
+		error_log("Processando tipo: " . $objAnexos->tipo_arquivo . ". Decodificando base64...");
+		
+		$cacheTime = 30 * 24 * 60 * 60; // 30 dias em segundos
+		header('Cache-Control: public, max-age=' . $cacheTime);
+		header('Pragma: cache');
+		$gmdate = gmdate('D, d M Y H:i:s', time() + $cacheTime) . ' GMT';
+		header('Expires: ' . $gmdate);
+		
+		$nomeArquivo = $objAnexos->nome_arquivo;
+		$ext = strtolower(pathinfo($nomeArquivo, PATHINFO_EXTENSION));
+		
+		// Mapear tipo/extensão para MIME type
+		$tipoMime = array(
+			'PTT'   => 'audio/mpeg',
+			'AUDIO' => 'audio/mpeg',
+			'VIDEO' => 'video/mp4',
+		);
+		
+		$extensionMimeTypes = array(
+			'pdf'  => 'application/pdf',
+			'doc'  => 'application/msword',
+			'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+			'xls'  => 'application/vnd.ms-excel',
+			'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+			'csv'  => 'text/csv',
+			'ppt'  => 'application/vnd.ms-powerpoint',
+			'pptx' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+			'txt'  => 'text/plain',
+			'html' => 'text/html',
+			'htm'  => 'text/html',
+			'xml'  => 'application/xml',
+			'json' => 'application/json',
+			'svg'  => 'image/svg+xml',
+			'png'  => 'image/png',
+			'jpg'  => 'image/jpeg',
+			'jpeg' => 'image/jpeg',
+			'gif'  => 'image/gif',
+			'webp' => 'image/webp',
+			'zip'  => 'application/zip',
+			'rar'  => 'application/x-rar-compressed',
+			'mp3'  => 'audio/mpeg',
+			'mp4'  => 'video/mp4',
+		);
+		
+		// Determinar MIME type
+		$contentType = isset($tipoMime[$objAnexos->tipo_arquivo]) 
+			? $tipoMime[$objAnexos->tipo_arquivo]
+			: (isset($extensionMimeTypes[$ext]) ? $extensionMimeTypes[$ext] : 'application/octet-stream');
+		
+		$fileData = decodeFileData($objAnexos->arquivo, $objAnexos->base64);
+		if ($fileData === null) {
+			header('Content-Type: text/plain');
+			echo 'Erro: Arquivo não disponível';
+			exit;
+		}
+		
+		// Tipos que o navegador pode exibir inline
+		$inlineTypes = array('pdf', 'html', 'htm', 'txt', 'svg', 'xml', 'json', 'png', 'jpg', 'jpeg', 'gif', 'webp');
+		
+		header('Content-Type: ' . $contentType);
+		header('Content-Length: ' . strlen($fileData));
+		
+		if (in_array($ext, $inlineTypes) || in_array($objAnexos->tipo_arquivo, array('PTT', 'AUDIO', 'VIDEO'))) {
+			// Abrir inline no navegador (áudio e vídeo com controles)
+			header('Content-Disposition: inline; filename="' . basename($nomeArquivo) . '"');
+		} else {
+			// Download
+			header('Content-Disposition: attachment; filename="' . basename($nomeArquivo) . '"');
+		}
+		
+		ob_end_clean();
+		flush();
+		echo $fileData;
+		exit;
 	}
-
-	// Essas duas linhas antes do readfile - de imprimir o arquivo //
-	ob_end_clean();
-	flush();
-
-	// Imprimindo o Arquivo //
-	echo $objAnexos->arquivo;
