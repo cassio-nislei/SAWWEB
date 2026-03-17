@@ -108,7 +108,67 @@
 	}
 	// Arquivo de Áudio //
 	elseif( $objAnexos->tipo_arquivo == 'AUDIO' ){
-		header('Content-type: audio/mpeg');
+		error_log("Processando audio AUDIO (recebido). Tamanho arquivo_size: " . $objAnexos->arquivo_size . " bytes");
+		
+		// Definir cache para 30 dias
+		$cacheTime = 30 * 24 * 60 * 60; // 30 dias em segundos
+		header('Cache-Control: public, max-age=' . $cacheTime);
+		header('Pragma: cache');
+		$gmdate = gmdate('D, d M Y H:i:s', time() + $cacheTime) . ' GMT';
+		header('Expires: ' . $gmdate);
+		
+		// Se o arquivo é Base64, decodificamos (mesmo tratamento que PTT)
+		$audioData = $objAnexos->arquivo;
+		
+		// Verificar se é Base64 válido
+		if (preg_match('~^[A-Za-z0-9+/]*={0,2}$~', $audioData)) {
+			// Base64 puro, decodificar com strict mode
+			$decodedAudio = base64_decode($audioData, true);
+			if ($decodedAudio !== false && strlen($decodedAudio) > 0) {
+				header('Content-Type: audio/mpeg');
+				header('Content-Length: ' . strlen($decodedAudio));
+				ob_end_clean();
+				flush();
+				echo $decodedAudio;
+				exit;
+			}
+		}
+		
+		// Tentar como data URI
+		if (strpos($audioData, 'data:audio') === 0) {
+			$base64Part = substr($audioData, strpos($audioData, ',') + 1);
+			$decodedAudio = base64_decode($base64Part, true);
+			if ($decodedAudio !== false && strlen($decodedAudio) > 0) {
+				header('Content-Type: audio/mpeg');
+				header('Content-Length: ' . strlen($decodedAudio));
+				ob_end_clean();
+				flush();
+				echo $decodedAudio;
+				exit;
+			}
+		}
+		
+		// Fallback: usar coluna base64 se disponível
+		if (!empty($objAnexos->base64)) {
+			$base64Data = $objAnexos->base64;
+			if (strpos($base64Data, 'data:audio') === 0) {
+				$base64Data = substr($base64Data, strpos($base64Data, ',') + 1);
+			}
+			$decodedAudio = base64_decode($base64Data, true);
+			if ($decodedAudio !== false && strlen($decodedAudio) > 0) {
+				header('Content-Type: audio/mpeg');
+				header('Content-Length: ' . strlen($decodedAudio));
+				ob_end_clean();
+				flush();
+				echo $decodedAudio;
+				exit;
+			}
+		}
+		
+		// Se tudo falhou, retornar erro
+		header('Content-Type: text/plain');
+		echo "Erro: Audio nao disponivel";
+		exit;
 	}
 	// Arquivo de Vídeo //
 	elseif( $objAnexos->tipo_arquivo == 'VIDEO' ){
