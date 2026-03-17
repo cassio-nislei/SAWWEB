@@ -162,13 +162,63 @@
 		//Trato o Anexo para exibir
 		//Quando for gravação de Audio
 		if ($objConversa->tipo_arquivo=='PTT'){
-			$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->anexo_id."&numero=".$objConversa->anexo_numero."&seq=".$objConversa->anexo_seq, ENT_QUOTES, 'UTF-8');
-			$mensagem = '<audio controls="" style="width:240px"><source src="'.$url_anexo.'" /></audio>';	
+			// Tentar recuperar o base64 diretamente do banco
+			$sqlAnexo = "SELECT base64, arquivo FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."' LIMIT 1";
+			$qryAnexo = mysqli_query($conexao, $sqlAnexo);
+			$objAnexo = mysqli_fetch_object($qryAnexo);
+			
+			if ($objAnexo && !empty($objAnexo->base64)) {
+				// Usar base64 diretamente se disponível
+				$audioData = $objAnexo->base64;
+				// Se o base64 não tem o prefixo data URI, adicionar
+				if (strpos($audioData, 'data:audio') !== 0) {
+					$audioData = 'data:audio/mpeg;base64,' . $audioData;
+				}
+				$mensagem = '<audio controls="" style="width:240px"><source src="'.$audioData.'" type="audio/mpeg" /></audio>';
+			} else if ($objAnexo && !empty($objAnexo->arquivo)) {
+				// Fallback para coluna arquivo se base64 não existir
+				if (strpos($objAnexo->arquivo, 'data:audio') === 0) {
+					$mensagem = '<audio controls="" style="width:240px"><source src="'.$objAnexo->arquivo.'" type="audio/mpeg" /></audio>';
+				} else {
+					// Se for base64 puro, converter para data URI
+					$audioData = 'data:audio/mpeg;base64,' . $objAnexo->arquivo;
+					$mensagem = '<audio controls="" style="width:240px"><source src="'.$audioData.'" type="audio/mpeg" /></audio>';
+				}
+			} else {
+				// Fallback para anexo.php caso nenhum dos anteriores funcione
+				$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->anexo_id."&numero=".$objConversa->anexo_numero."&seq=".$objConversa->anexo_seq, ENT_QUOTES, 'UTF-8');
+				$mensagem = '<audio controls="" style="width:240px"><source src="'.$url_anexo.'" type="audio/mpeg" /></audio>';
+			}
 		//Quando for envio de Audio
 		}
 		elseif ($objConversa->tipo_arquivo=='AUDIO'){
-			$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->anexo_id."&numero=".$objConversa->anexo_numero."&seq=".$objConversa->anexo_seq, ENT_QUOTES, 'UTF-8');
-			$mensagem = '<a class="youtube cboxElement" href="'.$url_anexo.'"><img src="images/abrir_audio.png" width="100" height="100"></a><br>'.htmlspecialchars($objConversa->nome_original, ENT_QUOTES, 'UTF-8');	
+			// Recuperar base64 direto do banco (igual ao PTT)
+			$sqlAnexo = "SELECT base64, arquivo FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."' LIMIT 1";
+			$qryAnexo = mysqli_query($conexao, $sqlAnexo);
+			$objAnexo = mysqli_fetch_object($qryAnexo);
+			
+			if ($objAnexo && !empty($objAnexo->base64)) {
+				// Usar base64 diretamente se disponível
+				$audioData = $objAnexo->base64;
+				// Se o base64 não tem o prefixo data URI, adicionar
+				if (strpos($audioData, 'data:audio') !== 0) {
+					$audioData = 'data:audio/mpeg;base64,' . $audioData;
+				}
+				$mensagem = '<audio controls="" style="width:240px"><source src="'.$audioData.'" type="audio/mpeg" /></audio>';
+			} else if ($objAnexo && !empty($objAnexo->arquivo)) {
+				// Fallback para coluna arquivo se base64 não existir
+				if (strpos($objAnexo->arquivo, 'data:audio') === 0) {
+					$mensagem = '<audio controls="" style="width:240px"><source src="'.$objAnexo->arquivo.'" type="audio/mpeg" /></audio>';
+				} else {
+					// Se for base64 puro, converter para data URI
+					$audioData = 'data:audio/mpeg;base64,' . $objAnexo->arquivo;
+					$mensagem = '<audio controls="" style="width:240px"><source src="'.$audioData.'" type="audio/mpeg" /></audio>';
+				}
+			} else {
+				// Fallback para anexo.php caso nenhum dos anteriores funcione
+				$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->anexo_id."&numero=".$objConversa->anexo_numero."&seq=".$objConversa->anexo_seq, ENT_QUOTES, 'UTF-8');
+				$mensagem = '<audio controls="" style="width:240px"><source src="'.$url_anexo.'" type="audio/mpeg" /></audio>';
+			}
 		//Quando for envio de Video
 		}
 		elseif ($objConversa->tipo_arquivo=='VIDEO'){
