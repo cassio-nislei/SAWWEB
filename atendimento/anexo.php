@@ -150,17 +150,6 @@
 		echo $fileData;
 		exit;
 	}
-		} else {
-			// Forçar download para tipos não visualizáveis
-			header('Content-Disposition: attachment; filename="' . basename($nomeArquivo) . '"');
-		}
-		
-		ob_end_clean();
-		flush();
-		echo $fileData;
-		exit;
-	}
-
 	// Fallback para tipos não tratados acima (AUDIO, VIDEO sem exit)
 	ob_end_clean();
 	flush();

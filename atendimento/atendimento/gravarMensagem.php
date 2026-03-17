@@ -11,7 +11,10 @@
 		$nomeDepartamento = $_SESSION["usuariosaw"]["nomeDepartamento"];
 		$binario = '';
 		$nomeArquivo = '';
-		$anexomsgRapida = $_POST["anexomsgRapida"];		$imageBase64 = isset($_POST["imageBase64"]) ? $_POST["imageBase64"] : '';		$tipo = '';
+		$anexomsgRapida = $_POST["anexomsgRapida"];		
+		$imageBase64 = isset($_POST["imageBase64"]) ? $_POST["imageBase64"] : '';
+		$audioBase64 = isset($_POST["audioBase64"]) ? $_POST["audioBase64"] : '';
+		$tipo = '';
 		//$situacao    = ( strpos($strMensagem, 'BEGIN:VCARD') !== false ) ? ((intval($idCanal) > 1 ? "E" : "N" ) ) : "E"; // O Marcelino precisa disso! Pois no Delphi ainda não funciona o envio de Contato!
 		$situacao    = 'E'; 
 		$intUserId   = $_SESSION["usuariosaw"]["id"];
@@ -45,6 +48,45 @@
 		// Grava o Anexo (imagem em base64) no Banco de dados
 		$sqlInsertTbAnexo = "INSERT INTO tbanexos(id,seq,numero,arquivo,nome_arquivo,nome_original,tipo_arquivo,canal,enviado)
 							VALUES ('".$idAtendimento."','".$newSequence."','".$strNumero."','".$binario."','".$nomeArquivo."',
+								'".$nomeArquivo."','".$tipo."','".$idCanal."',1)";
+		
+		$insereAnexo = mysqli_query($conexao, $sqlInsertTbAnexo) or die(mysqli_error($conexao));
+		
+		$situacao = 'N';
+		
+		$inseremsg = mysqli_query(
+			$conexao, 
+			"INSERT INTO tbmsgatendimento(id,seq,numero,msg, resp_msg, nome_chat,situacao, dt_msg,hr_msg,id_atend,canal, chatid_resposta)
+				VALUES('".$idAtendimento."','".$newSequence."' ,'".$strNumero."', (CONCAT_WS(REPLACE('\\\ n', ' ', ''), ".$strMensagem."), '".$strResposta."',
+						'".$strUserNome."' ,'".$situacao."',NOW(),CURTIME(),'".$intUserId."','".$idCanal."', '".$idResposta."')"
+		);
+	}
+
+	// Se houver áudio em base64 (gravado com o microfone)
+	else if (!empty($audioBase64)){
+		$newSequence = newSequence($conexao, $idAtendimento, $strNumero, $idCanal); // Gera a sequencia da mensagem
+		
+		// Guardar versão original com prefixo para salvar no DB
+		if (strpos($audioBase64, 'data:audio') === 0) {
+			$audioBase64_orig = $audioBase64; // Guardar com prefixo para o DB
+			$audioBase64_clean = substr($audioBase64, strpos($audioBase64, ',') + 1);
+		} else {
+			$audioBase64_orig = 'data:audio/mpeg;base64,' . $audioBase64;
+			$audioBase64_clean = $audioBase64;
+		}
+		
+		// Preparar strings escapadas
+		$binario_escaped = mysqli_real_escape_string($conexao, $audioBase64_clean);
+		$audioBase64_orig_escaped = mysqli_real_escape_string($conexao, $audioBase64_orig);
+		
+		$binario = $binario_escaped;
+		$base64DataUri = $audioBase64_orig_escaped;
+		$tipo = 'PTT';
+		$nomeArquivo = "audio_" . $idAtendimento . "_" . $newSequence . ".mp3";
+		
+		// Grava o Anexo (áudio em base64) no Banco de dados com campo base64
+		$sqlInsertTbAnexo = "INSERT INTO tbanexos(id,seq,numero,arquivo,base64,nome_arquivo,nome_original,tipo_arquivo,canal,enviado)
+							VALUES ('".$idAtendimento."','".$newSequence."','".$strNumero."','" . $binario . "','" . $base64DataUri . "','".$nomeArquivo."',
 								'".$nomeArquivo."','".$tipo."','".$idCanal."',1)";
 		
 		$insereAnexo = mysqli_query($conexao, $sqlInsertTbAnexo) or die(mysqli_error($conexao));

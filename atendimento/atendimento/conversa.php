@@ -682,66 +682,75 @@
                 if( $('#parametrosEnvioAudioAut').val() === "1" ){
                     console.log("Enviando audio automaticamente...");
                     
-                    // Criar novo FormData para auto-send (não reutilizar form)
-                    var formAutoSend = new FormData();
-                    
-                    // Adicionar campos de controle
-                    formAutoSend.append('numero', $("#s_numero").val());
-                    formAutoSend.append('id_atendimento', $("#s_id_atendimento").val());
-                    formAutoSend.append('nome', $("#s_nome").val());
-                    formAutoSend.append('id_canal', $("#s_id_canal").val());
-                    formAutoSend.append('msg', $("#msg").val());
-                    formAutoSend.append('Resposta', $("#RespostaSelecionada").html());
-                    formAutoSend.append('idResposta', $("#chatid_resposta").val());
-                    formAutoSend.append('anexomsgRapida', $("#anexomsgRapida").val());
-                    formAutoSend.append('nomeanexomsgRapida', $("#nomeanexomsgRapida").val());
-                    
-                    // Adicionar audioBase64 DIRETAMENTE
-                    formAutoSend.append('audioBase64', audioBase64);
-                    
-                    console.log("Enviando FormData com audioBase64...");
-                    
-                    // Submit AJAX
-                    $.ajax({
-                        url: 'atendimento/gravarMensagem.php',
-                        data: formAutoSend,
-                        processData: false,
-                        contentType: false,
-                        type: 'POST',
-                        success: function(retorno) {
-                            console.log("Audio enviado com sucesso. Resposta:", retorno);
-                            
-                            // CRÍTICO: Resetar flags IMEDIATAMENTE
-                            form = new FormData();
-                            ehaudio = false;
-                            audioConfirmado = false;
-                            audioProcessado = false;
-                            enviandoMensagem = false;
-                            imageClipboard = false;
-                            imageCamera = false;
-                            
-                            // Limpar campos
-                            $("#msg").val("");
-                            $("#anexomsgRapida").val("0");
-                            $("#RespostaSelecionada").html("");
-                            $("#chatid_resposta").val("");
-                            $("#upload").val("");
-                            $("#imgDragDrop").val("");
-                            
-                            removeFile();
-                            cancelaUploadImageClipboard();
-                            
-                            console.log("Flags resetados apos auto-send");
-                            
-                            $("#divAudio").attr("style", "display: block");
-                            $("#msg").focus();
-                        },
-                        error: function(jqXHR, textStatus, errorThrown) {
-                            console.error("Erro ao enviar audio:", textStatus);
-                            enviandoMensagem = false;
-                            alert("Erro ao enviar audio.");
-                        }
-                    });
+                    // Converter Blob para Base64 antes de enviar
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        var audioBase64 = e.target.result;
+                        console.log("✓ Áudio convertido para Base64: " + audioBase64.length + " caracteres");
+                        
+                        // Criar novo FormData para auto-send (não reutilizar form)
+                        var formAutoSend = new FormData();
+                        
+                        // Adicionar campos de controle
+                        formAutoSend.append('numero', $("#s_numero").val());
+                        formAutoSend.append('id_atendimento', $("#s_id_atendimento").val());
+                        formAutoSend.append('nome', $("#s_nome").val());
+                        formAutoSend.append('id_canal', $("#s_id_canal").val());
+                        formAutoSend.append('msg', $("#msg").val());
+                        formAutoSend.append('Resposta', $("#RespostaSelecionada").html());
+                        formAutoSend.append('idResposta', $("#chatid_resposta").val());
+                        formAutoSend.append('anexomsgRapida', $("#anexomsgRapida").val());
+                        formAutoSend.append('nomeanexomsgRapida', $("#nomeanexomsgRapida").val());
+                        
+                        // Adicionar audioBase64 DIRETAMENTE
+                        formAutoSend.append('audioBase64', audioBase64);
+                        
+                        console.log("Enviando FormData com audioBase64...");
+                        
+                        // Submit AJAX
+                        $.ajax({
+                            url: 'atendimento/gravarMensagem.php',
+                            data: formAutoSend,
+                            processData: false,
+                            contentType: false,
+                            type: 'POST',
+                            success: function(retorno) {
+                                console.log("Audio enviado com sucesso. Resposta:", retorno);
+                                
+                                // CRÍTICO: Resetar flags IMEDIATAMENTE
+                                form = new FormData();
+                                ehaudio = false;
+                                audioConfirmado = false;
+                                audioProcessado = false;
+                                enviandoMensagem = false;
+                                imageClipboard = false;
+                                imageCamera = false;
+                                
+                                // Limpar campos
+                                $("#msg").val("");
+                                $("#anexomsgRapida").val("0");
+                                $("#RespostaSelecionada").html("");
+                                $("#chatid_resposta").val("");
+                                $("#upload").val("");
+                                $("#imgDragDrop").val("");
+                                
+                                removeFile();
+                                cancelaUploadImageClipboard();
+                                
+                                console.log("Flags resetados apos auto-send");
+                                
+                                $("#divAudio").attr("style", "display: block");
+                                $("#msg").focus();
+                            },
+                            error: function(jqXHR, textStatus, errorThrown) {
+                                console.error("Erro ao enviar audio:", textStatus);
+                                enviandoMensagem = false;
+                                alert("Erro ao enviar audio.");
+                            }
+                        });
+                    };
+                    // Iniciar leitura do blob como Base64
+                    reader.readAsDataURL(blob);
                 }
                 else{
                     // Habilitando o Envio da Imagem e Bloqueando as demais Opções //
