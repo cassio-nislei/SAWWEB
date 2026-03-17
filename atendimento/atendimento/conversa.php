@@ -922,7 +922,32 @@
                     $("#btnEnviar").attr("style", "display: block");
                     $("#divAudio").attr("style", "display: none");
 
-                    // Criando o Elemento <img> //
+                    // Tratamento especial para PDF - converter para base64
+                    if (fileExtension === "pdf") {
+                        var fileReader = new FileReader();
+                        fileReader.onload = function(e) {
+                            var pdfBase64 = e.target.result;
+                            console.log("✓ PDF convertido para Base64: " + pdfBase64.length + " caracteres");
+                            
+                            // Armazenar PDF base64 em data attribute do elemento de visualização
+                            var img = document.createElement("img");
+                            img.setAttribute("id", "imgView");
+                            img.setAttribute("data-pdf-base64", pdfBase64);
+                            img.setAttribute("data-file-name", fileName);
+                            img.src = "images/abrir_pdf.png";
+                            
+                            $("#dragDropImage").attr("style", "display:none");
+                            document.getElementById("panel-upload-image").appendChild(img);
+                            
+                            // Adicionar pdfBase64 ao formulário em vez de upload[]
+                            form.append("pdfBase64", pdfBase64);
+                            form.append("pdfFileName", fileName);
+                            ehupload = true;
+                            $("#msg").focus();
+                        };
+                        fileReader.readAsDataURL(arquivo);
+                    } else {
+                        // Para outros tipos de arquivo (imagens, docs, etc)
                         var imageClipboard = true;
                         var reader = new FileReader();
                         var img = document.createElement("img");
@@ -934,9 +959,6 @@
                                 || fileExtension === "png"
                                 || fileExtension === "gif" ){
                                 img.src = file.target.result;
-                            }
-                            else if( fileExtension === "pdf" ){
-                                img.src = "images/abrir_pdf.png";
                             }
                             else if( fileExtension === "doc"
                                 || fileExtension === "docx" ){
@@ -958,6 +980,7 @@
                         $("#dragDropImage").attr("style", "display:none");
                         document.getElementById("panel-upload-image").appendChild(img);
 					    $("#msg").focus();
+                    }
                     // FIM Criando o Elemento <img> //
                 }
 

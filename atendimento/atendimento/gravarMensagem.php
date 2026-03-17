@@ -14,6 +14,8 @@
 		$anexomsgRapida = $_POST["anexomsgRapida"];		
 		$imageBase64 = isset($_POST["imageBase64"]) ? $_POST["imageBase64"] : '';
 		$audioBase64 = isset($_POST["audioBase64"]) ? $_POST["audioBase64"] : '';
+		$pdfBase64 = isset($_POST["pdfBase64"]) ? $_POST["pdfBase64"] : '';
+		$pdfFileName = isset($_POST["pdfFileName"]) ? $_POST["pdfFileName"] : '';
 		$tipo = '';
 		//$situacao    = ( strpos($strMensagem, 'BEGIN:VCARD') !== false ) ? ((intval($idCanal) > 1 ? "E" : "N" ) ) : "E"; // O Marcelino precisa disso! Pois no Delphi ainda não funciona o envio de Contato!
 		$situacao    = 'E'; 
@@ -85,6 +87,45 @@
 		$nomeArquivo = "audio_" . $idAtendimento . "_" . $newSequence . ".mp3";
 		
 		// Grava o Anexo (áudio em base64) no Banco de dados com campo base64
+		$sqlInsertTbAnexo = "INSERT INTO tbanexos(id,seq,numero,arquivo,base64,nome_arquivo,nome_original,tipo_arquivo,canal,enviado)
+							VALUES ('".$idAtendimento."','".$newSequence."','".$strNumero."','" . $binario . "','" . $base64DataUri . "','".$nomeArquivo."',
+								'".$nomeArquivo."','".$tipo."','".$idCanal."',1)";
+		
+		$insereAnexo = mysqli_query($conexao, $sqlInsertTbAnexo) or die(mysqli_error($conexao));
+		
+		$situacao = 'N';
+		
+		$inseremsg = mysqli_query(
+			$conexao, 
+			"INSERT INTO tbmsgatendimento(id,seq,numero,msg, resp_msg, nome_chat,situacao, dt_msg,hr_msg,id_atend,canal, chatid_resposta)
+				VALUES('".$idAtendimento."','".$newSequence."' ,'".$strNumero."', (CONCAT_WS(REPLACE('\\\ n', ' ', ''), ".$strMensagem."), '".$strResposta."',
+						'".$strUserNome."' ,'".$situacao."',NOW(),CURTIME(),'".$intUserId."','".$idCanal."', '".$idResposta."')"
+		);
+	}
+
+	// Se houver PDF em base64 (capturado do drag & drop)
+	else if (!empty($pdfBase64)){
+		$newSequence = newSequence($conexao, $idAtendimento, $strNumero, $idCanal); // Gera a sequencia da mensagem
+		
+		// Guardar versão original com prefixo para salvar no DB
+		if (strpos($pdfBase64, 'data:application/pdf') === 0 || strpos($pdfBase64, 'data:') === 0) {
+			$pdfBase64_orig = $pdfBase64; // Guardar com prefixo para o DB
+			$pdfBase64_clean = substr($pdfBase64, strpos($pdfBase64, ',') + 1);
+		} else {
+			$pdfBase64_orig = 'data:application/pdf;base64,' . $pdfBase64;
+			$pdfBase64_clean = $pdfBase64;
+		}
+		
+		// Preparar strings escapadas
+		$binario_escaped = mysqli_real_escape_string($conexao, $pdfBase64_clean);
+		$pdfBase64_orig_escaped = mysqli_real_escape_string($conexao, $pdfBase64_orig);
+		
+		$binario = $binario_escaped;
+		$base64DataUri = $pdfBase64_orig_escaped;
+		$tipo = 'PDF';
+		$nomeArquivo = (!empty($pdfFileName)) ? $pdfFileName : "pdf_" . $idAtendimento . "_" . $newSequence . ".pdf";
+		
+		// Grava o Anexo (PDF em base64) no Banco de dados com campo base64
 		$sqlInsertTbAnexo = "INSERT INTO tbanexos(id,seq,numero,arquivo,base64,nome_arquivo,nome_original,tipo_arquivo,canal,enviado)
 							VALUES ('".$idAtendimento."','".$newSequence."','".$strNumero."','" . $binario . "','" . $base64DataUri . "','".$nomeArquivo."',
 								'".$nomeArquivo."','".$tipo."','".$idCanal."',1)";
