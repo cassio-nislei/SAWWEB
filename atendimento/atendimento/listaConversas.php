@@ -383,10 +383,10 @@
 					$documentData = 'data:' . $mimeType . ';base64,' . $documentData;
 				}
 				
-				// Fazer download do arquivo ao clicar (sem abrir em nova aba)
-				$mensagem = '<a href="'.$documentData.'" download="'.$nomeEscaped.'"><img src="images/'.$imgIcone.'" width="100" height="100"></a><br>'.$nomeEscaped.'<br>'.$msgEscaped;
+				// Fazer download do arquivo ao clicar (sem abrir em nova aba) - nome original não é exibido
+				$mensagem = '<a href="'.$documentData.'" download="'.$nomeEscaped.'"><img src="images/'.$imgIcone.'" width="100" height="100"></a><br>'.$msgEscaped;
 			} else {
-				$mensagem = '<img src="images/'.$imgIcone.'" width="100" height="100"><br>'.$nomeEscaped.'<br>' . $msgEscaped . '<br><span style="color: #999;">❌ Documento não disponível</span>';
+				$mensagem = '<img src="images/'.$imgIcone.'" width="100" height="100"><br>' . $msgEscaped . '<br><span style="color: #999;">❌ Documento não disponível</span>';
 			}
 		}
 		else if (strlen($objConversa->msg)>0) {
