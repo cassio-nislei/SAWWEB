@@ -382,7 +382,14 @@
 				if (strpos($documentData, 'data:') !== 0) {
 					$documentData = 'data:' . $mimeType . ';base64,' . $documentData;
 				}
-				$mensagem = '<a href="'.$documentData.'" target="_blank"><img src="images/'.$imgIcone.'" width="100" height="100"></a><br>'.$nomeEscaped.'<br>'.$msgEscaped;
+				
+				// Para PDFs, abrir no visualizador
+				if ($ext == 'PDF') {
+					$pdfjsLink = 'visualizador_pdf.php?data=' . urlencode($documentData) . '&filename=' . urlencode($nomeEscaped);
+					$mensagem = '<a href="'.$pdfjsLink.'" target="_blank"><img src="images/'.$imgIcone.'" width="100" height="100"></a><br>'.$nomeEscaped.'<br>'.$msgEscaped;
+				} else {
+					$mensagem = '<a href="'.$documentData.'" target="_blank"><img src="images/'.$imgIcone.'" width="100" height="100"></a><br>'.$nomeEscaped.'<br>'.$msgEscaped;
+				}
 			} else {
 				$mensagem = '<img src="images/'.$imgIcone.'" width="100" height="100"><br>'.$nomeEscaped.'<br>' . $msgEscaped . '<br><span style="color: #999;">❌ Documento não disponível</span>';
 			}
