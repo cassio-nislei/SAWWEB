@@ -222,13 +222,57 @@
 		//Quando for envio de Video
 		}
 		elseif ($objConversa->tipo_arquivo=='VIDEO'){
-			$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->anexo_id."&numero=".$objConversa->anexo_numero."&seq=".$objConversa->anexo_seq, ENT_QUOTES, 'UTF-8');
-			$mensagem = '<a class="youtube cboxElement" href="'.$url_anexo.'"><img src="images/abrir_video.png" width="100" height="100"></a><br>'.htmlspecialchars($objConversa->nome_original, ENT_QUOTES, 'UTF-8');									 
-			//Quando for Imagem
+			// Recuperar base64 do banco (video)
+			$sqlAnexo = "SELECT base64, arquivo FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."' LIMIT 1";
+			$qryAnexo = mysqli_query($conexao, $sqlAnexo);
+			$objAnexo = mysqli_fetch_object($qryAnexo);
+			
+			if ($objAnexo && !empty($objAnexo->base64)) {
+				$videoData = $objAnexo->base64;
+				
+				// Detectar tipo de video pela extensão do arquivo
+				$ext = strtolower(pathinfo($objConversa->nome_original, PATHINFO_EXTENSION));
+				if ($ext === 'mp4') {
+					$videoType = 'video/mp4';
+				} elseif ($ext === 'webm') {
+					$videoType = 'video/webm';
+				} elseif ($ext === 'ogg' || $ext === 'ogv') {
+					$videoType = 'video/ogg';
+				} elseif ($ext === 'mov') {
+					$videoType = 'video/quicktime';
+				} else {
+					$videoType = 'video/mp4'; // Default para MP4
+				}
+				
+				// Se não tiver o prefixo data URI, adicionar
+				if (strpos($videoData, 'data:video') !== 0) {
+					$videoData = 'data:' . $videoType . ';base64,' . $videoData;
+				}
+				
+				$videoName = htmlspecialchars(basename($objConversa->nome_original), ENT_QUOTES, 'UTF-8');
+				$mensagem = '<video controls="" style="max-width:300px; border-radius: 5px;"><source src="'.$videoData.'" type="'.$videoType.'" />Seu navegador não suporta vídeo HTML5</video><br><span style="font-size: 12px; color: #666;">'.$videoName.'</span>';
+			} else {
+				// Se não houver video armazenado, mostrar mensagem
+				$mensagem = '<span style="color: #999;">❌ Vídeo não disponível</span>';
+			}
+			//Quando for Imagem - Sticker
 		}
 		elseif ($objConversa->tipo_arquivo=='STICKER'){
-			$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->anexo_id."&numero=".$objConversa->anexo_numero."&seq=".$objConversa->anexo_seq, ENT_QUOTES, 'UTF-8');
-			$mensagem = '<a class="youtube cboxElement" href="'.$url_anexo.'"><img src="'.$url_anexo.'" width="100" height="100"></a>';
+			// Recuperar base64 do banco (sticker)
+			$sqlAnexo = "SELECT base64, arquivo FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."' LIMIT 1";
+			$qryAnexo = mysqli_query($conexao, $sqlAnexo);
+			$objAnexo = mysqli_fetch_object($qryAnexo);
+			
+			if ($objAnexo && !empty($objAnexo->base64)) {
+				$stickerData = $objAnexo->base64;
+				// Se não tiver o prefixo data URI, adicionar
+				if (strpos($stickerData, 'data:image') !== 0) {
+					$stickerData = 'data:image/webp;base64,' . $stickerData;
+				}
+				$mensagem = '<a class="youtube cboxElement" href="'.$stickerData.'"><img src="'.$stickerData.'" width="100" height="100"></a>';
+			} else {
+				$mensagem = '<span style="color: #999;">❌ Sticker não disponível</span>';
+			}
 		}
 		// Imagem da Câmera (base64 comprimida)
 		elseif ($objConversa->tipo_arquivo=='IMG'){
@@ -252,14 +296,16 @@
 			}
 		}
 		elseif ($objConversa->tipo_arquivo=='IMAGE'){
-			// Verifica se é base64 ou binário
-			if (!empty($objConversa->base64)) {
-				if (strpos($objConversa->base64, 'data:image') === 0) {
-					// Já é base64
-					$base64_img = $objConversa->base64;
-				} else {
-					// Caso contrário, adiciona o cabeçalho
-					$base64_img = 'data:image/jpeg;base64,' . $objConversa->base64;
+			// Recuperar base64 do banco (imagem)
+			$sqlAnexo = "SELECT base64, arquivo FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."' LIMIT 1";
+			$qryAnexo = mysqli_query($conexao, $sqlAnexo);
+			$objAnexo = mysqli_fetch_object($qryAnexo);
+			
+			if ($objAnexo && !empty($objAnexo->base64)) {
+				$base64_img = $objAnexo->base64;
+				// Se não tiver o cabeçalho data:image, adiciona
+				if (strpos($base64_img, 'data:image') !== 0) {
+					$base64_img = 'data:image/jpeg;base64,' . $base64_img;
 				}
 				
 				// Montando a Mensagem //
@@ -270,12 +316,32 @@
 				if (strlen($objConversa->msg)>0){
 					$mensagem = $mensagem .'<br>'.  $objConversa->msg;
 				}
+			} else {
+				$mensagem = '<span style="color: #999;">❌ Imagem não disponível</span>';
 			}
 		}
 		else if ( $objConversa->tipo_arquivo == 'DOCUMENT'
 			|| $objConversa->tipo_arquivo == 'APPLI'
 			|| $objConversa->tipo_arquivo == 'TEXT/' ) {
+			// Recuperar base64 do banco (documento)
+			$sqlAnexo = "SELECT base64, arquivo FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."' LIMIT 1";
+			$qryAnexo = mysqli_query($conexao, $sqlAnexo);
+			$objAnexo = mysqli_fetch_object($qryAnexo);
+			
 			$ext = strtoupper(pathinfo($objConversa->nome_original, PATHINFO_EXTENSION));
+			
+			// Mapear MIME types comuns
+			$mimeTypes = array(
+				'PDF' => 'application/pdf',
+				'DOC' => 'application/msword',
+				'DOCX' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+				'XLS' => 'application/vnd.ms-excel',
+				'XLSX' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+				'PPT' => 'application/vnd.ms-powerpoint',
+				'PPTX' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+				'PPSX' => 'application/vnd.openxmlformats-officedocument.presentationml.slideshow'
+			);
+			$mimeType = isset($mimeTypes[$ext]) ? $mimeTypes[$ext] : 'application/octet-stream';
 			
 			if ($ext=='PDF'){
 				$imgIcone = 'abrir_pdf.png';
@@ -294,9 +360,18 @@
 			}
 
 			$msgEscaped = htmlspecialchars($objConversa->msg, ENT_QUOTES, 'UTF-8');
-			$nomeEscaped = htmlspecialchars($objConversa->nome_original, ENT_QUOTES, 'UTF-8');
-			$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->anexo_id."&numero=".$objConversa->anexo_numero."&seq=".$objConversa->anexo_seq, ENT_QUOTES, 'UTF-8');
-			$mensagem = '<a href="'.$url_anexo.'" target="_blank"><img src="images/'.$imgIcone.'" width="100" height="100"></a><br>'.$nomeEscaped.'<br>'.$msgEscaped;
+			$nomeEscaped = htmlspecialchars(basename($objConversa->nome_original), ENT_QUOTES, 'UTF-8');
+			
+			if ($objAnexo && !empty($objAnexo->base64)) {
+				$documentData = $objAnexo->base64;
+				// Se não tiver o prefixo data URI, adicionar
+				if (strpos($documentData, 'data:') !== 0) {
+					$documentData = 'data:' . $mimeType . ';base64,' . $documentData;
+				}
+				$mensagem = '<a href="'.$documentData.'" target="_blank"><img src="images/'.$imgIcone.'" width="100" height="100"></a><br>'.$nomeEscaped.'<br>'.$msgEscaped;
+			} else {
+				$mensagem = '<img src="images/'.$imgIcone.'" width="100" height="100"><br>'.$nomeEscaped.'<br>' . $msgEscaped . '<br><span style="color: #999;">❌ Documento não disponível</span>';
+			}
 		}
 		else if (!empty($objConversa->msg) && strlen($objConversa->msg)>0) {
 			$mensagem = $objConversa->msg;	

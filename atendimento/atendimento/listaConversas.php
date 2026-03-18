@@ -14,7 +14,7 @@
 	// Alteração necessária para mostrar o 'Histórico de Atendimentos' aqui vai mostrar apenas o histórico do atendimento  //
 	if( $idAtendimento === "att" ){
 		$strSQL = "SELECT tma.chatid, tma.id, tma.seq, tma.numero, tma.msg, tma.resp_msg, tma.dt_msg, tma.hr_msg, tma.id_atend, 
-		       ta.id as anexo_id, ta.numero as anexo_numero, ta.seq as anexo_seq, ta.tipo_arquivo, ta.nome_original, tma.situacao, tma.reagir, tma.reacao,
+	       ta.id as anexo_id, ta.numero as anexo_numero, ta.seq as anexo_seq, ta.tipo_arquivo, ta.nome_original, ta.base64, tma.situacao, tma.reagir, tma.reacao,
 		       tma.reacaorec, tma.apagada
 					FROM tbmsgatendimento tma
 						LEFT JOIN tbanexos ta ON tma.id_anexo = ta.id
@@ -24,7 +24,7 @@
 		// Alteração necessária para mostrar o 'Histórico de Atendimentos' do Cliente completo pelo número//
 		if( $idAtendimento === "all" ){
 			$strSQL = "SELECT tma.chatid, tma.id, tma.seq, tma.numero, tma.msg, tma.resp_msg, tma.dt_msg, tma.hr_msg, tma.id_atend, 
-			       ta.id as anexo_id, ta.numero as anexo_numero, ta.seq as anexo_seq, ta.tipo_arquivo, ta.nome_original, tma.situacao, tma.reagir, tma.reacao,
+		       ta.id as anexo_id, ta.numero as anexo_numero, ta.seq as anexo_seq, ta.tipo_arquivo, ta.nome_original, ta.base64, tma.situacao, tma.reagir, tma.reacao,
 			       tma.reacaorec, tma.apagada
 						FROM tbmsgatendimento tma
 						LEFT JOIN tbanexos ta ON tma.id_anexo = ta.id
@@ -47,7 +47,7 @@
 			// FIM Atualizo as visualizações das mensagens para zerar o contador conforme atualiza a conversa //
 
 			$strSQL = "SELECT tma.chatid, tma.id, tma.seq, tma.numero, tma.msg,  tma.resp_msg, tma.dt_msg, tma.hr_msg, tma.id_atend, 
-			       ta.id as anexo_id, ta.numero as anexo_numero, ta.seq as anexo_seq, ta.tipo_arquivo, ta.nome_original, tma.situacao, tma.reagir, tma.reacao,
+		       ta.id as anexo_id, ta.numero as anexo_numero, ta.seq as anexo_seq, ta.tipo_arquivo, ta.nome_original, ta.base64, tma.situacao, tma.reagir, tma.reacao,
 			       tma.reacaorec, tma.apagada
 						FROM tbmsgatendimento tma
 						LEFT JOIN tbanexos ta ON tma.id_anexo = ta.id
@@ -214,28 +214,68 @@
 		//Quando for envio de Video
 		}
 		elseif ($objConversa->tipo_arquivo=='VIDEO'){
-			$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->anexo_id."&numero=".$objConversa->anexo_numero."&seq=".$objConversa->anexo_seq, ENT_QUOTES, 'UTF-8');
-			$mensagem = '<a class="youtube cboxElement" href="'.$url_anexo.'"><img src="images/abrir_video.png" width="100" height="100"></a><br>'.htmlspecialchars($objConversa->nome_original, ENT_QUOTES, 'UTF-8');									 
-			//Quando for Imagem
+			// Recuperar base64 do banco (video)
+			$sqlAnexo = "SELECT base64, arquivo FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."' LIMIT 1";
+			$qryAnexo = mysqli_query($conexao, $sqlAnexo);
+			$objAnexo = mysqli_fetch_object($qryAnexo);
+			
+			if ($objAnexo && !empty($objAnexo->base64)) {
+				$videoData = $objAnexo->base64;
+				
+				// Detectar tipo de video pela extensão do arquivo
+				$ext = strtolower(pathinfo($objConversa->nome_original, PATHINFO_EXTENSION));
+				if ($ext === 'mp4') {
+					$videoType = 'video/mp4';
+				} elseif ($ext === 'webm') {
+					$videoType = 'video/webm';
+				} elseif ($ext === 'ogg' || $ext === 'ogv') {
+					$videoType = 'video/ogg';
+				} elseif ($ext === 'mov') {
+					$videoType = 'video/quicktime';
+				} else {
+					$videoType = 'video/mp4'; // Default para MP4
+				}
+				
+				// Se não tiver o prefixo data URI, adicionar
+				if (strpos($videoData, 'data:video') !== 0) {
+					$videoData = 'data:' . $videoType . ';base64,' . $videoData;
+				}
+				
+				$videoName = htmlspecialchars(basename($objConversa->nome_original), ENT_QUOTES, 'UTF-8');
+				$mensagem = '<video controls="" style="max-width:300px; border-radius: 5px;"><source src="'.$videoData.'" type="'.$videoType.'" />Seu navegador não suporta vídeo HTML5</video><br><span style="font-size: 12px; color: #666;">'.$videoName.'</span>';
+			} else {
+				// Se não houver video armazenado, mostrar mensagem
+				$mensagem = '<span style="color: #999;">❌ Vídeo não disponível</span>';
+			}
+			//Quando for Imagem - Sticker
 		}
 		elseif ($objConversa->tipo_arquivo=='STICKER'){
-			$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->anexo_id."&numero=".$objConversa->anexo_numero."&seq=".$objConversa->anexo_seq, ENT_QUOTES, 'UTF-8');
-			$mensagem = '<a class="youtube cboxElement" href="'.$url_anexo.'"><img src="'.$url_anexo.'" width="100" height="100"></a>';
+			// Recuperar base64 do banco (sticker)
+			$sqlAnexo = "SELECT base64, arquivo FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."' LIMIT 1";
+			$qryAnexo = mysqli_query($conexao, $sqlAnexo);
+			$objAnexo = mysqli_fetch_object($qryAnexo);
+			
+			if ($objAnexo && !empty($objAnexo->base64)) {
+				$stickerData = $objAnexo->base64;
+				// Se não tiver o prefixo data URI, adicionar
+				if (strpos($stickerData, 'data:image') !== 0) {
+					$stickerData = 'data:image/webp;base64,' . $stickerData;
+				}
+				$mensagem = '<a class="youtube cboxElement" href="'.$stickerData.'"><img src="'.$stickerData.'" width="100" height="100"></a>';
+			} else {
+				$mensagem = '<span style="color: #999;">❌ Sticker não disponível</span>';
+			}
 		}
 		// Imagem da Câmera (base64 comprimida)
 		elseif ($objConversa->tipo_arquivo=='IMG'){
-			$strAnexos = "SELECT arquivo FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."' LIMIT 1";
-			$qryAnexos = mysqli_query($conexao, $strAnexos);
-			$objAnexos = mysqli_fetch_object($qryAnexos);
-			
 			// Exibe a imagem direto do base64 sem salvar em arquivo
-			if ($objAnexos && !empty($objAnexos->arquivo)) {
+			if (!empty($objConversa->base64)) {
 				// Se já tiver o cabeçalho data:image, usa direto
-				if (strpos($objAnexos->arquivo, 'data:image') === 0) {
-					$base64_img = $objAnexos->arquivo;
+				if (strpos($objConversa->base64, 'data:image') === 0) {
+					$base64_img = $objConversa->base64;
 				} else {
 					// Caso contrário, adiciona o cabeçalho
-					$base64_img = 'data:image/jpeg;base64,' . $objAnexos->arquivo;
+					$base64_img = 'data:image/jpeg;base64,' . $objConversa->base64;
 				}
 				
 				$mensagem = '<a href="'.$base64_img.'" data-lightbox-title="">
@@ -248,23 +288,19 @@
 			}
 		}
 		elseif ($objConversa->tipo_arquivo=='IMAGE'){
-			$strAnexos = "SELECT arquivo, nome_arquivo, tipo_arquivo, nome_contato FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."'";
-			$qryAnexos = mysqli_query($conexao, $strAnexos);
-			$objAnexos = mysqli_fetch_object($qryAnexos);
+			// Recuperar base64 do banco (imagem)
+			$sqlAnexo = "SELECT base64, arquivo FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."' LIMIT 1";
+			$qryAnexo = mysqli_query($conexao, $sqlAnexo);
+			$objAnexo = mysqli_fetch_object($qryAnexo);
 			
-			// Verifica se é base64 ou binário
-			if (strpos($objAnexos->arquivo, 'data:image') === 0) {
-				// Já é base64
-				$base64_img = $objAnexos->arquivo;
-			} elseif (isset($objAnexos->nome_contato) && strlen($objAnexos->nome_contato) > 0) {
-				// É base64 decodificado
-				$base64_img = 'data:image/jpeg;base64,' . base64_encode($objAnexos->arquivo);
-			} else {
-				// É binário puro - converter para base64
-				$base64_img = 'data:image/jpeg;base64,' . base64_encode($objAnexos->arquivo);
-			}
-			
-			// Montando a Mensagem //
+			if ($objAnexo && !empty($objAnexo->base64)) {
+				$base64_img = $objAnexo->base64;
+				// Se não tiver o cabeçalho data:image, adiciona
+				if (strpos($base64_img, 'data:image') !== 0) {
+					$base64_img = 'data:image/jpeg;base64,' . $base64_img;
+				}
+				
+				// Montando a Mensagem //
 				$mensagem = '<a href="'.$base64_img.'" data-lightbox-title="">
 								<img style="border: 1px solid #ccc; border-radius: 5px; max-width: 300px; max-height: 300px;" src="'.$base64_img.'" />
 							</a>';
@@ -272,44 +308,85 @@
 				if (strlen($objConversa->msg)>0){
 					$mensagem = $mensagem .'<br>'.  $objConversa->msg;
 				}
-			// FIM Montando a Mensagem //
+			} else {
+				$mensagem = '<span style="color: #999;">❌ Imagem não disponível</span>';
+			}
 		}
 		else if ($objConversa->tipo_arquivo == 'PDF') {
 			// Tratamento especial para PDFs via base64
-			$strAnexos = "SELECT arquivo, base64, nome_arquivo, nome_original FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."'";
-			$qryAnexos = mysqli_query($conexao, $strAnexos);
-			$objAnexos = mysqli_fetch_object($qryAnexos);
+			$sqlAnexo = "SELECT base64, arquivo FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."' LIMIT 1";
+			$qryAnexo = mysqli_query($conexao, $sqlAnexo);
+			$objAnexo = mysqli_fetch_object($qryAnexo);
 			
-			// Tentar usar campo base64, depois arquivo (compatibilidade com antigos)
-			$base64_pdf = '';
-			if (!empty($objAnexos->base64)) {
-				$base64_pdf = $objAnexos->base64;
-			} elseif (!empty($objAnexos->arquivo)) {
-				// Compatibilidade: se arquivo já é base64, usar direto
-				if (strpos($objAnexos->arquivo, 'data:application/pdf') === 0) {
-					$base64_pdf = $objAnexos->arquivo;
-				} else {
-					// Se for binário, converter
-					$base64_pdf = 'data:application/pdf;base64,' . base64_encode($objAnexos->arquivo);
+			if ($objAnexo && !empty($objAnexo->base64)) {
+				$base64_pdf = $objAnexo->base64;
+				// Se não tiver o prefixo data URI, adicionar
+				if (strpos($base64_pdf, 'data:') !== 0) {
+					$base64_pdf = 'data:application/pdf;base64,' . $base64_pdf;
 				}
+				
+				$msgEscaped = htmlspecialchars($objConversa->msg, ENT_QUOTES, 'UTF-8');
+				$nomeEscaped = htmlspecialchars(basename($objConversa->nome_original), ENT_QUOTES, 'UTF-8');
+				$mensagem = '<a href="'.$base64_pdf.'" target="_blank"><img src="images/abrir_pdf.png" width="100" height="100"></a><br>'.$nomeEscaped.'<br>'.$msgEscaped;
+			} else {
+				$msgEscaped = htmlspecialchars($objConversa->msg, ENT_QUOTES, 'UTF-8');
+				$nomeEscaped = htmlspecialchars(basename($objConversa->nome_original), ENT_QUOTES, 'UTF-8');
+				$mensagem = '<img src="images/abrir_pdf.png" width="100" height="100"><br>'.$nomeEscaped.'<br>' . $msgEscaped . '<br><span style="color: #999;">❌ PDF não disponível</span>';
 			}
-			
-			$msgEscaped = htmlspecialchars($objConversa->msg, ENT_QUOTES, 'UTF-8');
-			$nomeEscaped = htmlspecialchars($objAnexos->nome_original, ENT_QUOTES, 'UTF-8');
-			
-			// Usando base64 direto em href e data attribute
-			$base64Escaped = htmlspecialchars($base64_pdf, ENT_QUOTES, 'UTF-8');
-			$mensagem = '<a href="'.$base64Escaped.'" target="_blank" download="'.$nomeEscaped.'">
-						<img src="images/abrir_pdf.png" width="100" height="100" alt="PDF">
-					</a>
-					<br><span title="'.$nomeEscaped.'">'.$nomeEscaped.'</span><br>'.$msgEscaped;
 		}
 		else if ( $objConversa->tipo_arquivo == 'DOCUMENT'
 			|| $objConversa->tipo_arquivo == 'APPLI'
 			|| $objConversa->tipo_arquivo == 'TEXT/' ) {
+			// Recuperar base64 do banco (documento)
+			$sqlAnexo = "SELECT base64, arquivo FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."' LIMIT 1";
+			$qryAnexo = mysqli_query($conexao, $sqlAnexo);
+			$objAnexo = mysqli_fetch_object($qryAnexo);
+			
 			$ext = strtoupper(pathinfo($objConversa->nome_original, PATHINFO_EXTENSION));
 			
+			// Mapear MIME types comuns
+			$mimeTypes = array(
+				'PDF' => 'application/pdf',
+				'DOC' => 'application/msword',
+				'DOCX' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+				'XLS' => 'application/vnd.ms-excel',
+				'XLSX' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+				'PPT' => 'application/vnd.ms-powerpoint',
+				'PPTX' => 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+				'PPSX' => 'application/vnd.openxmlformats-officedocument.presentationml.slideshow'
+			);
+			$mimeType = isset($mimeTypes[$ext]) ? $mimeTypes[$ext] : 'application/octet-stream';
+			
 			if ($ext=='PDF'){
+				$imgIcone = 'abrir_pdf.png';
+			}
+			else if ($ext=='DOC' or $ext=='DOCX'){
+				$imgIcone = 'abrir_doc.png';
+			}
+			else if ($ext=='XLS' or $ext=='XLSX' or $ext=='CSV'){
+				$imgIcone = 'abrir_xls.png';
+			}
+           else if ($ext=='PPT' or $ext=='PPTX' or $ext=='PPSX'){
+				$imgIcone = 'abrir_ppt.png'; //Add Marcelo POWERPOINT
+			}
+			else{
+				$imgIcone = 'abrir_outros.png'; // Icone Generico
+			}
+
+			$msgEscaped = htmlspecialchars($objConversa->msg, ENT_QUOTES, 'UTF-8');
+			$nomeEscaped = htmlspecialchars(basename($objConversa->nome_original), ENT_QUOTES, 'UTF-8');
+			
+			if ($objAnexo && !empty($objAnexo->base64)) {
+				$documentData = $objAnexo->base64;
+				// Se não tiver o prefixo data URI, adicionar
+				if (strpos($documentData, 'data:') !== 0) {
+					$documentData = 'data:' . $mimeType . ';base64,' . $documentData;
+				}
+				$mensagem = '<a href="'.$documentData.'" target="_blank"><img src="images/'.$imgIcone.'" width="100" height="100"></a><br>'.$nomeEscaped.'<br>'.$msgEscaped;
+			} else {
+				$mensagem = '<img src="images/'.$imgIcone.'" width="100" height="100"><br>'.$nomeEscaped.'<br>' . $msgEscaped . '<br><span style="color: #999;">❌ Documento não disponível</span>';
+			}
+		}
 				// PDF detectado por extensão - usar base64
 				$strAnexos = "SELECT arquivo, base64, nome_arquivo, nome_original FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."'";
 				$qryAnexos = mysqli_query($conexao, $strAnexos);
@@ -333,34 +410,6 @@
 							<img src="images/abrir_pdf.png" width="100" height="100" alt="PDF">
 						</a>
 						<br><span title="'.$nomeEscaped.'">'.$nomeEscaped.'</span><br>'.$msgEscaped;
-			}
-			else if ($ext=='DOC' or $ext=='DOCX'){
-				$imgIcone = 'abrir_doc.png';
-				$msgEscaped = htmlspecialchars($objConversa->msg, ENT_QUOTES, 'UTF-8');
-				$nomeEscaped = htmlspecialchars($objConversa->nome_original, ENT_QUOTES, 'UTF-8');
-				$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->id."&numero=".$objConversa->numero."&seq=".$objConversa->seq, ENT_QUOTES, 'UTF-8');
-				$mensagem = '<a href="'.$url_anexo.'"><img src="images/'.$imgIcone.'" width="100" height="100"></a><br>'.$nomeEscaped.'<br>'.$msgEscaped;
-			}
-			else if ($ext=='XLS' or $ext=='XLSX' or $ext=='CSV'){
-				$imgIcone = 'abrir_xls.png';
-				$msgEscaped = htmlspecialchars($objConversa->msg, ENT_QUOTES, 'UTF-8');
-				$nomeEscaped = htmlspecialchars($objConversa->nome_original, ENT_QUOTES, 'UTF-8');
-				$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->id."&numero=".$objConversa->numero."&seq=".$objConversa->seq, ENT_QUOTES, 'UTF-8');
-				$mensagem = '<a href="'.$url_anexo.'"><img src="images/'.$imgIcone.'" width="100" height="100"></a><br>'.$nomeEscaped.'<br>'.$msgEscaped;
-			}
-           else if ($ext=='PPT' or $ext=='PPTX' or $ext=='PPSX'){
-				$imgIcone = 'abrir_ppt.png'; //Add Marcelo POWERPOINT
-				$msgEscaped = htmlspecialchars($objConversa->msg, ENT_QUOTES, 'UTF-8');
-				$nomeEscaped = htmlspecialchars($objConversa->nome_original, ENT_QUOTES, 'UTF-8');
-				$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->id."&numero=".$objConversa->numero."&seq=".$objConversa->seq, ENT_QUOTES, 'UTF-8');
-				$mensagem = '<a href="'.$url_anexo.'"><img src="images/'.$imgIcone.'" width="100" height="100"></a><br>'.$nomeEscaped.'<br>'.$msgEscaped;
-			}
-			else{
-				$imgIcone = 'abrir_outros.png'; // Icone Generico
-				$msgEscaped = htmlspecialchars($objConversa->msg, ENT_QUOTES, 'UTF-8');
-				$nomeEscaped = htmlspecialchars($objConversa->nome_original, ENT_QUOTES, 'UTF-8');
-				$url_anexo = htmlspecialchars("atendimento/anexo.php?id=".$objConversa->id."&numero=".$objConversa->numero."&seq=".$objConversa->seq, ENT_QUOTES, 'UTF-8');
-				$mensagem = '<a href="'.$url_anexo.'"><img src="images/'.$imgIcone.'" width="100" height="100"></a><br>'.$nomeEscaped.'<br>'.$msgEscaped;
 			}
 		}
 		else if (strlen($objConversa->msg)>0) {
