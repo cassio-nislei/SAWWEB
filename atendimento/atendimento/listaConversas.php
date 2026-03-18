@@ -387,31 +387,6 @@
 				$mensagem = '<img src="images/'.$imgIcone.'" width="100" height="100"><br>'.$nomeEscaped.'<br>' . $msgEscaped . '<br><span style="color: #999;">❌ Documento não disponível</span>';
 			}
 		}
-				// PDF detectado por extensão - usar base64
-				$strAnexos = "SELECT arquivo, base64, nome_arquivo, nome_original FROM tbanexos WHERE id = '".$objConversa->anexo_id."' AND numero = '".$objConversa->anexo_numero."' AND seq = '".$objConversa->anexo_seq."'";
-				$qryAnexos = mysqli_query($conexao, $strAnexos);
-				$objAnexos = mysqli_fetch_object($qryAnexos);
-				
-				$base64_pdf = '';
-				if (!empty($objAnexos->base64)) {
-					$base64_pdf = $objAnexos->base64;
-				} elseif (!empty($objAnexos->arquivo)) {
-					if (strpos($objAnexos->arquivo, 'data:application/pdf') === 0) {
-						$base64_pdf = $objAnexos->arquivo;
-					} else {
-						$base64_pdf = 'data:application/pdf;base64,' . base64_encode($objAnexos->arquivo);
-					}
-				}
-				
-				$msgEscaped = htmlspecialchars($objConversa->msg, ENT_QUOTES, 'UTF-8');
-				$nomeEscaped = htmlspecialchars($objConversa->nome_original, ENT_QUOTES, 'UTF-8');
-				$base64Escaped = htmlspecialchars($base64_pdf, ENT_QUOTES, 'UTF-8');
-				$mensagem = '<a href="'.$base64Escaped.'" target="_blank" download="'.$nomeEscaped.'">
-							<img src="images/abrir_pdf.png" width="100" height="100" alt="PDF">
-						</a>
-						<br><span title="'.$nomeEscaped.'">'.$nomeEscaped.'</span><br>'.$msgEscaped;
-			}
-		}
 		else if (strlen($objConversa->msg)>0) {
 			$mensagem = $objConversa->msg;	
 			$mensagemResposta = $objConversa->resp_msg;	
